@@ -1,0 +1,23 @@
+
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "mesc"
+readme = "README.md"
+requires-python = ">=3.7"
+dynamic = ["version", "description"]
+license = {file = "LICENSE"}
+dependencies = []
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+implicit_reexport = true
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+
