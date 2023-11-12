@@ -5,9 +5,12 @@ MESC is a specification for how EVM tools can configure their RPC endpoints.
 
 By following this specification, a user creates a single RPC configuration that can be used by all compliant tools in an OS-agnostic and language-agnostic way.
 
-## Specification
-
 The MESC specification is defined in [SPECIFICATION.md](./SPECIFICATION.md).
+
+## Contents
+- [Reference Implementations](#reference-implementations)
+- [Quickstart](#quickstart)
+- [Tutorial](#tutorial)
 
 ## Reference Implementations
 
@@ -17,19 +20,25 @@ Reference implementations are provided for each of the following:
 - [python](/python) [TODO]
 - [rust](/rust) [TODO]
 
-These implementations provide a consistent language-agnostic interface while obeying the natural conventions of each language.
+These implementations provide a consistent language-agnostic interface while still obeying the conventions of each language.
 
-Additionally, the CLI implementation contains utilities for creating, modifying, and validating an environment's MESC configuration.
+## Quickstart
 
-## Examples [TODO]
+The interactive [`mesc`](./cli) CLI tool makes it easy to create and manage a MESC configuration. Running `mesc setup` will prompt a user to enter their RPC endpoints, choose their defaults, and configure their environment variables.
 
-Examples are provided in the [`examples/`](/examples) directory.
+To perform this process manually:
+1) Create a MESC JSON file (can use [example](./SPECIFICATION.md#example-rpcconfig) from the spec as a template).
+2) Set `RPC_CONFIG_PATH` to the path of this JSON file.
 
-These examples demonstrate how MESC can be used in a wide variety of circumstances.
+## Tutorial
 
-## Tests [TODO]
+MESC tracks the following information:
+1. a list of RPC endpoints, including their `name`, `chain_id`, and `url`
+2. the default RPC endpoint that should be used for each network
+3. the default network that should be used
 
-Tests are provided in the [`tests/`](/tests) directory.
+MESC can also track additional information like metadata and tool-specific default settings.
 
-These tests validate that a MESC implementation is fully compliant with the specification.
+This configuration data is stored in a JSON file. Users should set their `RPC_CONFIG_PATH` environment to the location of a MESC JSON file.
 
+A more thorough tutorial can be found in the [In-Depth Tutorial]().
