@@ -17,9 +17,10 @@ The MESC specification is defined in [SPECIFICATION.md](./SPECIFICATION.md).
 
 Reference implementations are provided for each of the following:
 - [cli](/cli) [TODO]
-- [javascript](/javascript) [TODO]
+- [go](/go) [TODO]
 - [python](/python) [TODO]
 - [rust](/rust) [TODO]
+- [typescript](/typescript) [TODO]
 
 These implementations provide a consistent language-agnostic interface while still obeying the conventions of each language.
 
