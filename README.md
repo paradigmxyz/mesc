@@ -7,7 +7,7 @@ By following this specification, a user creates a single RPC configuration that 
 
 The MESC specification is defined in [SPECIFICATION.md](./SPECIFICATION.md).
 
-## Contents
+### Contents
 - [Reference Implementations](#reference-implementations)
 - [Quickstart](#quickstart)
 - [Tutorial](#tutorial)
@@ -27,7 +27,7 @@ These implementations provide a consistent language-agnostic interface while sti
 The interactive [`mesc`](./cli) CLI tool makes it easy to create and manage a MESC configuration. Running `mesc setup` will prompt a user to enter their RPC endpoints, choose their defaults, and configure their environment variables.
 
 To perform this process manually:
-1) Create a MESC JSON file (can use [example](./SPECIFICATION.md#example-rpcconfig) from the spec as a template).
+1) Create a MESC JSON file (can use [the example](./SPECIFICATION.md#example-rpcconfig) from the spec as a template).
 2) Set `RPC_CONFIG_PATH` to the path of this JSON file.
 
 ## Tutorial
