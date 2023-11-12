@@ -3,7 +3,7 @@
 
 MESC is a specification for how EVM tools can configure their RPC endpoints.
 
-By following this specification, a user creates a single RPC configuration that gets used by all compliant tools on their system.
+By following this specification, a user creates a single RPC configuration for all compliant EVM tools on their system.
 
 The MESC specification is defined in [SPECIFICATION.md](./SPECIFICATION.md).
 
