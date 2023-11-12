@@ -1,0 +1,19 @@
+
+[workspace]
+members = ["crates/mesc", "crates/mesc_cli"]
+
+# Explicitly set the resolver to version 2, which is the default for packages with edition >= 2021 but not virtual workspaces.
+# https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+homepage = "https://github.com/paradigmxyz/mesc"
+repository = "https://github.com/paradigmxyz/mesc"
+exclude = [".github/"]
+
+[workspace.dependencies]
+serde = { version = "1.0.191", features = ["derive"] }
+serde_json = "1.0.108"
