@@ -31,45 +31,38 @@ local_goerli_endpoint = mesc.get_endpoint('local_goerli')
 
 ## Reference
 
-Data structures
+Basic data structures
 ```python
 class Endpoint(TypedDict):
     url: str
     chain_id: int
     endpoint_extras: Mapping[str, Any]
-
-
-class Profile(TypedDict):
-    default_network: int | None
-    default_endpoints: Mapping[str, str]
-
-
-class RpcConfig(TypedDict):
-    schema: str
-    default_network: int | None
-    default_endpoints: Mapping[str, str]
-    endpoints: Mapping[str, Endpoint]
-    profiles: Mapping[str, Profile]
-    global_extras: Mapping[str, Any]
 ```
 
 Basic read functions
+
 ```python
-def get_default_network(
-    *,
-    profile: str | None = None,
-    require_profile: bool = False,
-) -> int | None:
-    ...
+import mesc
 
-def get_default_endpoint(
-    chain_id: int,
-    *,
-    profile: str | None = None,
-    require_profile: bool = False
-) -> Endpoint:
-    ...
+# get the default network
+chain_id = mesc.get_default_network()
 
-def get_endpoint(name: str) -> Endpoint:
-    ...
+# get the default endpoint of a network
+endpoint = mesc.get_default_endpoint(5)
+
+# get the default network for a particular tool
+chain_id = mesc.get_default_network(profile='xyz_tool')
+
+# get the default endpoint of a network for a particular tool
+endpoint = mesc.get_default_endpoint(5, profile='xyz_tool')
+
+# get an endpoint by name
+endpoint = mesc.get_endpoint_by_name(name)
+
+# parse a user-provided string into a matching endpoint
+# (first try 1. endpoint name, then 2. chain id, and then 3. network name)
+endpoint = mesc.parse_endpoint(user_str, profile='xyz_tool')
+
+# find all endpoints matching given criteria
+endpoints = mesc.find_endpoints(chain_id=5)
 ```

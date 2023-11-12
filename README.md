@@ -42,3 +42,35 @@ MESC can also track additional information like metadata and tool-specific defau
 This configuration data is stored in a JSON file. Users should set their `RPC_CONFIG_PATH` environment to the location of a MESC JSON file.
 
 A more thorough tutorial can be found in the [In-Depth Tutorial]().
+
+## Interface
+
+All reference MESC implementations use a common interface.
+
+Examples from the python implementation are shown below. Other language implementations have the same functions and behaviors.
+
+```python
+import mesc
+
+# get the default network
+chain_id = mesc.get_default_network()
+
+# get the default endpoint of a network
+endpoint = mesc.get_default_endpoint(5)
+
+# get the default network for a particular tool
+chain_id = mesc.get_default_network(profile='xyz_tool')
+
+# get the default endpoint of a network for a particular tool
+endpoint = mesc.get_default_endpoint(5, profile='xyz_tool')
+
+# get an endpoint by name
+endpoint = mesc.get_endpoint_by_name(name)
+
+# parse a user-provided string into a matching endpoint
+# (first try 1. endpoint name, then 2. chain id, and then 3. network name)
+endpoint = mesc.parse_endpoint(user_str, profile='xyz_tool')
+
+# find all endpoints matching given criteria
+endpoints = mesc.find_endpoints(chain_id=5)
+```
