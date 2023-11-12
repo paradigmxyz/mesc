@@ -157,32 +157,28 @@ The following resolution order is then used:
         "5": "local_goerli",
         "137": "llamanodes_polygon",
     },
-    "endpoints": [
-        {
-            "name": "local_ethereum",
+    "endpoints": {
+        "local_ethereum": {
             "url": "http://localhost:8545",
             "chain_id": 1,
             "endpoint_extras": {}
         },
-        {
-            "name": "local_goerli",
+        "local_goerli": {
             "url": "http://localhost:8546",
             "chain_id": 5,
             "endpoint_extras": {}
         },
-        {
-            "name": "llamanodes_ethereum",
+        "llamanodes_ethereum": {
             "url": "https://eth.llamarpc.com",
             "chain_id": 1,
             "endpoint_extras": {}
         },
-        {
-            "name": "llamanodes_polygon",
+        "llamanodes_polygon": {
             "url": "https://polygon.llamarpc.com",
             "chain_id": 137,
             "endpoint_extras": {}
         },
-    ],
+    },
     "global_extras": {}
 }
 ```
