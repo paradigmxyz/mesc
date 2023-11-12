@@ -11,6 +11,7 @@ The MESC specification is defined in [SPECIFICATION.md](./SPECIFICATION.md).
 - [Reference Implementations](#reference-implementations)
 - [Quickstart](#quickstart)
 - [Tutorial](#tutorial)
+- [Common Interface](#common-interface)
 
 ## Reference Implementations
 
@@ -37,13 +38,13 @@ MESC tracks the following information:
 2. the default RPC endpoint that should be used for each network
 3. the default network that should be used
 
-MESC can also track additional information like metadata and tool-specific default settings.
+MESC can also track information like metadata and tool-specific default settings.
 
 This configuration data is stored in a JSON file. Users should set their `RPC_CONFIG_PATH` environment to the location of a MESC JSON file.
 
-A more thorough tutorial can be found in the [In-Depth Tutorial]().
+A more thorough tutorial can be found in the [In-Depth Tutorial]() [TODO].
 
-## Interface
+## Common Interface
 
 All reference MESC implementations use a common interface.
 
