@@ -3,7 +3,7 @@
 
 This is a reference rust implementation of the MESC standard.
 
-The `crates/` directory contains rust libraries for reading, writing, and validating MESC configurations.
+The `crates/mesc` crate contains rust libraries for reading, writing, and validating MESC configurations.
 
 The `crates/mesc_cli` crate is a tool for reading, writing, and validating MESC from the command line. See [CLI](../cli) for details.
 
@@ -50,9 +50,9 @@ let endpoint: Result<Endpoint> = mesc::get_endpoint_by_name(name);
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, and then 3. network name)
-let endpoint: Result<Option<Endpoint>> = mesc.parse_endpoint(user_str, "xyz_tool");
+let endpoint: Result<Option<Endpoint>> = mesc::parse_endpoint(user_str, "xyz_tool");
 
 // find all endpoints matching given criteria
 let query = mesc::EndpointQuery { chain_id: Some(5) };
-let endpoints: Result<Vec<Endpoint>> = mesc.find_endpoints(query);
+let endpoints: Result<Vec<Endpoint>> = mesc::find_endpoints(query);
 ```
