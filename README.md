@@ -49,9 +49,7 @@ MESC tracks the following information:
 2. the default RPC endpoint that should be used for each network
 3. the default network that should be used
 
-MESC can also track information like metadata and tool-specific default settings.
-
-This configuration data is stored in a JSON file. To create this configuration, follow the [Quickstart](#quickstart) instructions above.
+MESC can also track other information like metadata and tool-specific defaults. Configuration data is stored in a JSON file. To create this file, follow the [Quickstart](#quickstart) instructions above.
 
 ### Common Interface
 
@@ -89,7 +87,7 @@ endpoints = mesc.find_endpoints(chain_id=5)
 
 Imagine an EVM cli tool `xyz`. This tool has an argument `-r <RPC_URL>` that specifies which RPC endpoint to use.
 
-If `xyz` uses MESC, then `-r` can leverage MESC endpoint data. Instead of just acceptiong a plain URL, `-r` can accept 1. an endpoint name, 2. chain id, or 3. a network name. Each of the following might resolve to the same RPC url:
+If `xyz` uses MESC, then `-r` can leverage MESC endpoint data. Instead of just accepting a plain URL, `-r` can accept 1. an endpoint name, 2. chain id, or 3. a network name. Each of the following might resolve to the same RPC url:
 - `xyz -r localhost:8545` (url)
 - `xyz -r local_goerli` (endpoint name)
 - `xyz -r 5` (chain id)
