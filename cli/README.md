@@ -64,10 +64,12 @@ mesc all --json
 ## Reference
 
 ```
-mesc url [ENDPOINT_OR_NETWORK]        output endpoint url
-mesc json [ENDPOINT_OR_NETWORK]       output endpoint as json
-mesc pretty [ENDPOINT_OR_NETWORK]     output endpoint data human-readable
-mesc all                              output entire MESC configuration
+mesc setup                         perform configuration setup
+mesc status                        print configuration status
+mesc url [ENDPOINT_OR_NETWORK]     print endpoint url
+mesc json [ENDPOINT_OR_NETWORK]    print configuration data as json
+mesc pretty [ENDPOINT_OR_NETWORK]  print configuration data as human-readable
+mesc find                          search for endpoints
 ```
 
 - If endpoint is omitted, use default endpoint of default network

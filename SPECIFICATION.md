@@ -81,22 +81,23 @@ This approach is built on three key-value schemas:
 
 ##### `RpcConfig` schema:
 
-| key                 | value type               | description |
-| ---                 | ---                      | --- |
-| `schema`            | `str`                    | must equal the value `"MESC 1.0"`
-| `default_network`   | `int \| None`            | chain_id of default network
-| `default_endpoints` | `Mapping[str, str]`      | map of chain_id's to endpoint names
-| `endpoints`         | `Mapping[str, Endpoint]` | map of endpoint names to endpoints
-| `profiles`          | `Mapping[str, Profile]`  | map of profile names to profiles
-| `global_extras`     | `Mapping[str, Any]`      | global metadata entires
+| key                         | value type               | description |
+| ---                         | ---                      | --- |
+| `schema`                    | `str`                    | must equal the value `"MESC 1.0"`
+| `default_network`           | `int \| None`            | chain_id of default network
+| `default_network_endpoints` | `Mapping[str, str]`      | map of chain_id's to endpoint names
+| `endpoints`                 | `Mapping[str, Endpoint]` | map of endpoint names to endpoints
+| `profiles`                  | `Mapping[str, Profile]`  | map of profile names to profiles
+| `global_metadata`           | `Mapping[str, Any]`      | global metadata entires
 
 ##### `Endpoint` schema:
 
-| key               | value type          | description |
-| ---               | ---                 | --- |
-| `url`             | `str`               | url of rpc endpoint, should include transport and port
-| `chain_id`        | `int`               | chain id of network
-| `endpoint_extras` | `Mapping[str, Any]` | endpoint metadata entries
+| key                 | value type          | description |
+| ---                 | ---                 | --- |
+| `name`              | `str`               | name of endpoint
+| `url`               | `str`               | url of rpc endpoint, should include transport and port
+| `chain_id`          | `int`               | chain id of network
+| `endpoint_metadata` | `Mapping[str, Any]` | endpoint metadata entries
 
 ##### `Profile` schema:
 
@@ -106,15 +107,15 @@ This approach is built on three key-value schemas:
 | `default_endpoints` | `Mapping[str, str]`      | map of chain_id's to endpoint names
 
 Requirements:
-- All keys of `RpcConfig` and `Endpoint` are required. No additional keys should be present, except within `global_extras` and `endpoint_extras`.
+- All keys of `RpcConfig` and `Endpoint` are required. No additional keys should be present, except within `global_metadata` and `endpoint_metadata`.
 - Every endpoint name specified in `RpcConfig.default_endpoints` must exist in `RpcConfig.endpoints`.
 - These key-value structures can be represented simply in JSON and in most common programming languages. The `chain_id` keys of `default_endpoints` should be strings as required by JSON.
 
-The `global_extras` and `endpoint_extras` fields allow for optional or idiosyncratic RPC metadata to be colocated with the core RPC config. Tools can choose to ignore these fields.
-- Possible `global_extras` fields:
+The `global_metadata` and `endpoint_metadata` fields allow for optional or idiosyncratic RPC metadata to be colocated with the core RPC config. Tools can choose to ignore these fields.
+- Possible `global_metadata` fields:
     - `conceal`: whether the tool should avoid casually revealing private RPC url's
     - other field names specific to a particular tool should be prefixed with `tool_name + '__'`
-- Possible `endpoint_extras` fields:
+- Possible `endpoint_metadata` fields:
     - `api_key`: `str` api key for endpoint
     - `rate_limit`: `float` rate limit for endpoint in units of requests per second
     - `method_rate_limits`: `Mapping` of `str` rpc method names to `float` rate limits 
@@ -161,25 +162,25 @@ The following resolution order is then used:
         "local_ethereum": {
             "url": "http://localhost:8545",
             "chain_id": 1,
-            "endpoint_extras": {}
+            "endpoint_metadata": {}
         },
         "local_goerli": {
             "url": "http://localhost:8546",
             "chain_id": 5,
-            "endpoint_extras": {}
+            "endpoint_metadata": {}
         },
         "llamanodes_ethereum": {
             "url": "https://eth.llamarpc.com",
             "chain_id": 1,
-            "endpoint_extras": {}
+            "endpoint_metadata": {}
         },
         "llamanodes_polygon": {
             "url": "https://polygon.llamarpc.com",
             "chain_id": 137,
-            "endpoint_extras": {}
+            "endpoint_metadata": {}
         }
     },
-    "global_extras": {}
+    "global_metadata": {}
 }
 ```
 
@@ -193,7 +194,7 @@ The following resolution order is then used:
   TODO: Remove this comment before submitting
 -->
 
-- `global_extras` and `endpoint_extras` allow extra information to be stored in the config without breaking the standard. This includes api keys, rate limits, and organizational labels. This information might be specific to idiosyncratic to each application.
+- `global_metadata` and `endpoint_metadata` allow extra information to be stored in the config without breaking the standard. This includes api keys, rate limits, and organizational labels. This information might be specific to idiosyncratic to each application.
 - `Profile`s allow different defaults to be assigned to each tool or each mode of operation.
 - Allowing RPC information to be configured using either a file or an environment variable allows optimal deployment patterns across a wide range of computing environments. Each also have their own advantages, e.g. file can be used with version control whereas environment variables can be changed more dynamically.
 
@@ -247,9 +248,10 @@ from typing import Any, Mapping, TypedDict
 
 
 class Endpoint(TypedDict):
+    name: str
     url: str
-    chain_id: int
-    endpoint_extras: Mapping[str, Any]
+    chain_id: int | None
+    endpoint_metadata: Mapping[str, Any]
 
 
 class Profile(TypedDict):
@@ -260,10 +262,19 @@ class Profile(TypedDict):
 class RpcConfig(TypedDict):
     schema: str
     default_network: int | None
-    default_endpoints: Mapping[str, str]
+    default_network_endpoints: Mapping[str, str]
     endpoints: Mapping[str, Endpoint]
+    network_names: Mapping[str, int]
     profiles: Mapping[str, Profile]
-    global_extras: Mapping[str, Any]
+    global_metadata: Mapping[str, Any]
+
+
+def get_default_endpoint(*, profile: str | None = None) -> Endpoint | None:
+    chain_id = get_default_network(profile=profile)
+    if chain_id is not None:
+        return get_network_default_endpoint(chain_id, profile=profile)
+    else:
+        return None
 
 
 def get_default_network(*, profile: str | None = None) -> int | None:
@@ -274,7 +285,7 @@ def get_default_network(*, profile: str | None = None) -> int | None:
         return config['default_network']
 
 
-def get_default_endpoint(chain_id: int, *, profile: str | None = None) -> Endpoint:
+def get_default_network_endpoint(chain_id: int, *, profile: str | None = None) -> Endpoint | None:
     config = read_config_data()
     if profile and profile in config['profiles']:
         default_endpoints = config['profiles'][profile]['default_endpoints']
@@ -283,9 +294,9 @@ def get_default_endpoint(chain_id: int, *, profile: str | None = None) -> Endpoi
 
     name = default_endpoints.get(str(chain_id))
     if name is None:
-        raise Exception('missing endpoint for chain_id: ' + str(chain_id))
-
-    return get_endpoint_by_name(name, config=config)
+        return None
+    else:
+        return get_endpoint_by_name(name)
 
 
 def get_endpoint_by_name(name: str, *, config: RpcConfig) -> Endpoint:
