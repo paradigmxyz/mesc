@@ -81,22 +81,23 @@ This approach is built on three key-value schemas:
 
 ##### `RpcConfig` schema:
 
-| key                         | value type               | description |
-| ---                         | ---                      | --- |
-| `schema`                    | `str`                    | must equal the value `"MESC 1.0"`
-| `default_network`           | `int \| None`            | chain_id of default network
-| `default_network_endpoints` | `Mapping[str, str]`      | map of chain_id's to endpoint names
-| `endpoints`                 | `Mapping[str, Endpoint]` | map of endpoint names to endpoints
-| `profiles`                  | `Mapping[str, Profile]`  | map of profile names to profiles
-| `global_metadata`           | `Mapping[str, Any]`      | global metadata entires
+| key                 | value type               | description |
+| ---                 | ---                      | --- |
+| `mesc_version`      | `str`                    | must equal the value `"MESC 1.0"`
+| `default_endpoint`  | `int \| None`            | name of default endpoint
+| `network_defaults`  | `Mapping[str, str]`      | map of chain_id's to endpoint names
+| `network_names`     | `Mapping[str, int]`      | map of network names to chain_id's
+| `endpoints`         | `Mapping[str, Endpoint]` | map of endpoint names to endpoints
+| `profiles`          | `Mapping[str, Profile]`  | map of profile names to profiles
+| `global_metadata`   | `Mapping[str, Any]`      | global metadata entires
 
 ##### `Endpoint` schema:
 
 | key                 | value type          | description |
 | ---                 | ---                 | --- |
+| `url`               | `str`               | url of endpoint, including transport
 | `name`              | `str`               | name of endpoint
-| `url`               | `str`               | url of rpc endpoint, should include transport and port
-| `chain_id`          | `int`               | chain id of network
+| `chain_id`          | `int | None`        | chain id of network
 | `endpoint_metadata` | `Mapping[str, Any]` | endpoint metadata entries
 
 ##### `Profile` schema:
@@ -104,60 +105,116 @@ This approach is built on three key-value schemas:
 | key                 | value type               | description |
 | ---                 | ---                      | --- |
 | `default_network`   | `int \| None`            | chain_id of default network
-| `default_endpoints` | `Mapping[str, str]`      | map of chain_id's to endpoint names
+| `network_defaults`  | `Mapping[str, str]`      | map of chain_id's to endpoint names
 
 Requirements:
 - All keys of `RpcConfig` and `Endpoint` are required. No additional keys should be present, except within `global_metadata` and `endpoint_metadata`.
 - Every endpoint name specified in `RpcConfig.default_endpoints` must exist in `RpcConfig.endpoints`.
 - These key-value structures can be represented simply in JSON and in most common programming languages. The `chain_id` keys of `default_endpoints` should be strings as required by JSON.
 
-The `global_metadata` and `endpoint_metadata` fields allow for optional or idiosyncratic RPC metadata to be colocated with the core RPC config. Tools can choose to ignore these fields.
-- Possible `global_metadata` fields:
-    - `conceal`: whether the tool should avoid casually revealing private RPC url's
-    - other field names specific to a particular tool should be prefixed with `tool_name + '__'`
-- Possible `endpoint_metadata` fields:
-    - `api_key`: `str` api key for endpoint
-    - `rate_limit`: `float` rate limit for endpoint in units of requests per second
-    - `method_rate_limits`: `Mapping` of `str` rpc method names to `float` rate limits 
-    - `labels`: `list` of `str` labels for endpoint
-    - other field names specific to a particular tool should be prefixed with `tool_name + '__'`
+##### Metadata
+
+The `global_metadata` and `endpoint_metadata` fields allow for optional or idiosyncratic RPC metadata to be placed within the core RPC config. Tools can choose to ignore these fields. Examples of common metadata:
+
+**Endpoint metadata**
+| key | value type | description | examples |
+| --- | ---        | ---         | ---      |
+| `rate_limit_rps`        | `int | float`               | ratelimit in requests per second | `250`  |
+| `rate_limit_cups`       | `int | float`               | ratelimit in CUPS                | `1000` |
+| `rate_limit_per_method` | `Mapping[str, int | float]` | ratelimit in RPS for each method | `{"trace_block": 200}` |
+| `api_key`               | `str`                       | api key                          | `a2798f237a2398rf7` |
+| `jwt_secret`            | `str`                       | jwt secret | |
+| `host`                  | `str`                       | name of provider host            | `"llamanodes"`, `"alchemy"`, `"quicknode"`, `"localhost"`
+| `ecosystem`             | `str`                       | ecosystem of chain, for connecting mainnets to testnets | `"ethereum"`, `"polygon"` |
+| `node_client`           | `str`                       | versioned node client            | `erigon/2.48.1/linux-amd64/go1.20.5` `reth/v0.1.0-alpha.10-7b781eb60/x86_64-unknown-linux-gnu` |
+| `explorer`              | `str`                       |
+| `location`              | `str`                       | geographic region                | `location` |
+| `cloud_region`          | `str`                       | cloud provider region            | `aws` |
+| `labels`                | `Sequence[str]`             | tags                             | `private_mempool`, `cache`, `archive`, `consensus_layer`, `execution_layer`, `validator` |
+
+**Global Metadata**
+| key                  | value type                    | description                                 | examples |
+| ---                  | ---                           | ---                                         | ---      |
+| `last_modified_by`   | `str`                         | versioned tool used to create configuration | `mesc__1.0` |
+| `last_modified_time` | `int`                         | timestamp of config modification            | `1700200462` |
+| `creation_time`      | `int`                         | timestamp of config creation                | `1700200462` |
+| `groups`             | `Mapping[str, Sequence[str]]` | groupings of endpoints, mapping of group name to list of endpoint names | `{"load_balancer": ["alchemy_optimism", "quicknode_optimism"]}` |
+| `conceal`            | `bool`                        | whether tool should avoid casually revealing private RPC url's unprompted | `true` |
+
+Other metadata keys that are specific to tool should be prefixed by that tool's name (e.g. tool `xyz` should prefix its metadata keys with `"xyz__"`).
 
 #### Environment
+
+##### Environment Setup
 
 `RpcConfig` data is stored either in a JSON file or in an environmental variable.
 
 To locate the configuration, this specification introduces 3 environment variables:
-- `RPC_CONFIG_MODE`
-- `RPC_CONFIG_PATH`
-- `RPC_CONFIG_ENV`
+- `MESC_MODE`
+- `MESC_CONFIG_PATH`
+- `MESC_CONFIG_JSON`
 
 The following resolution order is then used:
-1. check `RPC_CONFIG_MODE`
-    - if set to `"PATH"`, interpret file at `RPC_CONFIG_PATH` as JSON `RpcConfig` data
-    - if set to `"ENV"`, interpret the contents of `RPC_CONFIG_ENV` as JSON `RpcConfig` data
-    - if set to other nonempty value, raise error
-    - if unset or empty, continue to (2)
-2. check `RPC_CONFIG_PATH`
+1. check `MESC_MODE`
+    - if set to `"PATH"`, interpret file at `MESC_CONFIG_PATH` as JSON `RpcConfig` data
+    - if set to `"ENV"`, interpret the contents of `MESC_CONFIG_JSON` as JSON `RpcConfig` data
+    - if set to `"ENABLED"` or unset or empty, continue to (2)
+    - if set to `"DISABLED"` or other value, raise error
+2. check `MESC_CONFIG_PATH`
     - if set to an existing file, interpret as JSON `RpcConfig` data
     - if set to a nonexistent file, raise error
     - if unset or empty, continue to (3)
-3. check `RPC_CONFIG_ENV`
+3. check `MESC_CONFIG_JSON`
     - if set to valid JSON, interpret as JSON `RpcConfig` data
     - if nonempty and set to invalid JSON, raise error
     - if unset or empty, MESC is not being used, continue to (4)
-4. MESC standard not being used, can fallback `ETH_RPC_URL` or other solutions
+4. check values of MESC environment overrides (see below)
+    - if any overrides are set to non-empty values, build config from them
+    - if none are set, continue to (5)
+5. MESC standard not being used, can fallback `ETH_RPC_URL` or other solutions
 
-#### Example `RpcConfig`
+##### Environment Overrides
 
+MESC also introduces environment variables that can override each configuration key. These overrides allow quick, ad-hoc configuration changes without needing to edit the underlying configuration files. 
+
+These overrides use a simple syntax that is intended to be easily written by humans:
+
+| override variable | value syntax | example |
+| --- | --- | --- |
+| `MESC_DEFAULT_ENDPOINT`  | url, endpoint name, chain id, network name                        | `localhost:9999` |
+| `MESC_NETWORK_DEFAULTS`  | space-separated pairs of `<chain_id>=<endpoint>`                  | `5=alchemy_optimism 1=local_mainnet` |
+| `MESC_NETWORK_NAMES`     | space-separated pairs of `<name>=<chain_id>`                      | `zora=7777777` |
+| `MESC_ENDPOINTS`         | space-separated pairs of `[<name>[:<chain_id>]=]<url>`            | `alchemy_optimism=https://aclhemy.com/fjsj local_goerli:5=https://ach` |
+| `MESC_PROFILES`          | space-separated pairs of `<profile>.<key>[.<chain_id]=<endpoint>` | `foundry.default_network=5 foundry.default_endpoints.5=alchemy_optimism` |
+| `MESC_GLOBAL_METADATA`   | JSON formatted global metadata                                    | `{}` |
+| `MESC_ENDPOINT_METADATA` | JSON mapping of `{"endpoint_name": {<ENDPOINT_METADATA>}}`        | `{}` |
+
+If URL's are given to `MESC_DEFAULT_ENDPOINT`, `MESC_NETWORK_DEFAULTS`, or `MESC_ENDPOINTS`, `Endpoint` entries will be created as needed in `RpcConfig.endpoints`. If a name is not provided, a random name should be assigned.
+
+Overrides can be placed within a shell script or inlined to a shell command. For example, to quickly change the default endpoint used by tool `xyz`, could use the command `MESC_DEFAULT_ENDPOINT=goerli xyz`. Overrides can also be used with CI/CD environments or containers.
+
+#### Querying Data
+
+When a user specifies an endpoint, as in `-r <ENDPOINT>`, a MESC library must resolve this input into an endpoint URL. It is generally preferable to allow this user query to be a URL, an endpoint name, a network name, or a chain_id. 
+
+MESC data should be searched in the following order:
+1. endpoint names
+2. chain_id
+3. network name
+
+#### Examples
+
+##### Basic Config
 ```json
 {
-    "schema": "MESC 1.0",
-    "default_network": 1,
-    "default_endpoints": {
+    "mesc_version": "MESC 1.0",
+    "default_endpoint": "local_ethereum",
+    "network_defaults": {
         "1": "local_ethereum",
         "5": "local_goerli",
         "137": "llamanodes_polygon"
     },
+    "network_names": {},
     "endpoints": {
         "local_ethereum": {
             "url": "http://localhost:8545",
@@ -180,8 +237,19 @@ The following resolution order is then used:
             "endpoint_metadata": {}
         }
     },
+    "profiles": {},
     "global_metadata": {}
 }
+```
+
+##### Tool Profiles
+```json
+
+```
+
+##### Custom Networks
+```json
+
 ```
 
 ## Rationale
@@ -193,6 +261,15 @@ The following resolution order is then used:
 
   TODO: Remove this comment before submitting
 -->
+
+Want to satsfy all of these constraints:
+- has an interface that can be expressed naturally in most common programming langauges
+- able to manage large numbers of endpoints, including multiple endpoints per network and a default endpoint for each network
+- able to label each endpoint with metadata
+- able to express groupings of endpoints
+- able to store the config in either a JSON file or an environment variable
+- able to override individual settings with human-writable environment variables
+- minimize complexity
 
 - `global_metadata` and `endpoint_metadata` allow extra information to be stored in the config without breaking the standard. This includes api keys, rate limits, and organizational labels. This information might be specific to idiosyncratic to each application.
 - `Profile`s allow different defaults to be assigned to each tool or each mode of operation.
@@ -214,7 +291,7 @@ The following resolution order is then used:
 
 No backward compatibility issues found.
 
-MESC is an opt-in specification that only becomes activated when a user explicitly sets one or more of the environment variables listed above (`RPC_CONFIG_MODE`, `RPC_CONFIG_PATH`, or `RPC_CONFIG_ENV`). These variables are not currently used by any common EVM tools. Tools that use `ETH_RPC_URL` or other configuration approaches will continue working as before.
+MESC is an opt-in specification that only becomes activated when a user explicitly sets one or more of the environment variables listed above (`MESC_MODE`, `MESC_CONFIG_PATH`, or `MESC_CONFIG_JSON`). These variables are not currently used by any common EVM tools. Tools that use `ETH_RPC_URL` or other configuration approaches will continue working as before.
 
 <!-- ## Test Cases -->
 
@@ -238,99 +315,18 @@ MESC is an opt-in specification that only becomes activated when a user explicit
   TODO: Remove this comment before submitting
 -->
 
-A minimal reference python implementation is included below. A more detailed implementation might include additional caching, validation, or querying functionality.
+A minimal reference python implementation is included in the supplemental files. A more detailed implementation might include additional caching, validation, or querying functionality.
 
-```python
-from __future__ import annotations
-import json
-import os
-from typing import Any, Mapping, TypedDict
+A library that reads raw MESC data should provide the following four core functions:
 
-
-class Endpoint(TypedDict):
-    name: str
-    url: str
-    chain_id: int | None
-    endpoint_metadata: Mapping[str, Any]
-
-
-class Profile(TypedDict):
-    default_network: int | None
-    default_endpoints: Mapping[str, str]
-
-
-class RpcConfig(TypedDict):
-    schema: str
-    default_network: int | None
-    default_network_endpoints: Mapping[str, str]
-    endpoints: Mapping[str, Endpoint]
-    network_names: Mapping[str, int]
-    profiles: Mapping[str, Profile]
-    global_metadata: Mapping[str, Any]
-
-
-def get_default_endpoint(*, profile: str | None = None) -> Endpoint | None:
-    chain_id = get_default_network(profile=profile)
-    if chain_id is not None:
-        return get_network_default_endpoint(chain_id, profile=profile)
-    else:
-        return None
-
-
-def get_default_network(*, profile: str | None = None) -> int | None:
-    config = load.read_config_data()
-    if profile and profile in config['profiles']:
-        return config['profiles'][profile]['default_network']
-    else:
-        return config['default_network']
-
-
-def get_default_network_endpoint(chain_id: int, *, profile: str | None = None) -> Endpoint | None:
-    config = read_config_data()
-    if profile and profile in config['profiles']:
-        default_endpoints = config['profiles'][profile]['default_endpoints']
-    else:
-        default_endpoints = config['default_endpoints']
-
-    name = default_endpoints.get(str(chain_id))
-    if name is None:
-        return None
-    else:
-        return get_endpoint_by_name(name)
-
-
-def get_endpoint_by_name(name: str, *, config: RpcConfig) -> Endpoint:
-    config = read_config_data()
-    if name in config['endpoints']:
-        return config['endpoints'][name]
-    else:
-        raise Exception('missing endpoint: ' + str(name))
-
-
-def read_config_data() -> RpcConfig:
-    mode = os.environ.get('RPC_CONFIG_MODE')
-    if mode == 'PATH':
-        return read_file_config()
-    elif mode == 'ENV':
-        return read_env_config()
-    elif mode not in ['', None]:
-        raise Exception('invalid mode: ' + str(mode))
-    elif os.environ.get('RPC_CONFIG_PATH') not in ['', None]:
-        return read_file_config()
-    elif os.environ.get('RPC_CONFIG_ENV') not in ['', None]:
-        return read_env_config()
-    else:
-        raise Exception('config not specified')
-
-
-def read_env_config() -> RpcConfig:
-    return json.loads(os.environ.get('RPC_CONFIG_ENV'))
-
-
-def read_file_config() -> RpcConfig:
-    with open(os.environ.get('RPC_CONFIG_PATH'), 'r') as f:
-        return json.load(f)
 ```
+
+def get_default_endpoint() -> Endpoint
+
+
+```
+
+A reference implementation of overrides is provided in the supplemental files.
 
 ## Security Considerations
 

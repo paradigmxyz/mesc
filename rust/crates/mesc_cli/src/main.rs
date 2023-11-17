@@ -1,50 +1,49 @@
 mod cli;
+mod find;
+mod ping;
 mod printing;
 mod setup;
 mod status;
 
 use clap::Parser;
 use cli::{Cli, Commands};
-use printing::{print_endpoint_json, print_endpoint_pretty, print_endpoint_url};
+use printing::{print_endpoint_json, print_endpoint_pretty};
 
 fn main() {
     match Cli::parse().command {
         Commands::Setup(_args) => setup::run_setup(),
         Commands::Status(_args) => status::print_status(),
-        Commands::Url(args) => url_command(args.query, args.profile.as_deref()),
-        Commands::Json(args) => json_command(args.query, args.profile.as_deref()),
-        Commands::Pretty(args) => pretty_command(args.query, args.profile.as_deref()),
-        Commands::Find(args) => find_command(args.chain_id, args.name, args.url, args.metadata),
+        Commands::Url(args) => url_command(args),
+        Commands::Endpoint(args) => endpoint_command(args),
+        Commands::Find(args) => find::find_command(args.chain_id, args.name, args.url, args.metadata),
+        Commands::Ping(_args) => ping::ping_command(),
     }
 }
 
-fn url_command(query: Option<String>, profile: Option<&str>) {
-    print_endpoint_url(resolve_endpoint(query, profile));
-}
-
-fn json_command(query: Option<String>, profile: Option<&str>) {
-    print_endpoint_json(resolve_endpoint(query, profile));
-}
-
-fn pretty_command(query: Option<String>, profile: Option<&str>) {
-    print_endpoint_pretty(resolve_endpoint(query, profile));
-}
-
-fn resolve_endpoint(
-    query: Option<String>,
-    profile: Option<&str>,
-) -> Result<Option<mesc::Endpoint>, mesc::ConfigError> {
-    match query {
-        Some(query) => mesc::parse_user_query(&query, profile),
-        None => mesc::get_default_endpoint(profile),
+fn url_command(args: cli::UrlArgs) {
+    let endpoint = match args.query {
+        Some(query) => mesc::parse_user_query(query.as_str(), args.profile.as_deref()),
+        None => mesc::get_default_endpoint(args.profile.as_deref()),
+    };
+    match endpoint {
+        Ok(Some(endpoint)) => println!("{}", endpoint.url),
+        Ok(None) => {}
+        Err(_) => eprintln!("could not load RPC config"),
     }
 }
 
-fn find_command(
-    _chain_id: Option<u64>,
-    _name: Option<String>,
-    _url: Option<String>,
-    _metadata: Vec<String>,
-) {
-    todo!()
+fn endpoint_command(args: cli::EndpointArgs) {
+    let endpoint = match args.query {
+        Some(query) => mesc::parse_user_query(query.as_str(), args.profile.as_deref()),
+        None => mesc::get_default_endpoint(args.profile.as_deref()),
+    };
+    match endpoint {
+        Ok(Some(endpoint)) => if args.json {
+            print_endpoint_json(endpoint);
+        } else {
+            print_endpoint_pretty(endpoint);
+        },
+        Ok(None) => {}
+        Err(_) => eprintln!("could not load RPC config"),
+    }
 }

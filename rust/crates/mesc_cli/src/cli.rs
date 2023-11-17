@@ -17,12 +17,12 @@ pub enum Commands {
     Status(StatusArgs),
     /// Print endpoint URL
     Url(UrlArgs),
-    /// Print endpoint as JSON
-    Json(JsonArgs),
-    /// Print endpoint as human readble
-    Pretty(PrettyArgs),
-    /// Print entire configuration
+    /// Print endpoint
+    Endpoint(EndpointArgs),
+    /// Search through list of configured endpoints
     Find(FindArgs),
+    /// Ping endpoints and get their client versions
+    Ping(PingArgs),
 }
 
 /// Arguments for the `setup` subcommand
@@ -52,29 +52,21 @@ pub struct UrlArgs {
 
 /// Arguments for the `json` subcommand
 #[derive(Parser)]
-pub struct JsonArgs {
+pub struct EndpointArgs {
     /// query
     #[clap(short, long)]
     pub query: Option<String>,
+
+    /// print as json
+    #[clap(short, long)]
+    pub json: bool,
 
     /// profile
     #[clap(short, long)]
     pub profile: Option<String>,
 }
 
-/// Arguments for the `pretty` subcommand
-#[derive(Parser)]
-pub struct PrettyArgs {
-    /// query
-    #[clap(short, long)]
-    pub query: Option<String>,
-
-    /// profile
-    #[clap(short, long)]
-    pub profile: Option<String>,
-}
-
-/// Arguments for the `all` subcommand
+/// Arguments for the `find` subcommand
 #[derive(Parser)]
 pub struct FindArgs {
     /// chain id
@@ -94,3 +86,10 @@ pub struct FindArgs {
     pub metadata: Vec<String>,
 }
 
+/// Arguments for the `ping` subcommand
+#[derive(Parser)]
+pub struct PingArgs {
+    /// ping only endpoints of this network
+    #[clap(short, long)]
+    pub network: Option<String>,
+}
