@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::validate;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Endpoint {
@@ -15,6 +16,13 @@ pub struct Profile {
     pub network_defaults: HashMap<ChainId, String>,
 }
 
+#[derive(Debug)]
+pub enum ConfigMode {
+    Path,
+    Env,
+    Disabled,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RpcConfig {
     pub mesc_version: String,
@@ -24,6 +32,12 @@ pub struct RpcConfig {
     pub network_names: HashMap<String, ChainId>,
     pub profiles: HashMap<String, Profile>,
     pub global_metadata: HashMap<String, serde_json::Value>,
+}
+
+impl RpcConfig {
+    pub fn validate(&self) -> Result<(), MescError> {
+        validate::validate_config(self)
+    }
 }
 
 #[derive(Debug)]
