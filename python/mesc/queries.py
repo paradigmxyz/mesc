@@ -23,7 +23,7 @@ def get_endpoint_by_name(name: str) -> Endpoint:
         raise exceptions.MissingEndpoint("missing endpoint: " + str(name))
 
 
-def get_endpoint_by_network(chain_id: int, *, profile: str | None = None) -> Endpoint:
+def get_endpoint_by_network(chain_id: int, *, profile: str | None = None) -> Endpoint | None:
     config = load.read_config_data()
     if profile and profile in config["profiles"]:
         network_defaults = config["profiles"][profile]["network_defaults"]
@@ -32,11 +32,9 @@ def get_endpoint_by_network(chain_id: int, *, profile: str | None = None) -> End
 
     name = network_defaults.get(str(chain_id))
     if name is None:
-        raise exceptions.MissingEndpoint(
-            "missing endpoint for chain_id: " + str(chain_id)
-        )
-
-    return get_endpoint_by_name(name)
+        return None
+    else:
+        return get_endpoint_by_name(name)
 
 
 def parse_user_query(query: str, *, profile: str | None = None) -> Endpoint | None:

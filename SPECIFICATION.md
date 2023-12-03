@@ -84,9 +84,9 @@ This approach is built on three key-value schemas:
 | key                 | value type               | description |
 | ---                 | ---                      | --- |
 | `mesc_version`      | `str`                    | must equal the value `"MESC 1.0"`
-| `default_endpoint`  | `int \| None`            | name of default endpoint
+| `default_endpoint`  | `str \| None`            | name of default endpoint
 | `network_defaults`  | `Mapping[str, str]`      | map of chain_id's to endpoint names
-| `network_names`     | `Mapping[str, int]`      | map of network names to chain_id's
+| `network_names`     | `Mapping[str, str]`      | map of network names to chain_id's
 | `endpoints`         | `Mapping[str, Endpoint]` | map of endpoint names to endpoints
 | `profiles`          | `Mapping[str, Profile]`  | map of profile names to profiles
 | `global_metadata`   | `Mapping[str, Any]`      | global metadata entires
@@ -97,40 +97,42 @@ This approach is built on three key-value schemas:
 | ---                 | ---                 | --- |
 | `url`               | `str`               | url of endpoint, including transport
 | `name`              | `str`               | name of endpoint
-| `chain_id`          | `int | None`        | chain id of network
+| `chain_id`          | `str | None`        | chain id of network
 | `endpoint_metadata` | `Mapping[str, Any]` | endpoint metadata entries
 
 ##### `Profile` schema:
 
 | key                 | value type               | description |
 | ---                 | ---                      | --- |
-| `default_network`   | `int \| None`            | chain_id of default network
+| `default_network`   | `str \| None`            | chain_id of default network
 | `network_defaults`  | `Mapping[str, str]`      | map of chain_id's to endpoint names
 
 Requirements:
 - All keys of `RpcConfig` and `Endpoint` are required. No additional keys should be present, except within `global_metadata` and `endpoint_metadata`.
 - Every endpoint name specified in `RpcConfig.default_endpoints` must exist in `RpcConfig.endpoints`.
-- These key-value structures can be represented simply in JSON and in most common programming languages. The `chain_id` keys of `default_endpoints` should be strings as required by JSON.
+- These key-value structures can be represented simply in JSON and in most common programming languages.
+- Each `chain_id` should be represented using a string. Chain id's can be 256 bits, and most languages do not have native 256 bit integer types.
 
 ##### Metadata
 
-The `global_metadata` and `endpoint_metadata` fields allow for optional or idiosyncratic RPC metadata to be placed within the core RPC config. Tools can choose to ignore these fields. Examples of common metadata:
+The `global_metadata` and `endpoint_metadata` fields allow for optional or idiosyncratic RPC metadata to be stored alongside the core RPC data. Tools using MESC can choose to ignore these fields. Examples of common metadata:
 
 **Endpoint metadata**
 | key | value type | description | examples |
 | --- | ---        | ---         | ---      |
-| `rate_limit_rps`        | `int | float`               | ratelimit in requests per second | `250`  |
-| `rate_limit_cups`       | `int | float`               | ratelimit in CUPS                | `1000` |
+| `rate_limit_rps`        | `int \| float`              | ratelimit in requests per second | `250`  |
+| `rate_limit_cups`       | `int \| float`              | ratelimit in CUPS                | `1000` |
 | `rate_limit_per_method` | `Mapping[str, int | float]` | ratelimit in RPS for each method | `{"trace_block": 200}` |
 | `api_key`               | `str`                       | api key                          | `a2798f237a2398rf7` |
 | `jwt_secret`            | `str`                       | jwt secret | |
 | `host`                  | `str`                       | name of provider host            | `"llamanodes"`, `"alchemy"`, `"quicknode"`, `"localhost"`
 | `ecosystem`             | `str`                       | ecosystem of chain, for connecting mainnets to testnets | `"ethereum"`, `"polygon"` |
 | `node_client`           | `str`                       | versioned node client            | `erigon/2.48.1/linux-amd64/go1.20.5` `reth/v0.1.0-alpha.10-7b781eb60/x86_64-unknown-linux-gnu` |
-| `explorer`              | `str`                       |
+| `namespaces`            | `Sequence[str]`             | RPC name spaces enabled for endpoint | `["eth", "trace, "debug"]`
+| `explorer`              | `str`                       | block explorer                   | `etherscan.com`
 | `location`              | `str`                       | geographic region                | `location` |
 | `cloud_region`          | `str`                       | cloud provider region            | `aws` |
-| `labels`                | `Sequence[str]`             | tags                             | `private_mempool`, `cache`, `archive`, `consensus_layer`, `execution_layer`, `validator` |
+| `labels`                | `Sequence[str]`             | tags                             | `mempool` `private_mempool`, `cache`, `archive`, `consensus_layer`, `execution_layer`, `validator`, `ephemeral` |
 
 **Global Metadata**
 | key                  | value type                    | description                                 | examples |
@@ -184,7 +186,7 @@ These overrides use a simple syntax that is intended to be easily written by hum
 | `MESC_DEFAULT_ENDPOINT`  | url, endpoint name, chain id, network name                        | `localhost:9999` |
 | `MESC_NETWORK_DEFAULTS`  | space-separated pairs of `<chain_id>=<endpoint>`                  | `5=alchemy_optimism 1=local_mainnet` |
 | `MESC_NETWORK_NAMES`     | space-separated pairs of `<name>=<chain_id>`                      | `zora=7777777` |
-| `MESC_ENDPOINTS`         | space-separated pairs of `[<name>[:<chain_id>]=]<url>`            | `alchemy_optimism=https://aclhemy.com/fjsj local_goerli:5=https://ach` |
+| `MESC_ENDPOINTS`         | space-separated items of `[<name>[:<chain_id>]=]<url>`            | `alchemy_optimism=https://aclhemy.com/fjsj local_goerli:5=https://ach` |
 | `MESC_PROFILES`          | space-separated pairs of `<profile>.<key>[.<chain_id]=<endpoint>` | `foundry.default_network=5 foundry.default_endpoints.5=alchemy_optimism` |
 | `MESC_GLOBAL_METADATA`   | JSON formatted global metadata                                    | `{}` |
 | `MESC_ENDPOINT_METADATA` | JSON mapping of `{"endpoint_name": {<ENDPOINT_METADATA>}}`        | `{}` |

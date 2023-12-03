@@ -5,7 +5,7 @@ MESC is a specification for how EVM tools can configure their RPC endpoints.
 
 By following this specification, a user creates a single RPC configuration for all compliant EVM tools on their system.
 
-The MESC specification is defined in [SPECIFICATION.md](./SPECIFICATION.md).
+MESC is formally defined in [SPECIFICATION.md](./SPECIFICATION.md).
 
 ### Contents
 - [Reference Implementations](#reference-implementations)
@@ -60,24 +60,24 @@ Examples from the python implementation are shown below. Other language implemen
 ```python
 import mesc
 
-# get the default network
-chain_id = mesc.get_default_network()
+# get the default endpoint
+endpoint = mesc.get_default_endpoint()
 
 # get the default endpoint of a network
-endpoint = mesc.get_default_endpoint(5)
+endpoint = mesc.get_endpoint_by_network(5)
 
-# get the default network for a particular tool
-chain_id = mesc.get_default_network(profile='xyz_tool')
+# get the default endpoint for a particular tool
+endpoint = mesc.get_default_endpoint(profile='xyz_tool')
 
 # get the default endpoint of a network for a particular tool
-endpoint = mesc.get_default_endpoint(5, profile='xyz_tool')
+endpoint = mesc.get_endpoint_by_network(5, profile='xyz_tool')
 
 # get an endpoint by name
-endpoint = mesc.get_endpoint_by_name(name)
+endpoint = mesc.get_endpoint_by_name('local_goerli')
 
 # parse a user-provided string into a matching endpoint
-# (first try 1. endpoint name, then 2. chain id, and then 3. network name)
-endpoint = mesc.parse_endpoint(user_str, profile='xyz_tool')
+# (first try 1. endpoint name, then 2. chain id, then 3. network name)
+endpoint = mesc.parse_user_query(user_str, profile='xyz_tool')
 
 # find all endpoints matching given criteria
 endpoints = mesc.find_endpoints(chain_id=5)
@@ -96,6 +96,7 @@ If `xyz` uses MESC, then `-r` can leverage MESC endpoint data. Instead of just a
 Internally `xyz` can perform RPC url resolution using:
 
 ```python
-endpoint = mesc.parse_endpoint(user_input, profile='xyz')
+# code used by xyz tool
+endpoint = mesc.parse_user_query(user_input, profile='xyz')
 url = endpoint['url']
 ```
