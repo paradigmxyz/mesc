@@ -3,7 +3,7 @@ from typing import Any, MutableMapping, TypedDict
 
 
 mesc_env_vars = [
-    "MESC_MODE",
+    "MESC_CONFIG_MODE",
     "MESC_CONFIG_PATH",
     "MESC_CONFIG_JSON",
     "MESC_ENDPOINT_METADATA",

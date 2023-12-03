@@ -46,8 +46,8 @@ Below is a brief tutorial on MESC. For more detail, see [SPECIFICATION.md](./SPE
 
 MESC tracks the following information:
 1. a list of RPC endpoints, including their `name`, `chain_id`, and `url`
-2. the default RPC endpoint that should be used for each network
-3. the default network that should be used
+2. the default RPC endpoint to use
+3. the default RPC endpoint to use for each network
 
 MESC can also track other information like metadata and tool-specific defaults. Configuration data is stored in a JSON file. To create this file, follow the [Quickstart](#quickstart) instructions above.
 

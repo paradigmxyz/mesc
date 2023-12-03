@@ -15,7 +15,7 @@ def is_mesc_enabled() -> bool:
 
 
 def read_config_data() -> RpcConfig:
-    mode = os.environ.get("MESC_MODE")
+    mode = os.environ.get("MESC_CONFIG_MODE")
     if mode == "DISABLE":
         raise exceptions.MescDisabled("MESC disabled, check with is_mesc_enabled()")
     if mode == "PATH":

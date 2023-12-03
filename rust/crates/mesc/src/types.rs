@@ -26,13 +26,15 @@ pub struct RpcConfig {
     pub global_metadata: HashMap<String, serde_json::Value>,
 }
 
+#[derive(Debug)]
 pub enum MescError {
-    ConfigNotSpecified,
+    MescNotEnabled,
     InvalidConfigMode,
     InvalidChainId(String),
-    MissingEndpoint,
-    FileDoesNotExist,
-    EnvRead,
+    MissingEndpoint(String),
+    FileReadError(std::io::Error),
+    InvalidJson,
+    EnvReadError,
     NotImplemented(String),
 }
 

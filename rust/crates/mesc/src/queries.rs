@@ -1,4 +1,4 @@
-use crate::load::{load_config_data, load_env_profile};
+use crate::load::{load_config_data};
 use crate::types::{Endpoint, MescError};
 use crate::{ChainId, EndpointQuery, TryIntoChainId};
 use crate::directory;
@@ -6,17 +6,11 @@ use crate::directory;
 pub fn get_default_endpoint(profile: Option<&str>) -> Result<Option<Endpoint>, MescError> {
     let config = load_config_data()?;
 
-    // check if there is a profile from function input or environment
-    let profile = match profile {
-        Some(profile) => Some(profile.to_string()),
-        None => load_env_profile(),
-    };
-
     // if using a profile, check if that profile has a default endpoint for chain_id
     if let Some(profile) = profile {
         let name = config
             .profiles
-            .get(&profile)
+            .get(profile)
             .and_then(|p| p.default_endpoint.clone());
         if let Some(name) = name {
             return get_endpoint_by_name(name.as_str()).map(Some);
@@ -35,17 +29,11 @@ pub fn get_endpoint_by_network(
 ) -> Result<Option<Endpoint>, MescError> {
     let config = load_config_data()?;
 
-    // check if there is a profile from function input or environment
-    let profile = match profile {
-        Some(profile) => Some(profile.to_string()),
-        None => load_env_profile(),
-    };
-
     // if using a profile, check if that profile has a default endpoint for chain_id
     if let Some(profile) = profile {
         let name = config
             .profiles
-            .get(&profile)
+            .get(profile)
             .and_then(|p| p.network_defaults.get(&chain_id));
         if let Some(name) = name {
             return get_endpoint_by_name(name).map(Some);
@@ -64,7 +52,7 @@ pub fn get_endpoint_by_name(name: &str) -> Result<Endpoint, MescError> {
     if let Some(endpoint) = config.endpoints.get(name) {
         Ok(endpoint.clone())
     } else {
-        Err(MescError::MissingEndpoint)
+        Err(MescError::MissingEndpoint(name.to_string()))
     }
 }
 
