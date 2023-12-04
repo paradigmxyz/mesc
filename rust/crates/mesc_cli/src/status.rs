@@ -1,6 +1,6 @@
 use mesc::MescError;
 
-pub(crate) fn print_status() {
+pub(crate) fn print_status() -> Result<(), MescError> {
     if mesc::is_mesc_enabled() {
         println!("MESC is enabled");
     } else {
@@ -28,7 +28,7 @@ pub(crate) fn print_status() {
         Err(e) => {
             println!("- config found: false");
             println!();
-            if let MescError::FileReadError(e) = e {
+            if let MescError::IOError(e) = &e {
                 if let std::io::ErrorKind::NotFound = e.kind() {
                     println!("config file not found");
                 } else {
@@ -37,12 +37,12 @@ pub(crate) fn print_status() {
             } else {
                 println!("could not load config: {:?}", e);
             };
-            return;
+            return Err(e);
         }
         Ok(config) => {
             println!("- config found: true");
             config
-        },
+        }
     };
 
     // validate config
@@ -52,7 +52,7 @@ pub(crate) fn print_status() {
             println!("- config valid: false");
             println!();
             println!("{:?}", e);
-        },
+        }
     };
 
     // print endpoint info
@@ -80,5 +80,6 @@ pub(crate) fn print_status() {
         }
     };
     println!("- additional profiles: {}", config.profiles.len());
-}
 
+    Ok(())
+}

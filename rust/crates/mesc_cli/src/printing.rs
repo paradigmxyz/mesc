@@ -10,6 +10,11 @@ pub fn print_endpoint_json(endpoint: Endpoint) {
 pub fn print_endpoint_pretty(endpoint: Endpoint) {
     println!("Endpoint: {}", endpoint.name);
     println!("- url: {}", endpoint.url);
-    println!("- chain_id: {}", endpoint.chain_id);
+    println!(
+        "- chain_id: {}",
+        endpoint
+            .chain_id
+            .map_or("-".to_string(), |chain_id| chain_id.to_string())
+    );
     println!("- metadata: {:?}", endpoint.endpoint_metadata);
 }

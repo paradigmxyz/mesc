@@ -8,8 +8,9 @@ mod status;
 use clap::Parser;
 use cli::{Cli, Commands};
 use printing::{print_endpoint_json, print_endpoint_pretty};
+use mesc::MescError;
 
-fn main() {
+fn main() -> Result<(), MescError> {
     match Cli::parse().command {
         Commands::Setup(_args) => setup::run_setup(),
         Commands::Status(_args) => status::print_status(),
@@ -20,7 +21,7 @@ fn main() {
     }
 }
 
-fn url_command(args: cli::UrlArgs) {
+fn url_command(args: cli::UrlArgs) -> Result<(), MescError> {
     let endpoint = match args.query {
         Some(query) => mesc::parse_user_query(query.as_str(), args.profile.as_deref()),
         None => mesc::get_default_endpoint(args.profile.as_deref()),
@@ -29,10 +30,11 @@ fn url_command(args: cli::UrlArgs) {
         Ok(Some(endpoint)) => println!("{}", endpoint.url),
         Ok(None) => {}
         Err(_) => eprintln!("could not load RPC config"),
-    }
+    };
+    Ok(())
 }
 
-fn endpoint_command(args: cli::EndpointArgs) {
+fn endpoint_command(args: cli::EndpointArgs) -> Result<(), MescError> {
     let endpoint = match args.query {
         Some(query) => mesc::parse_user_query(query.as_str(), args.profile.as_deref()),
         None => mesc::get_default_endpoint(args.profile.as_deref()),
@@ -45,5 +47,6 @@ fn endpoint_command(args: cli::EndpointArgs) {
         },
         Ok(None) => {}
         Err(_) => eprintln!("could not load RPC config"),
-    }
+    };
+    Ok(())
 }

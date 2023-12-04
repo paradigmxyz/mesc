@@ -48,6 +48,6 @@ pub fn load_env_config() -> Result<RpcConfig, MescError> {
 
 pub fn load_file_config() -> Result<RpcConfig, MescError> {
     let path = env::var("MESC_CONFIG_PATH").map_err(|_| MescError::EnvReadError)?;
-    let config_str = fs::read_to_string(path).map_err(MescError::FileReadError)?;
+    let config_str = fs::read_to_string(path).map_err(MescError::IOError)?;
     serde_json::from_str(&config_str).map_err(|_| MescError::InvalidJson)
 }

@@ -19,12 +19,12 @@ mesc_env_vars = [
 class Endpoint(TypedDict):
     name: str
     url: str
-    chain_id: int | None
+    chain_id: str | None
     endpoint_extras: MutableMapping[str, Any]
 
 
 class Profile(TypedDict):
-    default_network: int | None
+    default_endpoint: str | None
     network_defaults: MutableMapping[str, str]
 
 
@@ -33,6 +33,6 @@ class RpcConfig(TypedDict):
     default_endpoint: str | None
     endpoints: MutableMapping[str, Endpoint]
     network_defaults: MutableMapping[str, str]
-    network_names: MutableMapping[str, int]
+    network_names: MutableMapping[str, str]
     profiles: MutableMapping[str, Profile]
     global_metadata: MutableMapping[str, Any]

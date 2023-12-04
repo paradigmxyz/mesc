@@ -6,7 +6,7 @@ use crate::validate;
 pub struct Endpoint {
     pub name: String,
     pub url: String,
-    pub chain_id: ChainId,
+    pub chain_id: Option<ChainId>,
     pub endpoint_metadata: HashMap<String, serde_json::Value>,
 }
 
@@ -46,10 +46,24 @@ pub enum MescError {
     InvalidConfigMode,
     InvalidChainId(String),
     MissingEndpoint(String),
-    FileReadError(std::io::Error),
+    IOError(std::io::Error),
     InvalidJson,
     EnvReadError,
     NotImplemented(String),
+    SerdeError(serde_json::Error),
+    InvalidInput,
+}
+
+impl From<std::io::Error> for MescError {
+    fn from(value: std::io::Error) -> MescError {
+        MescError::IOError(value)
+    }
+}
+
+impl From<serde_json::Error> for MescError {
+    fn from(value: serde_json::Error) -> MescError {
+        MescError::SerdeError(value)
+    }
 }
 
 /// ChainId is a string representation of an integer chain id

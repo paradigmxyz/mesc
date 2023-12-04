@@ -86,7 +86,7 @@ pub fn find_endpoints(query: EndpointQuery) -> Result<Vec<Endpoint>, MescError> 
     let mut candidates: Vec<Endpoint> = config.endpoints.into_values().collect();
 
     if let Some(chain_id) = query.chain_id {
-        candidates.retain(|endpoint| endpoint.chain_id == chain_id)
+        candidates.retain(|endpoint| endpoint.chain_id.as_ref() == Some(&chain_id))
     }
 
     Ok(candidates)
