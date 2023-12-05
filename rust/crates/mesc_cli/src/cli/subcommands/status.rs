@@ -1,7 +1,7 @@
-use crate::MescCliError;
+use crate::{MescCliError, StatusArgs};
 use mesc::MescError;
 
-pub(crate) fn print_status() -> Result<(), MescCliError> {
+pub(crate) fn print_status(_args: StatusArgs) -> Result<(), MescCliError> {
     if mesc::is_mesc_enabled() {
         println!("MESC is enabled");
     } else {

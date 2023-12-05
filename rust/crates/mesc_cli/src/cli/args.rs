@@ -1,4 +1,17 @@
+use super::subcommands::*;
+use crate::MescCliError;
 use clap::{Parser, Subcommand};
+
+pub(crate) async fn run_cli() -> Result<(), MescCliError> {
+    match Cli::parse().command {
+        Commands::Setup(args) => run_setup(args),
+        Commands::Status(args) => print_status(args),
+        Commands::Url(args) => url_command(args),
+        Commands::Endpoint(args) => endpoint_command(args),
+        Commands::Find(args) => find_command(args),
+        Commands::Ping(args) => ping_command(args).await,
+    }
+}
 
 /// Utility for creating and managing MESC RPC configurations
 #[derive(Parser)]

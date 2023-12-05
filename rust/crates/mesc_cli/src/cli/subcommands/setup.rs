@@ -1,8 +1,8 @@
-use crate::MescCliError;
+use crate::{MescCliError, SetupArgs};
 use inquire::ui::{Attributes, Color, IndexPrefix, RenderConfig, StyleSheet, Styled};
 use mesc::{Endpoint, RpcConfig};
 
-pub fn run_setup() -> Result<(), MescCliError> {
+pub fn run_setup(_args: SetupArgs) -> Result<(), MescCliError> {
     inquire::set_global_render_config(get_render_config());
 
     if mesc::is_mesc_enabled() {

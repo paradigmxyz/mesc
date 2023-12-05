@@ -1,11 +1,10 @@
-use crate::metadata;
 use crate::metadata::EndpointMetadata;
-use crate::MescCliError;
+use crate::{metadata, MescCliError, PingArgs};
 use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
 use tokio::task::JoinHandle;
 
-pub(crate) async fn ping_command() -> Result<(), MescCliError> {
+pub(crate) async fn ping_command(_args: PingArgs) -> Result<(), MescCliError> {
     let config_data = mesc::load::load_config_data()?;
     let mut tasks = FuturesUnordered::<JoinHandle<_>>::new();
 
