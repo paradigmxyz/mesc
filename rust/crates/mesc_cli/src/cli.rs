@@ -35,8 +35,7 @@ pub struct SetupArgs {
 
 /// Arguments for the `status` subcommand
 #[derive(Parser)]
-pub struct StatusArgs {
-}
+pub struct StatusArgs {}
 
 /// Arguments for the `url` subcommand
 #[derive(Parser)]

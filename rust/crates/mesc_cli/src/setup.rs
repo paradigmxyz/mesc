@@ -1,20 +1,28 @@
+use crate::MescCliError;
 use inquire::ui::{Attributes, Color, IndexPrefix, RenderConfig, StyleSheet, Styled};
-use mesc::{Endpoint, MescError};
+use mesc::{Endpoint, RpcConfig};
 
-pub fn run_setup() -> Result<(), MescError> {
+pub fn run_setup() -> Result<(), MescCliError> {
     inquire::set_global_render_config(get_render_config());
 
     if mesc::is_mesc_enabled() {
-        let _config = mesc::load::load_config_data();
+        let config = mesc::load::load_config_data()?;
         println!("MESC is enabled");
         println!();
-        setup_existing_config()
+        modify_existing_config(config)
     } else {
         setup_new_config()
     }
 }
 
-fn setup_new_config() -> Result<(), MescError> {
+enum _ConfigWriteMode {
+    /// file path of JSON config file
+    Path(String),
+    /// list of config files to write to
+    Env(Vec<String>),
+}
+
+fn setup_new_config() -> Result<(), MescCliError> {
     println!("MESC is not enabled, creating config now...");
     println!();
     println!("default endpoint URL?");
@@ -23,7 +31,7 @@ fn setup_new_config() -> Result<(), MescError> {
     Ok(())
 }
 
-fn setup_existing_config() -> Result<(), MescError> {
+fn modify_existing_config(config: RpcConfig) -> Result<(), MescCliError> {
     let options = [
         "add new endpoint",
         "modify endpoint",
@@ -31,23 +39,41 @@ fn setup_existing_config() -> Result<(), MescError> {
         "exit",
     ]
     .to_vec();
-    match inquire::Select::new("What do you want to do?", options).prompt() {
-        Ok("add new endpoint") => add_endpoint()?,
-        Ok("modify endpoint") => modify_endpoint()?,
-        Ok(_) => todo!(),
-        Err(_) => todo!(),
-    };
-    Ok(())
+    let mut old_config = config;
+    loop {
+        let new_config =
+            match inquire::Select::new("What do you want to do?", options.clone()).prompt()? {
+                "add new endpoint" => add_endpoint(old_config.clone())?,
+                "modify endpoint" => modify_endpoint(old_config.clone())?,
+                "modify defaults" => modify_defaults(old_config.clone())?,
+                "exit" => return Ok(()),
+                _ => return Err(MescCliError::InvalidInput),
+            };
+
+        if serde_json::to_string(&new_config)? != serde_json::to_string(&old_config)? {
+            match inquire::Confirm::new("Save changes to file?").prompt() {
+                Ok(true) => write_config(&new_config)?,
+                Ok(false) => {}
+                Err(_) => return Err(MescCliError::InvalidInput),
+            }
+        }
+
+        old_config = new_config;
+    }
 }
 
-fn add_endpoint() -> Result<(), MescError> {
+fn write_config(_config: &RpcConfig) -> Result<(), MescCliError> {
+    todo!()
+}
+
+fn add_endpoint(config: RpcConfig) -> Result<RpcConfig, MescCliError> {
     let _endpoint = match inquire::Text::new("Endpoint URL?").prompt() {
         Ok(url) => {
             let default_name = "new_name";
             let input = inquire::Text::new("Endpoint name?").with_default(default_name);
             let name = match input.prompt() {
                 Ok(choice) => choice,
-                Err(_) => return Err(MescError::InvalidInput),
+                Err(_) => return Err(MescCliError::InvalidInput),
             };
             Endpoint {
                 url,
@@ -56,23 +82,92 @@ fn add_endpoint() -> Result<(), MescError> {
                 endpoint_metadata: std::collections::HashMap::new(),
             }
         }
-        Err(_) => return Err(MescError::InvalidInput),
+        Err(_) => return Err(MescCliError::InvalidInput),
     };
-    Ok(())
+    Ok(config)
 }
 
-fn modify_endpoint() -> Result<(), MescError> {
+fn modify_endpoint(config: RpcConfig) -> Result<RpcConfig, MescCliError> {
+    // select endpoint
+    let options: Vec<String> = config.endpoints.clone().into_keys().collect();
+    let endpoint_name = inquire::Select::new("Which endpoint to modify?", options).prompt()?;
+
+    // perform modifications
     let options = [
-        "modify endpoint name",
-        "modify endpoint url",
-        "modify endpoint chain_id",
-        "modify endpoint metadata",
-        "delete endpoint",
+        "Modify endpoint name",
+        "Modify endpoint url",
+        "Modify endpoint chain_id",
+        "Modify endpoint metadata",
+        "Delete endpoint",
+        "Done",
     ]
     .to_vec();
-    let _ans: Result<&str, inquire::InquireError> =
-        inquire::Select::new("What do you want to do?", options).prompt();
-    Ok(())
+    let mut message = "What do you want to do?";
+    let mut new_config = match inquire::Select::new(message, options.clone()).prompt() {
+        Ok("Done") => return Ok(config),
+        Ok("Delete Endpoint") => {
+            let mut new_endpoints = config.endpoints.clone();
+            new_endpoints.remove(&endpoint_name);
+            let new_config = RpcConfig {
+                endpoints: new_endpoints,
+                ..config
+            };
+            return Ok(new_config);
+        }
+        Ok(_) => config,
+        Err(_) => return Err(MescCliError::InvalidInput),
+    };
+    message = "Any other modifications?";
+    loop {
+        new_config = match inquire::Select::new(message, options.clone()).prompt() {
+            Ok("Done") => return Ok(new_config),
+            Ok("Delete Endpoint") => {
+                let mut new_endpoints = new_config.endpoints.clone();
+                new_endpoints.remove(&endpoint_name);
+                let new_config = RpcConfig {
+                    endpoints: new_endpoints,
+                    ..new_config.clone()
+                };
+                return Ok(new_config);
+            }
+            Ok(_) => new_config,
+            Err(_) => return Err(MescCliError::InvalidInput),
+        };
+    }
+}
+
+fn modify_defaults(config: RpcConfig) -> Result<RpcConfig, MescCliError> {
+    let options = [
+        "Set default endpoint",
+        "Set default endpoint for network",
+        "Add new profile",
+        "Modify existing profile",
+    ]
+    .to_vec();
+
+    match inquire::Select::new("What do you want to do?", options).prompt()? {
+        "Set default endpoint" => set_default_endpoint(config),
+        "Set default endpoint for network" => set_default_endpoint_for_network(config),
+        "Add new profile" => add_new_profile(config),
+        "Modify existing profile" => modify_existing_profile(config),
+        _ => Err(MescCliError::InvalidInput),
+    }
+}
+
+fn set_default_endpoint(_config: RpcConfig) -> Result<RpcConfig, MescCliError> {
+    todo!()
+}
+
+fn set_default_endpoint_for_network(_config: RpcConfig) -> Result<RpcConfig, MescCliError> {
+    todo!()
+}
+
+fn add_new_profile(_config: RpcConfig) -> Result<RpcConfig, MescCliError> {
+    todo!()
+}
+
+fn modify_existing_profile(_config: RpcConfig) -> Result<RpcConfig, MescCliError> {
+    todo!()
 }
 
 fn get_render_config() -> RenderConfig {

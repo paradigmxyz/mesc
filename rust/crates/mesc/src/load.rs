@@ -1,31 +1,34 @@
-use crate::types::{RpcConfig, MescError};
+use crate::types::{MescError, RpcConfig};
 use std::env;
 use std::fs;
 
 pub fn is_mesc_enabled() -> bool {
-    matches!(get_config_mode(), Ok(ConfigMode::Path) | Ok(ConfigMode::Env))
+    matches!(
+        get_config_mode(),
+        Ok(ConfigMode::Path) | Ok(ConfigMode::Env)
+    )
 }
 use crate::ConfigMode;
 
 pub fn get_config_mode() -> Result<ConfigMode, MescError> {
     let mode = env::var("MESC_CONFIG_MODE").unwrap_or_default();
     if mode == "PATH" {
-        return Ok(ConfigMode::Path)
+        return Ok(ConfigMode::Path);
     } else if mode == "ENV" {
-        return Ok(ConfigMode::Env)
+        return Ok(ConfigMode::Env);
     } else if mode == "DISABLED" {
-        return Ok(ConfigMode::Disabled)
+        return Ok(ConfigMode::Disabled);
     } else if !mode.is_empty() {
-        return Err(MescError::InvalidConfigMode)
+        return Err(MescError::InvalidConfigMode);
     }
     if let Ok(path) = env::var("MESC_CONFIG_PATH") {
         if !path.is_empty() {
-            return Ok(ConfigMode::Path)
+            return Ok(ConfigMode::Path);
         }
     }
     if let Ok(env_config) = env::var("MESC_CONFIG_ENV") {
         if !env_config.is_empty() {
-            return Ok(ConfigMode::Env)
+            return Ok(ConfigMode::Env);
         }
     }
 

@@ -1,7 +1,7 @@
-use crate::load::{load_config_data};
-use crate::types::{Endpoint, MescError};
-use crate::{ChainId, EndpointQuery, TryIntoChainId};
 use crate::directory;
+use crate::load::load_config_data;
+use crate::types::{Endpoint, MescError};
+use crate::{EndpointQuery, TryIntoChainId};
 
 pub fn get_default_endpoint(profile: Option<&str>) -> Result<Option<Endpoint>, MescError> {
     let config = load_config_data()?;
@@ -23,10 +23,11 @@ pub fn get_default_endpoint(profile: Option<&str>) -> Result<Option<Endpoint>, M
     }
 }
 
-pub fn get_endpoint_by_network(
-    chain_id: ChainId,
+pub fn get_endpoint_by_network<T: TryIntoChainId>(
+    chain_id: T,
     profile: Option<&str>,
 ) -> Result<Option<Endpoint>, MescError> {
+    let chain_id = chain_id.try_into_chain_id()?;
     let config = load_config_data()?;
 
     // if using a profile, check if that profile has a default endpoint for chain_id
@@ -73,9 +74,9 @@ pub fn parse_user_query(query: &str, profile: Option<&str>) -> Result<Option<End
 
     // by network name
     if let Some(chain_id) = config.network_names.remove(query) {
-        return get_endpoint_by_network(chain_id, profile)
+        return get_endpoint_by_network(chain_id, profile);
     } else if let Some(chain_id) = directory::get_network_chain_id(query) {
-        return get_endpoint_by_network(chain_id, profile)
+        return get_endpoint_by_network(chain_id, profile);
     }
 
     Ok(None)

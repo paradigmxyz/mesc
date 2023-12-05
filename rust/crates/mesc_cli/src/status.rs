@@ -1,6 +1,7 @@
+use crate::MescCliError;
 use mesc::MescError;
 
-pub(crate) fn print_status() -> Result<(), MescError> {
+pub(crate) fn print_status() -> Result<(), MescCliError> {
     if mesc::is_mesc_enabled() {
         println!("MESC is enabled");
     } else {
@@ -28,7 +29,7 @@ pub(crate) fn print_status() -> Result<(), MescError> {
         Err(e) => {
             println!("- config found: false");
             println!();
-            if let MescError::IOError(e) = &e {
+            if let MescError::IOError(ref e) = e {
                 if let std::io::ErrorKind::NotFound = e.kind() {
                     println!("config file not found");
                 } else {
@@ -37,7 +38,7 @@ pub(crate) fn print_status() -> Result<(), MescError> {
             } else {
                 println!("could not load config: {:?}", e);
             };
-            return Err(e);
+            return Err(e.into());
         }
         Ok(config) => {
             println!("- config found: true");

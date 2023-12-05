@@ -1,6 +1,6 @@
+use crate::validate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::validate;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Endpoint {
@@ -10,7 +10,7 @@ pub struct Endpoint {
     pub endpoint_metadata: HashMap<String, serde_json::Value>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Profile {
     pub default_endpoint: Option<String>,
     pub network_defaults: HashMap<ChainId, String>,
@@ -23,7 +23,7 @@ pub enum ConfigMode {
     Disabled,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RpcConfig {
     pub mesc_version: String,
     pub default_endpoint: Option<String>,
@@ -34,7 +34,25 @@ pub struct RpcConfig {
     pub global_metadata: HashMap<String, serde_json::Value>,
 }
 
+impl Default for RpcConfig {
+    fn default() -> Self {
+        Self {
+            mesc_version: env!("CARGO_PKG_VERSION").to_string(),
+            default_endpoint: None,
+            network_defaults: HashMap::new(),
+            endpoints: HashMap::new(),
+            network_names: HashMap::new(),
+            profiles: HashMap::new(),
+            global_metadata: HashMap::new(),
+        }
+    }
+}
+
 impl RpcConfig {
+    pub fn serialize(&self) -> Result<String, MescError> {
+        Ok(serde_json::to_string(self)?)
+    }
+
     pub fn validate(&self) -> Result<(), MescError> {
         validate::validate_config(self)
     }
@@ -45,6 +63,7 @@ pub enum MescError {
     MescNotEnabled,
     InvalidConfigMode,
     InvalidChainId(String),
+    IntegrityError(String),
     MissingEndpoint(String),
     IOError(std::io::Error),
     InvalidJson,
@@ -94,6 +113,12 @@ impl_from_uint_for_chainid!(u8, u16, u32, u64, u128, usize);
 /// use custom trait instead of TryInto so that Error type is always the same
 pub trait TryIntoChainId {
     fn try_into_chain_id(self) -> Result<ChainId, MescError>;
+}
+
+impl TryIntoChainId for ChainId {
+    fn try_into_chain_id(self) -> Result<ChainId, MescError> {
+        Ok(self)
+    }
 }
 
 impl TryIntoChainId for String {

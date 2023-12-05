@@ -1,4 +1,4 @@
-use crate::{RpcConfig, MescError};
+use crate::{MescError, RpcConfig};
 use std::fs::File;
 
 pub fn write_config(config: RpcConfig, path: String) -> Result<(), MescError> {
