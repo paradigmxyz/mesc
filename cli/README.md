@@ -1,7 +1,7 @@
 
 # Cli MESC Implementation
 
-This is a reference cli implementation of the Multi Endpoint Single Configuration standard.
+This is a reference cli implementation of the Multiple Endpoint Shared Configuration standard.
 
 ## Contents
 - [Installation](#installation)

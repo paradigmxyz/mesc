@@ -1,5 +1,5 @@
 
-# Multiple Endpoint Single Configuration Standard (MESC)
+# Multiple Endpoint Shared Configuration Standard (MESC)
 
 MESC is a specification for how EVM tools can configure their RPC endpoints.
 
