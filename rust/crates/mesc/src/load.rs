@@ -45,12 +45,21 @@ pub fn load_config_data() -> Result<RpcConfig, MescError> {
 }
 
 pub fn load_env_config() -> Result<RpcConfig, MescError> {
-    let config_json = env::var("MESC_CONFIG_ENV").map_err(|_| MescError::EnvReadError)?;
+    let config_json = env::var("MESC_CONFIG_ENV")?;
     serde_json::from_str(&config_json).map_err(|_| MescError::InvalidJson)
 }
 
 pub fn load_file_config() -> Result<RpcConfig, MescError> {
-    let path = env::var("MESC_CONFIG_PATH").map_err(|_| MescError::EnvReadError)?;
+    let path = env::var("MESC_CONFIG_PATH")?;
+    let path = expand_path(path)?;
     let config_str = fs::read_to_string(path).map_err(MescError::IOError)?;
     serde_json::from_str(&config_str).map_err(|_| MescError::InvalidJson)
+}
+
+fn expand_path(path: String) -> Result<String, MescError> {
+    if let Some(subpath) = path.strip_prefix("~/") {
+        Ok(format!("{}/{}", env::var("HOME")?, subpath))
+    } else {
+        Ok(path)
+    }
 }
