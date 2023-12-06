@@ -2,6 +2,8 @@ use crate::{MescCliError, StatusArgs};
 use mesc::MescError;
 
 pub(crate) fn print_status(_args: StatusArgs) -> Result<(), MescCliError> {
+    println!("MESC Status");
+    println!("===========");
     if mesc::is_mesc_enabled() {
         println!("MESC is enabled");
     } else {
@@ -57,21 +59,25 @@ pub(crate) fn print_status(_args: StatusArgs) -> Result<(), MescCliError> {
     };
 
     // print endpoint info
-    println!("Endpoints");
+    println!();
+    println!("Configured Endpoints");
+    println!("--------------------");
     if config.endpoints.is_empty() {
         println!("[none]")
     } else {
-        println!()
+        for endpoint in config.endpoints.values() {
+            println!("- {}: {}", endpoint.name, endpoint.url);
+        }
     };
 
     // print defaults
     println!();
-    println!("Default endpoints");
+    println!("Default Endpoints");
+    println!("-----------------");
     println!(
         "- default endpoint: {}",
         config.default_endpoint.unwrap_or("[none]".into())
     );
-    println!();
     if config.network_defaults.is_empty() {
         println!("- network_defaults: [none]")
     } else {
@@ -80,7 +86,17 @@ pub(crate) fn print_status(_args: StatusArgs) -> Result<(), MescCliError> {
             println!("    - {}: {}", name, chain_id);
         }
     };
-    println!("- additional profiles: {}", config.profiles.len());
+
+    println!();
+    println!("Additional Profiles");
+    println!("-------------------");
+    if config.profiles.is_empty() {
+        println!("[none]");
+    } else {
+        for (name, _profile) in config.profiles.iter() {
+            println!("- {}", name);
+        }
+    };
 
     Ok(())
 }
