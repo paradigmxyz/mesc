@@ -24,7 +24,7 @@ pub struct Cli {
 /// Define your subcommands as an enum
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Interactively create new configuration
+    /// Create new configuration
     Setup(SetupArgs),
     /// Print status of configuration
     Status(StatusArgs),
@@ -41,14 +41,22 @@ pub enum Commands {
 /// Arguments for the `setup` subcommand
 #[derive(Parser)]
 pub struct SetupArgs {
-    /// Example argument
+    /// path to use
     #[clap(short, long)]
     pub path: Option<String>,
+
+    /// edit data in editor
+    #[clap(short, long)]
+    pub editor: bool,
 }
 
 /// Arguments for the `status` subcommand
 #[derive(Parser)]
-pub struct StatusArgs {}
+pub struct StatusArgs {
+    /// reveal all endpoint url's in output
+    #[clap(long)]
+    pub reveal: bool,
+}
 
 /// Arguments for the `url` subcommand
 #[derive(Parser)]

@@ -10,6 +10,12 @@ pub struct Endpoint {
     pub endpoint_metadata: HashMap<String, serde_json::Value>,
 }
 
+impl Endpoint {
+    pub fn chain_id_string(&self) -> String {
+        self.chain_id.clone().map(|x| x.to_string()).unwrap_or("-".to_string())
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Profile {
     pub default_endpoint: Option<String>,
@@ -95,6 +101,29 @@ impl From<std::env::VarError> for MescError {
 /// - TryFrom conversions allow specifying as String, &str, uint, or binary data
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
 pub struct ChainId(String);
+
+impl ChainId {
+    pub fn null_chain_id() -> ChainId {
+        ChainId("0".to_string())
+    }
+}
+
+impl PartialOrd for ChainId {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for ChainId {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let ChainId(self_str) = self;
+        let ChainId(other_str) = other;
+        let self_str = format!("{:>079}", self_str);
+        let other_str = format!("{:>079}", other_str);
+        self_str.cmp(&other_str)
+    }
+}
+
 
 impl std::fmt::Display for ChainId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
