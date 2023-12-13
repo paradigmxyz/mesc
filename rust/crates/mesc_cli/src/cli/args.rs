@@ -25,7 +25,7 @@ pub struct Cli {
 /// Define your subcommands as an enum
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Create new configuration
+    /// Create or modify configuration
     Setup(SetupArgs),
     /// Print status of configuration
     Status(StatusArgs),
@@ -33,7 +33,7 @@ pub enum Commands {
     Ls(LsArgs),
     /// Print list of defaults
     Defaults(DefaultsArgs),
-    /// Ping endpoints and get their client versions
+    /// Ping endpoints and fetch various metadata
     Ping(PingArgs),
     /// Print endpoint
     Endpoint(EndpointArgs),
@@ -57,7 +57,7 @@ pub struct SetupArgs {
 #[derive(Parser)]
 pub struct StatusArgs {
     /// reveal all endpoint url's in output
-    #[clap(long)]
+    #[clap(short, long)]
     pub reveal: bool,
 
     /// verbose, show all endpoints and defaults
@@ -75,13 +75,13 @@ pub struct LsArgs {
     // /// verbose, show all endpoints and defaults
     // #[clap(short, long)]
     // pub verbose: bool,
-    /// filter by chain id
-    #[clap(short, long)]
-    pub chain_id: Option<String>,
-
     /// filter by name (fuzzy match)
     #[clap(short, long)]
     pub name: Option<String>,
+
+    /// filter by chain id
+    #[clap(short, long)]
+    pub network: Option<String>,
 
     /// filter by url (fuzzy match)
     #[clap(short, long)]
@@ -110,8 +110,21 @@ pub struct DefaultsArgs {
 /// Arguments for the `ping` subcommand
 #[derive(Parser)]
 pub struct PingArgs {
-    /// ping only endpoints of this network
-    #[clap(short, long)]
+    /// data fields to gather
+    /// one or more of: {ip, location, latency, client, namespaces, all}
+    #[clap(num_args=0.., verbatim_doc_comment)]
+    pub fields: Vec<String>,
+
+    /// filter endpoints by endpoint name (fuzzy match)
+    #[clap(long)]
+    pub name: Option<String>,
+
+    /// filter endpoints by url (fuzzy match)
+    #[clap(long)]
+    pub url: Option<String>,
+
+    /// filter endpoints by network
+    #[clap(long)]
     pub network: Option<String>,
 }
 

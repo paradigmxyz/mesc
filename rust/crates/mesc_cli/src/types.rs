@@ -12,6 +12,7 @@ pub enum MescCliError {
     InvalidInput,
     FormatError(toolstr::FormatError),
     Error(String),
+    UrlError(String),
 }
 
 impl From<mesc::MescError> for MescCliError {
