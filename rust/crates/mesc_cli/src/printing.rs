@@ -63,3 +63,43 @@ pub(crate) fn print_endpoints(config: &mesc::RpcConfig, reveal: bool) -> Result<
 
     Ok(())
 }
+
+pub(crate) fn print_defaults(config: &mesc::RpcConfig) -> Result<(), MescCliError> {
+    let mut classes = Vec::new();
+    let mut networks = Vec::new();
+    let mut names = Vec::new();
+    classes.push("global default");
+    if let Some(default_endpoint) = mesc::get_default_endpoint(None)? {
+        names.push(default_endpoint.name.clone());
+        networks.push(default_endpoint.chain_id_string());
+    }
+    for (chain_id, name) in config.network_defaults.iter() {
+        classes.push("network default");
+        networks.push(chain_id.to_string());
+        names.push(name.clone());
+    }
+    let format = toolstr::TableFormat::default();
+    let format = toolstr::TableFormat {
+        // indent: 4,
+        ..format
+    };
+    let mut table = toolstr::Table::default();
+    table.add_column("", classes)?;
+    table.add_column("network", networks)?;
+    table.add_column("endpoint", names)?;
+    format.print(table)?;
+
+    // if config.profiles.is_empty() {
+    //     // println!();
+    //     // println!();
+    //     // println!("[none]");
+    // } else {
+    //     println!();
+    //     println!();
+    //     toolstr::print_header("Additional Profiles", &theme);
+    //     for (name, _profile) in config.profiles.iter() {
+    //         println!("- {}", name);
+    //     }
+    // };
+    Ok(())
+}

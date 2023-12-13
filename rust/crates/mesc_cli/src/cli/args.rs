@@ -7,10 +7,11 @@ pub(crate) async fn run_cli() -> Result<(), MescCliError> {
         Commands::Setup(args) => setup_command(args),
         Commands::Status(args) => status_command(args),
         Commands::Ls(args) => ls_command(args),
-        Commands::Url(args) => url_command(args),
-        Commands::Endpoint(args) => endpoint_command(args),
+        Commands::Defaults(args) => defaults_command(args),
         Commands::Find(args) => find_command(args),
         Commands::Ping(args) => ping_command(args).await,
+        Commands::Endpoint(args) => endpoint_command(args),
+        Commands::Url(args) => url_command(args),
     }
 }
 
@@ -31,6 +32,8 @@ pub enum Commands {
     Status(StatusArgs),
     /// Print list of endpoints
     Ls(LsArgs),
+    /// Print list of defaults
+    Defaults(DefaultsArgs),
     /// Search through list of configured endpoints
     Find(FindArgs),
     /// Ping endpoints and get their client versions
@@ -75,37 +78,22 @@ pub struct LsArgs {
     // /// verbose, show all endpoints and defaults
     // #[clap(short, long)]
     // pub verbose: bool,
+
     /// output as json
     #[clap(long)]
     pub json: bool,
 }
 
-/// Arguments for the `url` subcommand
+/// Arguments for the `ls` subcommand
 #[derive(Parser)]
-pub struct UrlArgs {
-    /// query
-    #[clap(short, long)]
-    pub query: Option<String>,
+pub struct DefaultsArgs {
+    // /// verbose, show all endpoints and defaults
+    // #[clap(short, long)]
+    // pub verbose: bool,
 
-    /// profile
-    #[clap(short, long)]
-    pub profile: Option<String>,
-}
-
-/// Arguments for the `json` subcommand
-#[derive(Parser)]
-pub struct EndpointArgs {
-    /// query
-    #[clap(short, long)]
-    pub query: Option<String>,
-
-    /// print as json
-    #[clap(short, long)]
+    /// output as json
+    #[clap(long)]
     pub json: bool,
-
-    /// profile
-    #[clap(short, long)]
-    pub profile: Option<String>,
 }
 
 /// Arguments for the `find` subcommand
@@ -135,3 +123,32 @@ pub struct PingArgs {
     #[clap(short, long)]
     pub network: Option<String>,
 }
+
+/// Arguments for the `json` subcommand
+#[derive(Parser)]
+pub struct EndpointArgs {
+    /// query
+    #[clap(short, long)]
+    pub query: Option<String>,
+
+    /// print as json
+    #[clap(short, long)]
+    pub json: bool,
+
+    /// profile
+    #[clap(short, long)]
+    pub profile: Option<String>,
+}
+
+/// Arguments for the `url` subcommand
+#[derive(Parser)]
+pub struct UrlArgs {
+    /// query
+    #[clap(short, long)]
+    pub query: Option<String>,
+
+    /// profile
+    #[clap(short, long)]
+    pub profile: Option<String>,
+}
+
