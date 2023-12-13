@@ -4,8 +4,9 @@ use clap::{Parser, Subcommand};
 
 pub(crate) async fn run_cli() -> Result<(), MescCliError> {
     match Cli::parse().command {
-        Commands::Setup(args) => run_setup(args),
-        Commands::Status(args) => print_status(args),
+        Commands::Setup(args) => setup_command(args),
+        Commands::Status(args) => status_command(args),
+        Commands::Ls(args) => ls_command(args),
         Commands::Url(args) => url_command(args),
         Commands::Endpoint(args) => endpoint_command(args),
         Commands::Find(args) => find_command(args),
@@ -28,14 +29,16 @@ pub enum Commands {
     Setup(SetupArgs),
     /// Print status of configuration
     Status(StatusArgs),
-    /// Print endpoint URL
-    Url(UrlArgs),
-    /// Print endpoint
-    Endpoint(EndpointArgs),
+    /// Print list of endpoints
+    Ls(LsArgs),
     /// Search through list of configured endpoints
     Find(FindArgs),
     /// Ping endpoints and get their client versions
     Ping(PingArgs),
+    /// Print endpoint
+    Endpoint(EndpointArgs),
+    /// Print endpoint URL
+    Url(UrlArgs),
 }
 
 /// Arguments for the `setup` subcommand
@@ -56,6 +59,25 @@ pub struct StatusArgs {
     /// reveal all endpoint url's in output
     #[clap(long)]
     pub reveal: bool,
+
+    /// verbose, show all endpoints and defaults
+    #[clap(short, long)]
+    pub verbose: bool,
+}
+
+/// Arguments for the `ls` subcommand
+#[derive(Parser)]
+pub struct LsArgs {
+    /// reveal all endpoint url's in output
+    #[clap(long)]
+    pub reveal: bool,
+
+    // /// verbose, show all endpoints and defaults
+    // #[clap(short, long)]
+    // pub verbose: bool,
+    /// output as json
+    #[clap(long)]
+    pub json: bool,
 }
 
 /// Arguments for the `url` subcommand

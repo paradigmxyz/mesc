@@ -7,6 +7,7 @@ mod rpc;
 mod types;
 
 pub(crate) use cli::*;
+pub(crate) use printing::*;
 use types::*;
 
 #[tokio::main]

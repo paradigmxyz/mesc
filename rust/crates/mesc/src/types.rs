@@ -12,7 +12,10 @@ pub struct Endpoint {
 
 impl Endpoint {
     pub fn chain_id_string(&self) -> String {
-        self.chain_id.clone().map(|x| x.to_string()).unwrap_or("-".to_string())
+        self.chain_id
+            .clone()
+            .map(|x| x.to_string())
+            .unwrap_or("-".to_string())
     }
 }
 
@@ -123,7 +126,6 @@ impl Ord for ChainId {
         self_str.cmp(&other_str)
     }
 }
-
 
 impl std::fmt::Display for ChainId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

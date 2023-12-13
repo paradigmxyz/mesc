@@ -1,7 +1,7 @@
-use crate::{MescCliError, StatusArgs};
+use crate::{print_endpoints, MescCliError, StatusArgs};
 use mesc::MescError;
 
-pub(crate) fn print_status(args: StatusArgs) -> Result<(), MescCliError> {
+pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
     let theme = Some(toolstr::Theme::default());
 
     toolstr::print_text_box("MESC Status", &theme);
@@ -91,90 +91,56 @@ pub(crate) fn print_status(args: StatusArgs) -> Result<(), MescCliError> {
     format.print(table)?;
 
     // print endpoint info
-    println!();
-    println!();
-    toolstr::print_header("Configured Endpoints", &theme);
-    println!();
-    let reveal = if args.reveal {
-        true
-    } else {
-        config.global_metadata.get("reveal") == Some(&serde_json::Value::Bool(true))
+    if args.verbose {
+        println!();
+        println!();
+        toolstr::print_header("Configured Endpoints", &theme);
+        println!();
+        print_endpoints(&config, args.reveal)?;
     };
-    if config.endpoints.is_empty() {
-        println!("[none]")
-    } else {
-        let mut endpoints = Vec::new();
+
+    // print defaults
+    if args.verbose {
+        println!();
+        println!();
+        toolstr::print_header("Default Endpoints", &theme);
+        println!();
+        let mut classes = Vec::new();
         let mut networks = Vec::new();
-        let mut urls = Vec::new();
-        let mut sorted_endpoints: Vec<_> = config.endpoints.values().collect();
-        sorted_endpoints.sort_by(|e1, e2| {
-            e1.chain_id.clone()
-                .unwrap_or(mesc::ChainId::null_chain_id())
-                .cmp(&e2.chain_id.clone().unwrap_or(mesc::ChainId::null_chain_id()))
-        });
-        for endpoint in sorted_endpoints.into_iter() {
-            endpoints.push(endpoint.name.clone());
-            networks.push(endpoint.chain_id_string());
-            if reveal {
-                urls.push(endpoint.url.clone());
-            } else {
-                urls.push("*".repeat(8));
-            }
+        let mut names = Vec::new();
+        classes.push("global default");
+        if let Some(default_endpoint) = mesc::get_default_endpoint(None)? {
+            names.push(default_endpoint.name.clone());
+            networks.push(default_endpoint.chain_id_string());
+        }
+        for (chain_id, name) in config.network_defaults.iter() {
+            classes.push("network default");
+            networks.push(chain_id.to_string());
+            names.push(name.clone());
         }
         let format = toolstr::TableFormat::default();
         let format = toolstr::TableFormat {
             // indent: 4,
-            // column_delimiter: " . ".to_string(),
-            // header_separator_delimiter: " . ".to_string(),
             ..format
         };
         let mut table = toolstr::Table::default();
-        table.add_column("endpoint", endpoints)?;
+        table.add_column("", classes)?;
         table.add_column("network", networks)?;
-        table.add_column("url", urls)?;
+        table.add_column("endpoint", names)?;
         format.print(table)?;
-    };
 
-    // print defaults
-    println!();
-    println!();
-    toolstr::print_header("Default Endpoints", &theme);
-    println!();
-    let mut classes = Vec::new();
-    let mut networks = Vec::new();
-    let mut names = Vec::new();
-    classes.push("global default");
-    if let Some(default_endpoint) = mesc::get_default_endpoint(None)? {
-        names.push(default_endpoint.name.clone());
-        networks.push(default_endpoint.chain_id_string());
-    }
-    for (chain_id, name) in config.network_defaults.iter() {
-        classes.push("network default");
-        networks.push(chain_id.to_string());
-        names.push(name.clone());
-    }
-    let format = toolstr::TableFormat::default();
-    let format = toolstr::TableFormat {
-        // indent: 4,
-        ..format
-    };
-    let mut table = toolstr::Table::default();
-    table.add_column("", classes)?;
-    table.add_column("network", networks)?;
-    table.add_column("endpoint", names)?;
-    format.print(table)?;
-
-    if config.profiles.is_empty() {
-        // println!();
-        // println!();
-        // println!("[none]");
-    } else {
-        println!();
-        println!();
-        toolstr::print_header("Additional Profiles", &theme);
-        for (name, _profile) in config.profiles.iter() {
-            println!("- {}", name);
-        }
+        if config.profiles.is_empty() {
+            // println!();
+            // println!();
+            // println!("[none]");
+        } else {
+            println!();
+            println!();
+            toolstr::print_header("Additional Profiles", &theme);
+            for (name, _profile) in config.profiles.iter() {
+                println!("- {}", name);
+            }
+        };
     };
 
     Ok(())

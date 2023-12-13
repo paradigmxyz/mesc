@@ -2,11 +2,11 @@ use crate::{MescCliError, SetupArgs};
 use inquire::ui::{Attributes, Color, IndexPrefix, RenderConfig, StyleSheet, Styled};
 use mesc::{Endpoint, RpcConfig};
 
-pub fn run_setup(args: SetupArgs) -> Result<(), MescCliError> {
+pub fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
     inquire::set_global_render_config(get_render_config());
 
     if args.editor {
-        return edit_config_in_editor(args)
+        return edit_config_in_editor(args);
     }
 
     if mesc::is_mesc_enabled() {
@@ -26,7 +26,7 @@ fn edit_config_in_editor(args: SetupArgs) -> Result<(), MescCliError> {
         let path = mesc::load::get_config_path()?;
         edit::edit_file(path)?
     } else {
-        return Err(MescCliError::Error("no file to edit".to_string()))
+        return Err(MescCliError::Error("no file to edit".to_string()));
     };
     Ok(())
 }
