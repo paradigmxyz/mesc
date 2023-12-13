@@ -20,3 +20,5 @@ inquire = "0.6.2"
 reqwest = { version = "0.11.22", features = ["json"] }
 tokio = { version = "1.32.0", features = ["full"] }
 futures = "0.3.29"
+toolstr = { version = "0.1.0", path = "../../../../toolstr/toolstr-rust" }
+edit = "0.1.4"

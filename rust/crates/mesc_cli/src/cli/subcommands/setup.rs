@@ -2,8 +2,12 @@ use crate::{MescCliError, SetupArgs};
 use inquire::ui::{Attributes, Color, IndexPrefix, RenderConfig, StyleSheet, Styled};
 use mesc::{Endpoint, RpcConfig};
 
-pub fn run_setup(_args: SetupArgs) -> Result<(), MescCliError> {
+pub fn run_setup(args: SetupArgs) -> Result<(), MescCliError> {
     inquire::set_global_render_config(get_render_config());
+
+    if args.editor {
+        return edit_config_in_editor(args)
+    }
 
     if mesc::is_mesc_enabled() {
         let config = mesc::load::load_config_data()?;
@@ -15,11 +19,28 @@ pub fn run_setup(_args: SetupArgs) -> Result<(), MescCliError> {
     }
 }
 
-enum _ConfigWriteMode {
+fn edit_config_in_editor(args: SetupArgs) -> Result<(), MescCliError> {
+    if let Some(path) = args.path {
+        edit::edit_file(path)?
+    } else if let Ok(mesc::ConfigMode::Path) = mesc::load::get_config_mode() {
+        let path = mesc::load::get_config_path()?;
+        edit::edit_file(path)?
+    } else {
+        return Err(MescCliError::Error("no file to edit".to_string()))
+    };
+    Ok(())
+}
+
+#[derive(Clone)]
+enum ConfigWriteMode {
     /// file path of JSON config file
     Path(String),
     /// list of config files to write to
     Env(Vec<String>),
+}
+
+fn get_config_write_mode() -> ConfigWriteMode {
+    todo!()
 }
 
 fn setup_new_config() -> Result<(), MescCliError> {
@@ -33,26 +54,27 @@ fn setup_new_config() -> Result<(), MescCliError> {
 
 fn modify_existing_config(config: RpcConfig) -> Result<(), MescCliError> {
     let options = [
-        "add new endpoint",
-        "modify endpoint",
-        "modify defaults",
-        "exit",
+        "Add new endpoint",
+        "Modify endpoint",
+        "Modify defaults",
+        "Exit",
     ]
     .to_vec();
-    let mut old_config = config;
+    let mut old_config = config.clone();
+    let config_write_mode = get_config_write_mode();
     loop {
         let new_config =
             match inquire::Select::new("What do you want to do?", options.clone()).prompt()? {
-                "add new endpoint" => add_endpoint(old_config.clone())?,
-                "modify endpoint" => modify_endpoint(old_config.clone())?,
-                "modify defaults" => modify_defaults(old_config.clone())?,
-                "exit" => return Ok(()),
+                "Add new endpoint" => add_endpoint(old_config.clone())?,
+                "Modify endpoint" => modify_endpoint(old_config.clone())?,
+                "Modify defaults" => modify_defaults(old_config.clone())?,
+                "Exit" => return Ok(()),
                 _ => return Err(MescCliError::InvalidInput),
             };
 
         if serde_json::to_string(&new_config)? != serde_json::to_string(&old_config)? {
             match inquire::Confirm::new("Save changes to file?").prompt() {
-                Ok(true) => write_config(&new_config)?,
+                Ok(true) => write_config(&new_config, config_write_mode.clone())?,
                 Ok(false) => {}
                 Err(_) => return Err(MescCliError::InvalidInput),
             }
@@ -62,7 +84,10 @@ fn modify_existing_config(config: RpcConfig) -> Result<(), MescCliError> {
     }
 }
 
-fn write_config(_config: &RpcConfig) -> Result<(), MescCliError> {
+fn write_config(
+    _config: &RpcConfig,
+    _config_write_mode: ConfigWriteMode,
+) -> Result<(), MescCliError> {
     todo!()
 }
 

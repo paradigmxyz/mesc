@@ -50,10 +50,15 @@ pub fn load_env_config() -> Result<RpcConfig, MescError> {
 }
 
 pub fn load_file_config() -> Result<RpcConfig, MescError> {
-    let path = env::var("MESC_CONFIG_PATH")?;
-    let path = expand_path(path)?;
+    let path = get_config_path()?;
     let config_str = fs::read_to_string(path).map_err(MescError::IOError)?;
     serde_json::from_str(&config_str).map_err(|_| MescError::InvalidJson)
+}
+
+pub fn get_config_path() -> Result<String, MescError> {
+    let path = env::var("MESC_CONFIG_PATH")?;
+    let path = expand_path(path)?;
+    Ok(path)
 }
 
 fn expand_path(path: String) -> Result<String, MescError> {
