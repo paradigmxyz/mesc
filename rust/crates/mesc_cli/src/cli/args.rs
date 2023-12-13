@@ -8,7 +8,6 @@ pub(crate) async fn run_cli() -> Result<(), MescCliError> {
         Commands::Status(args) => status_command(args),
         Commands::Ls(args) => ls_command(args),
         Commands::Defaults(args) => defaults_command(args),
-        Commands::Find(args) => find_command(args),
         Commands::Ping(args) => ping_command(args).await,
         Commands::Endpoint(args) => endpoint_command(args),
         Commands::Url(args) => url_command(args),
@@ -34,8 +33,6 @@ pub enum Commands {
     Ls(LsArgs),
     /// Print list of defaults
     Defaults(DefaultsArgs),
-    /// Search through list of configured endpoints
-    Find(FindArgs),
     /// Ping endpoints and get their client versions
     Ping(PingArgs),
     /// Print endpoint
@@ -78,6 +75,21 @@ pub struct LsArgs {
     // /// verbose, show all endpoints and defaults
     // #[clap(short, long)]
     // pub verbose: bool,
+    /// filter by chain id
+    #[clap(short, long)]
+    pub chain_id: Option<String>,
+
+    /// filter by name (fuzzy match)
+    #[clap(short, long)]
+    pub name: Option<String>,
+
+    /// filter by url (fuzzy match)
+    #[clap(short, long)]
+    pub url: Option<String>,
+
+    /// metadata, space-separated key=value pairs
+    #[clap(short, long)]
+    pub metadata: Vec<String>,
 
     /// output as json
     #[clap(long)]
@@ -90,30 +102,9 @@ pub struct DefaultsArgs {
     // /// verbose, show all endpoints and defaults
     // #[clap(short, long)]
     // pub verbose: bool,
-
     /// output as json
     #[clap(long)]
     pub json: bool,
-}
-
-/// Arguments for the `find` subcommand
-#[derive(Parser)]
-pub struct FindArgs {
-    /// chain id
-    #[clap(short, long)]
-    pub chain_id: Option<u64>,
-
-    /// name (fuzzy match)
-    #[clap(short, long)]
-    pub name: Option<String>,
-
-    /// url (fuzzy match)
-    #[clap(short, long)]
-    pub url: Option<String>,
-
-    /// metadata, space-separated key=value pairs
-    #[clap(short, long)]
-    pub metadata: Vec<String>,
 }
 
 /// Arguments for the `ping` subcommand
@@ -151,4 +142,3 @@ pub struct UrlArgs {
     #[clap(short, long)]
     pub profile: Option<String>,
 }
-

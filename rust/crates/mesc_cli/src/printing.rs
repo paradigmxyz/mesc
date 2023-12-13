@@ -20,14 +20,17 @@ pub fn print_endpoint_pretty(endpoint: Endpoint) {
     println!("- metadata: {:?}", endpoint.endpoint_metadata);
 }
 
-pub(crate) fn print_endpoints(config: &mesc::RpcConfig, reveal: bool) -> Result<(), MescCliError> {
-    if config.endpoints.is_empty() {
+pub(crate) fn print_endpoints(
+    endpoints: &[mesc::Endpoint],
+    reveal: bool,
+) -> Result<(), MescCliError> {
+    if endpoints.is_empty() {
         println!("[none]")
     } else {
-        let mut endpoints = Vec::new();
+        let mut names = Vec::new();
         let mut networks = Vec::new();
         let mut urls = Vec::new();
-        let mut sorted_endpoints: Vec<_> = config.endpoints.values().collect();
+        let mut sorted_endpoints: Vec<mesc::Endpoint> = endpoints.to_owned();
         sorted_endpoints.sort_by(|e1, e2| {
             e1.chain_id
                 .clone()
@@ -39,7 +42,7 @@ pub(crate) fn print_endpoints(config: &mesc::RpcConfig, reveal: bool) -> Result<
                 )
         });
         for endpoint in sorted_endpoints.into_iter() {
-            endpoints.push(endpoint.name.clone());
+            names.push(endpoint.name.clone());
             networks.push(endpoint.chain_id_string());
             if reveal {
                 urls.push(endpoint.url.clone());
@@ -55,7 +58,7 @@ pub(crate) fn print_endpoints(config: &mesc::RpcConfig, reveal: bool) -> Result<
             ..format
         };
         let mut table = toolstr::Table::default();
-        table.add_column("endpoint", endpoints)?;
+        table.add_column("endpoint", names)?;
         table.add_column("network", networks)?;
         table.add_column("url", urls)?;
         format.print(table)?;

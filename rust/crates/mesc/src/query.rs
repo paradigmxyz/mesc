@@ -90,5 +90,13 @@ pub fn find_endpoints(query: EndpointQuery) -> Result<Vec<Endpoint>, MescError> 
         candidates.retain(|endpoint| endpoint.chain_id.as_ref() == Some(&chain_id))
     }
 
+    if let Some(name) = query.name_contains {
+        candidates.retain(|endpoint| endpoint.name.contains(&name))
+    }
+
+    if let Some(url) = query.url_contains {
+        candidates.retain(|endpoint| endpoint.url.contains(&url))
+    }
+
     Ok(candidates)
 }

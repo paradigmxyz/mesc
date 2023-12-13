@@ -1,4 +1,4 @@
-use crate::{print_endpoints, MescCliError, StatusArgs, print_defaults};
+use crate::{print_defaults, print_endpoints, MescCliError, StatusArgs};
 use mesc::MescError;
 
 pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
@@ -96,7 +96,8 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
         println!();
         toolstr::print_header("Configured Endpoints", &theme);
         println!();
-        print_endpoints(&config, args.reveal)?;
+        let endpoints: Vec<_> = config.endpoints.clone().into_values().collect();
+        print_endpoints(&endpoints, args.reveal)?;
     };
 
     // print defaults
