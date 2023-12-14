@@ -46,7 +46,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
         let fields = fields.clone();
         let task: JoinHandle<(String, Result<EndpointMetadata, MescCliError>)> =
             tokio::spawn(async move {
-                let result = metadata::get_node_metadata(url.clone(), &fields).await;
+                let result = metadata::get_node_metadata(url.clone(), &fields, args.timeout).await;
                 (name, result)
             });
         tasks.push(task);

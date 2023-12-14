@@ -16,9 +16,10 @@ pub(crate) struct EndpointMetadata {
 pub(crate) async fn get_node_metadata(
     url: String,
     fields: &[String],
+    timeout: u64,
 ) -> Result<EndpointMetadata, MescCliError> {
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(1))
+        .timeout(std::time::Duration::from_secs(timeout))
         .build()?;
 
     // node client

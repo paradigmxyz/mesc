@@ -126,6 +126,10 @@ pub struct PingArgs {
     /// filter endpoints by network
     #[clap(long)]
     pub network: Option<String>,
+
+    /// timeout, in seconds
+    #[clap(long, default_value_t = 1)]
+    pub timeout: u64,
 }
 
 /// Arguments for the `json` subcommand
