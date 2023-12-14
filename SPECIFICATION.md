@@ -85,11 +85,11 @@ This approach is built on three key-value schemas:
 | ---                 | ---                      | --- |
 | `mesc_version`      | `str`                    | must equal the value `"MESC 1.0"`
 | `default_endpoint`  | `str \| None`            | name of default endpoint
-| `network_defaults`  | `Mapping[str, str]`      | map of chain_id's to endpoint names
-| `network_names`     | `Mapping[str, str]`      | map of network names to chain_id's
+| `network_defaults`  | `Mapping[ChainId, str]`  | map of chain_id's to endpoint names
+| `network_names`     | `Mapping[str, ChainId]`  | map of network names to chain_id's
 | `endpoints`         | `Mapping[str, Endpoint]` | map of endpoint names to endpoints
 | `profiles`          | `Mapping[str, Profile]`  | map of profile names to profiles
-| `global_metadata`   | `Mapping[str, Any]`      | global metadata entires
+| `global_metadata`   | `Mapping[str, Any]`      | global metadata entries
 
 ##### `Endpoint` schema:
 
@@ -97,7 +97,7 @@ This approach is built on three key-value schemas:
 | ---                 | ---                 | --- |
 | `url`               | `str`               | url of endpoint, including transport
 | `name`              | `str`               | name of endpoint
-| `chain_id`          | `str | None`        | chain id of network
+| `chain_id`          | `ChainId | None`    | chain id of network
 | `endpoint_metadata` | `Mapping[str, Any]` | endpoint metadata entries
 
 ##### `Profile` schema:
@@ -105,13 +105,13 @@ This approach is built on three key-value schemas:
 | key                 | value type               | description |
 | ---                 | ---                      | --- |
 | `default_network`   | `str \| None`            | chain_id of default network
-| `network_defaults`  | `Mapping[str, str]`      | map of chain_id's to endpoint names
+| `network_defaults`  | `Mapping[ChainId, str]`  | map of chain_id's to endpoint names
 
 Requirements:
 - All keys of `RpcConfig` and `Endpoint` are required. No additional keys should be present, except within `global_metadata` and `endpoint_metadata`.
-- Every endpoint name specified in `RpcConfig.default_endpoints` must exist in `RpcConfig.endpoints`.
-- These key-value structures can be represented simply in JSON and in most common programming languages.
-- Each `chain_id` should be represented using as either a decimal string or a hex string. Strings are used because chain id's can be 256 bits and most languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
+- Every endpoint name specified in `RpcConfig.default_endpoint` and in `RpcConfig.network_defaults` must exist in `RpcConfig.endpoints`.
+- These key-value structures can be easily represented in JSON and in most common programming languages.
+- Each `chain_id` should be represented using either a decimal string or a hex string. Strings are used because chain id's can be 256 bits and most languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
 
 ##### Metadata
 
