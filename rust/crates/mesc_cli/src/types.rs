@@ -9,7 +9,7 @@ pub enum MescCliError {
     IOError(std::io::Error),
     InvalidNetworkResponse,
     JoinError(tokio::task::JoinError),
-    InvalidInput,
+    InvalidInput(String),
     FormatError(toolstr::FormatError),
     Error(String),
     UrlError(String),

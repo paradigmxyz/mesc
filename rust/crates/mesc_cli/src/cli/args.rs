@@ -69,14 +69,14 @@ pub struct StatusArgs {
 #[derive(Parser)]
 pub struct LsArgs {
     /// reveal all endpoint url's in output
-    #[clap(long)]
+    #[clap(short, long)]
     pub reveal: bool,
 
     // /// verbose, show all endpoints and defaults
     // #[clap(short, long)]
     // pub verbose: bool,
     /// filter by name (fuzzy match)
-    #[clap(short, long)]
+    #[clap(long)]
     pub name: Option<String>,
 
     /// filter by chain id
@@ -148,7 +148,7 @@ pub struct EndpointArgs {
 #[derive(Parser)]
 pub struct UrlArgs {
     /// query
-    #[clap(short, long)]
+    #[clap()]
     pub query: Option<String>,
 
     /// profile

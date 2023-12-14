@@ -69,14 +69,14 @@ fn modify_existing_config(config: RpcConfig) -> Result<(), MescCliError> {
                 "Modify endpoint" => modify_endpoint(old_config.clone())?,
                 "Modify defaults" => modify_defaults(old_config.clone())?,
                 "Exit" => return Ok(()),
-                _ => return Err(MescCliError::InvalidInput),
+                _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
             };
 
         if serde_json::to_string(&new_config)? != serde_json::to_string(&old_config)? {
             match inquire::Confirm::new("Save changes to file?").prompt() {
                 Ok(true) => write_config(&new_config, config_write_mode.clone())?,
                 Ok(false) => {}
-                Err(_) => return Err(MescCliError::InvalidInput),
+                Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
             }
         }
 
@@ -98,7 +98,7 @@ fn add_endpoint(config: RpcConfig) -> Result<RpcConfig, MescCliError> {
             let input = inquire::Text::new("Endpoint name?").with_default(default_name);
             let name = match input.prompt() {
                 Ok(choice) => choice,
-                Err(_) => return Err(MescCliError::InvalidInput),
+                Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
             };
             Endpoint {
                 url,
@@ -107,7 +107,7 @@ fn add_endpoint(config: RpcConfig) -> Result<RpcConfig, MescCliError> {
                 endpoint_metadata: std::collections::HashMap::new(),
             }
         }
-        Err(_) => return Err(MescCliError::InvalidInput),
+        Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
     };
     Ok(config)
 }
@@ -140,7 +140,7 @@ fn modify_endpoint(config: RpcConfig) -> Result<RpcConfig, MescCliError> {
             return Ok(new_config);
         }
         Ok(_) => config,
-        Err(_) => return Err(MescCliError::InvalidInput),
+        Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
     };
     message = "Any other modifications?";
     loop {
@@ -156,7 +156,7 @@ fn modify_endpoint(config: RpcConfig) -> Result<RpcConfig, MescCliError> {
                 return Ok(new_config);
             }
             Ok(_) => new_config,
-            Err(_) => return Err(MescCliError::InvalidInput),
+            Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
         };
     }
 }
@@ -175,7 +175,7 @@ fn modify_defaults(config: RpcConfig) -> Result<RpcConfig, MescCliError> {
         "Set default endpoint for network" => set_default_endpoint_for_network(config),
         "Add new profile" => add_new_profile(config),
         "Modify existing profile" => modify_existing_profile(config),
-        _ => Err(MescCliError::InvalidInput),
+        _ => Err(MescCliError::InvalidInput("invalid input".to_string())),
     }
 }
 

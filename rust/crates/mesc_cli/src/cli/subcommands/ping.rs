@@ -2,6 +2,7 @@ use crate::metadata::EndpointMetadata;
 use crate::{metadata, MescCliError, PingArgs};
 use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
+use std::collections::HashSet;
 use tokio::task::JoinHandle;
 
 pub(crate) fn all_ping_fields() -> Vec<String> {
@@ -51,6 +52,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
         tasks.push(task);
     }
     let mut names = vec![];
+    let mut networks = vec![];
     let mut metadatas = vec![];
     let mut ips = vec![];
     let mut block_numbers = vec![];
@@ -60,8 +62,22 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     while let Some(result) = tasks.next().await {
         match result {
             Ok((name, Ok(metadata))) => {
-                names.push(name);
                 metadatas.push(metadata);
+
+                for endpoint in endpoints.iter() {
+                    if endpoint.name == name {
+                        networks.push(
+                            endpoint
+                                .chain_id
+                                .clone()
+                                .map(|c| c.to_string())
+                                .unwrap_or("-".to_string()),
+                        );
+                        continue;
+                    }
+                }
+
+                names.push(name);
             }
             Ok((name, Err(_))) => failed_endpoints.push(name.to_string()),
             Err(e) => return Err(MescCliError::JoinError(e)),
@@ -89,22 +105,23 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     let mut table = toolstr::Table::default();
 
     table.add_column("endpoint", names)?;
+    table.add_column("network", networks)?;
 
-    if fields.contains(&"latency".to_string()) {
-        table.add_column("latency (ms)", latencies)?;
-    };
-    if fields.contains(&"ip".to_string()) {
-        table.add_column("ip", ips)?;
-    };
-    if fields.contains(&"block".to_string()) {
-        table.add_column("latest block", block_numbers)?;
-    };
-    if fields.contains(&"location".to_string()) {
-        table.add_column("location", locations)?;
-    };
-    if fields.contains(&"client".to_string()) {
-        table.add_column("node client", node_clients)?;
-    };
+    for field in fields.iter() {
+        match field.as_str() {
+            "latency" => table.add_column("latency\n(ms)", latencies.clone())?,
+            "ip" => table.add_column("ip", ips.clone())?,
+            "block" => table.add_column("block", block_numbers.clone())?,
+            "location" => table.add_column("location", locations.clone())?,
+            "client" => table.add_column("node client", node_clients.clone())?,
+            _ => {
+                return Err(MescCliError::InvalidInput(format!(
+                    "unknown field: {}",
+                    field
+                )))
+            }
+        }
+    }
     let format = toolstr::TableFormat::default();
     format.print(table)?;
 
@@ -119,5 +136,18 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
             failed_endpoints.join(", ")
         );
     };
+
+    let field_set: HashSet<_> = fields.into_iter().collect();
+    let all_field_set: HashSet<_> = all_ping_fields().into_iter().collect();
+    let additional_fields: Vec<_> = all_field_set.difference(&field_set).collect();
+    let additional_fields: Vec<_> = additional_fields.iter().map(|s| s.as_str()).collect();
+    if !additional_fields.is_empty() {
+        println!();
+        println!(
+            "additional fields avaiable: {}",
+            additional_fields.join(", ")
+        );
+    };
+
     Ok(())
 }
