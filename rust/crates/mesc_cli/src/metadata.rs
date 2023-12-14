@@ -17,7 +17,9 @@ pub(crate) async fn get_node_metadata(
     url: String,
     fields: &[String],
 ) -> Result<EndpointMetadata, MescCliError> {
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(1))
+        .build()?;
 
     // node client
     let node_client_version = if fields.contains(&"client".to_string()) {
