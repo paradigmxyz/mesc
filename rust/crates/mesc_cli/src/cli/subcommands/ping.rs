@@ -15,7 +15,6 @@ pub(crate) fn all_ping_fields() -> Vec<String> {
 }
 
 pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
-    let config_data = mesc::load::load_config_data()?;
     let mut tasks = FuturesUnordered::<JoinHandle<_>>::new();
 
     let fields = if args.fields.contains(&"all".to_string()) {
@@ -26,13 +25,28 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
         args.fields
     };
 
-    for endpoint in config_data.endpoints.into_values() {
+    // get endpoints
+    let mut query = mesc::EndpointQuery::new();
+    if let Some(network) = args.network {
+        query = query.chain_id(network)?;
+    }
+    if let Some(name) = args.name {
+        query = query.name(name)?;
+    }
+    if let Some(url) = args.url {
+        query = query.url(url)?;
+    }
+    let endpoints = mesc::find_endpoints(query)?;
+    let n_endpoints = endpoints.len();
+
+    for endpoint in endpoints.iter() {
+        let name = endpoint.name.clone();
         let url = endpoint.url.clone();
         let fields = fields.clone();
         let task: JoinHandle<(String, Result<EndpointMetadata, MescCliError>)> =
             tokio::spawn(async move {
                 let result = metadata::get_node_metadata(url.clone(), &fields).await;
-                (endpoint.name, result)
+                (name, result)
             });
         tasks.push(task);
     }
@@ -96,11 +110,12 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
 
     println!();
     if failed_endpoints.is_empty() {
-        println!("all endpoints responded without error");
+        println!("{} endpoints responded without error", n_endpoints);
     } else {
         println!(
-            "failed collection for {} endpoints: {}",
+            "failed collection for {} of {} endpoints: {}",
             failed_endpoints.len(),
+            n_endpoints,
             failed_endpoints.join(", ")
         );
     };
