@@ -20,6 +20,17 @@ pub fn print_endpoint_pretty(endpoint: Endpoint) {
     println!("- metadata: {:?}", endpoint.endpoint_metadata);
 }
 
+fn sort_endpoints(endpoints: &[mesc::Endpoint]) -> Vec<mesc::Endpoint> {
+    let mut endpoints: Vec<mesc::Endpoint> = endpoints.to_vec();
+    endpoints.sort_by(|e1, e2| match (e1.chain_id.clone(), e2.chain_id.clone()) {
+        (Some(c1), Some(c2)) => c1.cmp(&c2),
+        (Some(_), None) => std::cmp::Ordering::Less,
+        (None, Some(_)) => std::cmp::Ordering::Greater,
+        (None, None) => std::cmp::Ordering::Equal,
+    });
+    endpoints
+}
+
 pub(crate) fn print_endpoints(
     endpoints: &[mesc::Endpoint],
     reveal: bool,
@@ -30,17 +41,7 @@ pub(crate) fn print_endpoints(
         let mut names = Vec::new();
         let mut networks = Vec::new();
         let mut urls = Vec::new();
-        let mut sorted_endpoints: Vec<mesc::Endpoint> = endpoints.to_owned();
-        sorted_endpoints.sort_by(|e1, e2| {
-            e1.chain_id
-                .clone()
-                .unwrap_or(mesc::ChainId::null_chain_id())
-                .cmp(
-                    &e2.chain_id
-                        .clone()
-                        .unwrap_or(mesc::ChainId::null_chain_id()),
-                )
-        });
+        let sorted_endpoints = sort_endpoints(endpoints);
         for endpoint in sorted_endpoints.into_iter() {
             names.push(endpoint.name.clone());
             networks.push(endpoint.chain_id_string());

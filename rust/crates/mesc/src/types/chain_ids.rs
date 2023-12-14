@@ -1,6 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::MescError;
-
+use serde::{Deserialize, Serialize};
 
 /// ChainId is a string representation of an integer chain id
 /// - TryFrom conversions allow specifying as String, &str, uint, or binary data
@@ -10,6 +9,19 @@ pub struct ChainId(String);
 impl ChainId {
     pub fn null_chain_id() -> ChainId {
         ChainId("0".to_string())
+    }
+
+    /// convert to hex representation
+    pub fn to_hex(&self) -> Result<String, MescError> {
+        let ChainId(chain_id) = self;
+        if chain_id.starts_with("0x") {
+            Ok(chain_id.clone())
+        } else {
+            match chain_id.parse::<u64>() {
+                Ok(number) => Ok(format!("0x{:x}", number)),
+                Err(_) => Err(MescError::IntegrityError("bad chain_id".to_string())),
+            }
+        }
     }
 }
 
@@ -21,10 +33,16 @@ impl PartialOrd for ChainId {
 
 impl Ord for ChainId {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let ChainId(self_str) = self;
-        let ChainId(other_str) = other;
-        let self_str = format!("{:>079}", self_str);
-        let other_str = format!("{:>079}", other_str);
+        let self_string: String = match self.to_hex() {
+            Ok(s) => s[2..].to_string(),
+            Err(_) => return std::cmp::Ordering::Greater,
+        };
+        let other_string = match other.to_hex() {
+            Ok(s) => s[2..].to_string(),
+            Err(_) => return std::cmp::Ordering::Greater,
+        };
+        let self_str = format!("{:>079}", self_string);
+        let other_str = format!("{:>079}", other_string);
         self_str.cmp(&other_str)
     }
 }

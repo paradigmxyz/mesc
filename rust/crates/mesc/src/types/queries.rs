@@ -1,4 +1,4 @@
-use crate::{MescError, ChainId, TryIntoChainId};
+use crate::{ChainId, MescError, TryIntoChainId};
 
 #[derive(Debug, Default, Clone)]
 pub struct EndpointQuery {

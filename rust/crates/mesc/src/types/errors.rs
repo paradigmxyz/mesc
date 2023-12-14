@@ -1,4 +1,3 @@
-
 #[derive(Debug)]
 pub enum MescError {
     MescNotEnabled,
@@ -31,4 +30,3 @@ impl From<std::env::VarError> for MescError {
         MescError::EnvReadError(value)
     }
 }
-

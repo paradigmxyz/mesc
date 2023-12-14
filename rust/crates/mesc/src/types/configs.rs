@@ -66,5 +66,3 @@ impl RpcConfig {
         validate::validate_config(self)
     }
 }
-
-
