@@ -111,7 +111,7 @@ Requirements:
 - All keys of `RpcConfig` and `Endpoint` are required. No additional keys should be present, except within `global_metadata` and `endpoint_metadata`.
 - Every endpoint name specified in `RpcConfig.default_endpoints` must exist in `RpcConfig.endpoints`.
 - These key-value structures can be represented simply in JSON and in most common programming languages.
-- Each `chain_id` should be represented using a string. Chain id's can be 256 bits, and most languages do not have native 256 bit integer types.
+- Each `chain_id` should be represented using as either a decimal string or a hex string. Strings are used because chain id's can be 256 bits and most languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
 
 ##### Metadata
 
@@ -120,27 +120,27 @@ The `global_metadata` and `endpoint_metadata` fields allow for optional or idios
 **Endpoint metadata**
 | key | value type | description | examples |
 | --- | ---        | ---         | ---      |
-| `rate_limit_rps`        | `int \| float`              | ratelimit in requests per second | `250`  |
-| `rate_limit_cups`       | `int \| float`              | ratelimit in CUPS                | `1000` |
-| `rate_limit_per_method` | `Mapping[str, int | float]` | ratelimit in RPS for each method | `{"trace_block": 200}` |
-| `api_key`               | `str`                       | api key                          | `a2798f237a2398rf7` |
-| `jwt_secret`            | `str`                       | jwt secret | |
-| `host`                  | `str`                       | name of provider host            | `"llamanodes"`, `"alchemy"`, `"quicknode"`, `"localhost"`
-| `ecosystem`             | `str`                       | ecosystem of chain, for connecting mainnets to testnets | `"ethereum"`, `"polygon"` |
-| `node_client`           | `str`                       | versioned node client            | `erigon/2.48.1/linux-amd64/go1.20.5` `reth/v0.1.0-alpha.10-7b781eb60/x86_64-unknown-linux-gnu` |
-| `namespaces`            | `Sequence[str]`             | RPC name spaces enabled for endpoint | `["eth", "trace, "debug"]`
-| `explorer`              | `str`                       | block explorer                   | `etherscan.com`
-| `location`              | `str`                       | geographic region                | `location` |
-| `cloud_region`          | `str`                       | cloud provider region            | `aws` |
-| `labels`                | `Sequence[str]`             | tags                             | `mempool` `private_mempool`, `cache`, `archive`, `consensus_layer`, `execution_layer`, `validator`, `ephemeral` |
+| `rate_limit_rps`        | `int \| float`               | ratelimit in requests per second                        | `250`  |
+| `rate_limit_cups`       | `int \| float`               | ratelimit in CUPS                                       | `1000` |
+| `rate_limit_per_method` | `Mapping[str, int \| float]` | ratelimit in RPS for each method                        | `{"trace_block": 200}` |
+| `api_key`               | `str`                        | api key                                                 | `a2798f237a2398rf7` |
+| `jwt_secret`            | `str`                        | jwt secret | |
+| `host`                  | `str`                        | name of provider host                                   | `"llamanodes"`, `"alchemy"`, `"quicknode"`, `"localhost"`
+| `ecosystem`             | `str`                        | ecosystem of chain, (e.g. relates mainnets to testnets) | `"ethereum"`, `"polygon"` |
+| `node_client`           | `str`                        | versioned node client                                   | `erigon/2.48.1/linux-amd64/go1.20.5` `reth/v0.1.0-alpha.10-7b781eb60/x86_64-unknown-linux-gnu` |
+| `namespaces`            | `Sequence[str]`              | RPC name spaces enabled for endpoint                    | `["eth", "trace, "debug"]`
+| `explorer`              | `str`                        | block explorer                                          | `etherscan.com`
+| `location`              | `str`                        | geographic region                                       | `location` |
+| `cloud_region`          | `str`                        | cloud provider region                                   | `aws` |
+| `labels`                | `Sequence[str]`              | tags                                                    | `mempool` `private_mempool`, `cache`, `archive`, `consensus_layer`, `execution_layer`, `validator`, `ephemeral` |
 
 **Global Metadata**
-| key                  | value type                    | description                                 | examples |
-| ---                  | ---                           | ---                                         | ---      |
-| `last_modified_by`   | `str`                         | versioned tool used to create configuration | `mesc__1.0` |
-| `last_modified_time` | `int`                         | timestamp of config modification            | `1700200462` |
-| `creation_time`      | `int`                         | timestamp of config creation                | `1700200462` |
-| `groups`             | `Mapping[str, Sequence[str]]` | groupings of endpoints, mapping of group name to list of endpoint names | `{"load_balancer": ["alchemy_optimism", "quicknode_optimism"]}` |
+| key                  | value type                    | description                                                               | examples |
+| ---                  | ---                           | ---                                                                       | ---      |
+| `last_modified_by`   | `str`                         | versioned tool used to create configuration                               | `mesc__1.0` |
+| `last_modified_time` | `int`                         | timestamp of config modification                                          | `1700200462` |
+| `creation_time`      | `int`                         | timestamp of config creation                                              | `1700200462` |
+| `groups`             | `Mapping[str, Sequence[str]]` | groupings of endpoints, mapping of group name to list of endpoint names   | `{"load_balancer": ["alchemy_optimism", "quicknode_optimism"]}` |
 | `conceal`            | `bool`                        | whether tool should avoid casually revealing private RPC url's unprompted | `true` |
 
 Other metadata keys that are specific to tool should be prefixed by that tool's name (e.g. tool `xyz` should prefix its metadata keys with `"xyz__"`).
@@ -219,23 +219,27 @@ MESC data should be searched in the following order:
     "network_names": {},
     "endpoints": {
         "local_ethereum": {
+            "name": "local_ethereum",
             "url": "http://localhost:8545",
-            "chain_id": 1,
+            "chain_id": "1",
             "endpoint_metadata": {}
         },
         "local_goerli": {
+            "name": "local_goerli",
             "url": "http://localhost:8546",
-            "chain_id": 5,
+            "chain_id": "5",
             "endpoint_metadata": {}
         },
         "llamanodes_ethereum": {
+            "name": "llamanodes_ethereum",
             "url": "https://eth.llamarpc.com",
-            "chain_id": 1,
+            "chain_id": "1",
             "endpoint_metadata": {}
         },
         "llamanodes_polygon": {
+            "name": "llamanodes_polygon",
             "url": "https://polygon.llamarpc.com",
-            "chain_id": 137,
+            "chain_id": "137",
             "endpoint_metadata": {}
         }
     },
