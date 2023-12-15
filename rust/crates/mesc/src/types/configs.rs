@@ -37,8 +37,8 @@ pub struct RpcConfig {
     pub mesc_version: String,
     pub default_endpoint: Option<String>,
     pub network_defaults: HashMap<ChainId, String>,
-    pub endpoints: HashMap<String, Endpoint>,
     pub network_names: HashMap<String, ChainId>,
+    pub endpoints: HashMap<String, Endpoint>,
     pub profiles: HashMap<String, Profile>,
     pub global_metadata: HashMap<String, serde_json::Value>,
 }
@@ -49,8 +49,8 @@ impl Default for RpcConfig {
             mesc_version: env!("CARGO_PKG_VERSION").to_string(),
             default_endpoint: None,
             network_defaults: HashMap::new(),
-            endpoints: HashMap::new(),
             network_names: HashMap::new(),
+            endpoints: HashMap::new(),
             profiles: HashMap::new(),
             global_metadata: HashMap::new(),
         }

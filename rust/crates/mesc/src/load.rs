@@ -1,4 +1,4 @@
-use crate::types::{MescError, RpcConfig};
+use crate::{apply_overrides, MescError, RpcConfig};
 use std::env;
 use std::fs;
 
@@ -36,12 +36,16 @@ pub fn get_config_mode() -> Result<ConfigMode, MescError> {
 }
 
 pub fn load_config_data() -> Result<RpcConfig, MescError> {
-    match get_config_mode() {
+    let config = match get_config_mode() {
         Ok(ConfigMode::Path) => load_file_config(),
         Ok(ConfigMode::Env) => load_env_config(),
         Ok(ConfigMode::Disabled) => Err(MescError::MescNotEnabled),
         Err(e) => Err(e),
-    }
+    };
+
+    let mut config = config?;
+    apply_overrides(&mut config)?;
+    Ok(config)
 }
 
 pub fn load_env_config() -> Result<RpcConfig, MescError> {

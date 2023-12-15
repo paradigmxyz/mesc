@@ -112,6 +112,7 @@ Requirements:
 - Every endpoint name specified in `RpcConfig.default_endpoint` and in `RpcConfig.network_defaults` must exist in `RpcConfig.endpoints`.
 - These key-value structures can be easily represented in JSON and in most common programming languages.
 - Each `chain_id` should be represented using either a decimal string or a hex string. Strings are used because chain id's can be 256 bits and most languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
+- Names of endpoints, networks, and profiles should not include spaces or any other symbols beyond: dashes, underscores, periods.
 
 ##### Metadata
 
@@ -191,9 +192,10 @@ These overrides use a simple syntax that is intended to be easily written by hum
 | `MESC_GLOBAL_METADATA`   | JSON formatted global metadata                                    | `{}` |
 | `MESC_ENDPOINT_METADATA` | JSON mapping of `{"endpoint_name": {<ENDPOINT_METADATA>}}`        | `{}` |
 
-If URL's are given to `MESC_DEFAULT_ENDPOINT`, `MESC_NETWORK_DEFAULTS`, or `MESC_ENDPOINTS`, `Endpoint` entries will be created as needed in `RpcConfig.endpoints`. If a name is not provided, a random name should be assigned.
-
-Overrides can be placed within a shell script or inlined to a shell command. For example, to quickly change the default endpoint used by tool `xyz`, could use the command `MESC_DEFAULT_ENDPOINT=goerli xyz`. Overrides can also be used with CI/CD environments or containers.
+- If URL's are given to `MESC_DEFAULT_ENDPOINT`, `MESC_NETWORK_DEFAULTS`, or `MESC_ENDPOINTS`, `Endpoint` entries will be created as needed in `RpcConfig.endpoints`. If a name is not provided, a random name should be assigned.
+- Overrides can be placed within a shell script or inlined to a shell command. For example, to quickly change the default endpoint used by tool `xyz`, could use the command `MESC_DEFAULT_ENDPOINT=goerli xyz`. Overrides can also be used with CI/CD environments or containers.
+- Setting an override variable to an empty value will disable use of that override.
+- Metadata overrides (`MESC_GLOBAL_METADATA` and `MESC_ENDPOINT_METADATA`) merge into the underlying config values instead of replacing them.
 
 #### Querying Data
 

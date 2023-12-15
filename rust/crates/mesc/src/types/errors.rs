@@ -11,6 +11,7 @@ pub enum MescError {
     NotImplemented(String),
     SerdeError(serde_json::Error),
     InvalidInput,
+    OverrideError(String),
 }
 
 impl From<std::io::Error> for MescError {
