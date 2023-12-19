@@ -1,0 +1,20 @@
+
+# MESC Tests
+
+These tests measure the degree to which a MESC implementation is compliant with the MESC specification.
+
+These tests are language-agnostic, allowing the same tests to be run against each MESC implementation.
+
+## Usage
+1. `generate.py` generates tests in the `generate/` directory
+2. `run.py adaptor/<ADAPTOR>` runs the tests for the given adaptor
+
+## Adaptors
+
+These tests are language-agnostic. Each MESC implementation has an adapter that allows running the tests using the test runner.
+
+To make a custom adaptor:
+1. adapter should be a script that takes a JSON `Query` as its single argument
+2. the adapter should run the query and output the result as JSON
+3. if the query fails, simply output the word `FAIL`
+

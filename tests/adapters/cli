@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import typing
+import subprocess
+from mesc import Endpoint, EndpointQuery
+
+
+def run_query(query: EndpointQuery) -> Endpoint | typing.Sequence[Endpoint] | None:
+    if query["type"] == "default_endpoint":
+        cmd = ["mesc", "endpoint", "--json"]
+        if query["fields"].get("profile") is not None:
+            cmd.append("--profile")
+            cmd.append(query["fields"]["profile"])
+        return subprocess.check_output(cmd)
+    elif query["type"] == "endpoint_by_name":
+        cmd = ["mesc", "endpoint", "--json", "--name", query["fields"]["name"]]
+        if query["fields"].get("profile") is not None:
+            cmd.append("--profile")
+            cmd.append(query["fields"]["profile"])
+        return subprocess.check_output(cmd)
+    elif query["type"] == "endpoint_by_network":
+        cmd = ["mesc", "endpoint", "--json", "--network", query["fields"]["name"]]
+        if query["fields"].get("profile") is not None:
+            cmd.append("--profile")
+            cmd.append(query["fields"]["profile"])
+        return subprocess.check_output(cmd)
+    elif query["type"] == "user_input_query":
+        cmd = ["mesc", "endpoint", query["fields"]["user_input"], "--json"]
+        if query["fields"].get("profile") is not None:
+            cmd.append("--profile")
+            cmd.append(query["fields"]["profile"])
+        return subprocess.check_output(cmd)
+    elif query["type"] == "multi_query":
+        cmd = ["mesc", "ls", "--json"]
+        for field in ["name", "url", "network"]:
+            if query["fields"].get(field) is not None:
+                cmd.append("--" + field)
+                cmd.append(str(query["fields"][field]))
+        return subprocess.check_output(cmd)
+    else:
+        raise Exception("invalid query type: " + str(query["type"]))
+
+
+if __name__ == "__main__":
+    # load test
+    parser = argparse.ArgumentParser()
+    parser.add_argument("test")
+    args = parser.parse_args()
+    test = json.loads(args.test)
+
+    # run test
+    try:
+        result = run_query(test)
+        print(json.dumps(result))
+    except Exception as e:
+        print("FAIL")
+        print(e)

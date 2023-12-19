@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import mesc
+from mesc import Endpoint, EndpointQuery
+import typing
+
+
+def run_query(query: EndpointQuery) -> Endpoint | typing.Sequence[Endpoint] | None:
+    if query["type"] == "default_endpoint":
+        fields = typing.cast(mesc.DefaultEndpointQuery, query["fields"])
+        return mesc.get_default_endpoint(**fields)
+    elif query["type"] == "endpoint_by_name":
+        fields = typing.cast(mesc.EndpointNameQuery, query["fields"])
+        return mesc.get_endpoint_by_name(**fields)
+    elif query["type"] == "endpoint_by_network":
+        fields = typing.cast(mesc.EndpointNetworkQuery, query["fields"])
+        return mesc.get_endpoint_by_network(**fields)
+    elif query["type"] == "user_input_query":
+        fields = typing.cast(mesc.UserInputQuery, query["fields"])
+        return mesc.query_user_input(**fields)
+    elif query["type"] == "multi_query":
+        fields = typing.cast(mesc.EndpointsQuery, query["fields"])
+        return mesc.find_endpoints(**fields)
+    else:
+        raise Exception("invalid query type: " + str(query["type"]))
+
+
+if __name__ == "__main__":
+    # load test
+    parser = argparse.ArgumentParser()
+    parser.add_argument("test")
+    args = parser.parse_args()
+    test = json.loads(args.test)
+
+    # run test
+    try:
+        result = mesc.run_query(test)
+        print(json.dumps(result))
+    except Exception as e:
+        print("FAIL")
+        print(e)
