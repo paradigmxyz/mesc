@@ -31,7 +31,7 @@ blank_profile: Profile = {
 
 full_config: RpcConfig = {
     "mesc_version": "MESC 1.0",
-    "default_endpoint": None,
+    "default_endpoint": 'local_ethereum',
     "network_defaults": {
         "1": "local_ethereum",
         "5": "local_goerli",
@@ -131,7 +131,7 @@ def create_basic_query_tests() -> (
             full_config,
             {
                 "query_type": "endpoint_by_name",
-                "fields": {"name": "local_goerli", "profile": None},
+                "fields": {"name": "local_goerli"},
             },
             full_config["endpoints"]["local_goerli"],
         ),
@@ -140,7 +140,7 @@ def create_basic_query_tests() -> (
             full_config,
             {
                 "query_type": "endpoint_by_name",
-                "fields": {"name": "llamanodes_optimism", "profile": None},
+                "fields": {"name": "llamanodes_optimism"},
             },
             full_config["endpoints"]["llamanodes_optimism"],
         ),

@@ -5,7 +5,7 @@ from .interface import (
     get_default_endpoint,
     get_endpoint_by_name,
     get_endpoint_by_network,
-    parse_user_query,
+    query_user_input,
     find_endpoints,
 )
 from .types import Endpoint, Profile, RpcConfig
@@ -20,6 +20,6 @@ __all__ = (
     "get_default_endpoint",
     "get_endpoint_by_name",
     "get_endpoint_by_network",
-    "parse_user_query",
+    "query_user_input",
     "find_endpoints",
 )

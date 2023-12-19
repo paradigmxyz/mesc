@@ -2,29 +2,30 @@
 
 import argparse
 import json
-import mesc
-from mesc import Endpoint, EndpointQuery
 import typing
+
+from mesc.types import Endpoint, EndpointQuery
+import mesc
 
 
 def run_query(query: EndpointQuery) -> Endpoint | typing.Sequence[Endpoint] | None:
-    if query["type"] == "default_endpoint":
-        fields = typing.cast(mesc.DefaultEndpointQuery, query["fields"])
+    if query["query_type"] == "default_endpoint":
+        fields = typing.cast(mesc.types.DefaultEndpointQuery, query["fields"])
         return mesc.get_default_endpoint(**fields)
-    elif query["type"] == "endpoint_by_name":
-        fields = typing.cast(mesc.EndpointNameQuery, query["fields"])
+    elif query["query_type"] == "endpoint_by_name":
+        fields = typing.cast(mesc.types.EndpointNameQuery, query["fields"])
         return mesc.get_endpoint_by_name(**fields)
-    elif query["type"] == "endpoint_by_network":
-        fields = typing.cast(mesc.EndpointNetworkQuery, query["fields"])
+    elif query["query_type"] == "endpoint_by_network":
+        fields = typing.cast(mesc.types.EndpointNetworkQuery, query["fields"])
         return mesc.get_endpoint_by_network(**fields)
-    elif query["type"] == "user_input_query":
-        fields = typing.cast(mesc.UserInputQuery, query["fields"])
+    elif query["query_type"] == "user_input_query":
+        fields = typing.cast(mesc.types.UserInputQuery, query["fields"])
         return mesc.query_user_input(**fields)
-    elif query["type"] == "multi_query":
-        fields = typing.cast(mesc.EndpointsQuery, query["fields"])
+    elif query["query_type"] == "multi_query":
+        fields = typing.cast(mesc.types.EndpointsQuery, query["fields"])
         return mesc.find_endpoints(**fields)
     else:
-        raise Exception("invalid query type: " + str(query["type"]))
+        raise Exception("invalid query type: " + str(query["query_type"]))
 
 
 if __name__ == "__main__":
@@ -36,8 +37,8 @@ if __name__ == "__main__":
 
     # run test
     try:
-        result = mesc.run_query(test)
+        result = run_query(test)
         print(json.dumps(result))
     except Exception as e:
         print("FAIL")
-        print(e)
+        print(repr(e))

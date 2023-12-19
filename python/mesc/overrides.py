@@ -52,7 +52,7 @@ def env_default_endpoint(config: RpcConfig) -> str | None:
         chain_id = config["network_names"][default_endpoint]
         return _chain_id_to_endpoint_name(chain_id, config)
 
-    dir_chain_id = directory.network_name_to_chain_id(default_endpoint)
+    dir_chain_id = directory.network_name_to_chain_id(default_endpoint, config=config)
     if dir_chain_id is not None:
         return _chain_id_to_endpoint_name(dir_chain_id, config)
     else:

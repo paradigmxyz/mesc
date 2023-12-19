@@ -17,7 +17,10 @@ def is_mesc_enabled() -> bool:
 
 def get_default_endpoint(profile: str | None = None) -> Endpoint | None:
     config = load.read_config_data()
-    endpoint = config["default_endpoint"]
+    if profile is not None and profile in config['profiles']:
+        endpoint = config['profiles'][profile].get('default_endpoint', config['default_endpoint'])
+    else:
+        endpoint = config["default_endpoint"]
     if endpoint is None:
         return None
     else:
@@ -36,19 +39,22 @@ def get_endpoint_by_network(
     chain_id: str | int, *, profile: str | None = None
 ) -> Endpoint | None:
     config = load.read_config_data()
-    if profile and profile in config["profiles"]:
-        network_defaults = config["profiles"][profile]["network_defaults"]
-    else:
-        network_defaults = config["network_defaults"]
+    chain_id = str(chain_id)
+    network_defaults = config['network_defaults']
+    default_name = network_defaults.get(chain_id)
 
-    name = network_defaults.get(str(chain_id))
+    if profile and profile in config["profiles"]:
+        name = config["profiles"][profile]["network_defaults"].get(chain_id, default_name)
+    else:
+        name = default_name
+
     if name is None:
         return None
     else:
         return get_endpoint_by_name(name)
 
 
-def parse_user_query(query: str, *, profile: str | None = None) -> Endpoint | None:
+def query_user_input(user_input: str, *, profile: str | None = None) -> Endpoint | None:
     """
     resolution order:
     1. endpoint name
@@ -56,22 +62,38 @@ def parse_user_query(query: str, *, profile: str | None = None) -> Endpoint | No
     3. network name
     """
     config = load.read_config_data()
-    if query in config["endpoints"]:
-        return config["endpoints"][query]
-    elif query.isdecimal():
+    if user_input in config["endpoints"]:
+        return config["endpoints"][user_input]
+    elif user_input.isdecimal():
         try:
-            get_endpoint_by_network(int(query), profile=profile)
+            get_endpoint_by_network(int(user_input), profile=profile)
         except Exception:
             pass
 
-    chain_id = directory.network_name_to_chain_id(query)
+    if is_chain_id(user_input):
+        chain_id = user_input
+    else:
+        chain_id = directory.network_name_to_chain_id(user_input, config=config)
     if chain_id is not None:
         try:
-            get_endpoint_by_network(chain_id, profile=profile)
+            return get_endpoint_by_network(chain_id, profile=profile)
         except Exception:
             pass
 
     return None
+
+
+def is_chain_id(chain_id: str):
+    if chain_id.isdecimal():
+        return True
+    elif chain_id.startswith('0x'):
+        try:
+            int(chain_id, 16)
+            return True
+        except:
+            pass
+    return False
+
 
 
 def find_endpoints(*, chain_id: str | int | None = None) -> Mapping[str, Endpoint]:
