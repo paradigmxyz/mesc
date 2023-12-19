@@ -95,8 +95,8 @@ This approach is built on three key-value schemas:
 
 | key                 | value type          | description |
 | ---                 | ---                 | --- |
-| `url`               | `str`               | url of endpoint, including transport
 | `name`              | `str`               | name of endpoint
+| `url`               | `str`               | url of endpoint, including transport
 | `chain_id`          | `ChainId | None`    | chain id of network
 | `endpoint_metadata` | `Mapping[str, Any]` | endpoint metadata entries
 
@@ -104,7 +104,8 @@ This approach is built on three key-value schemas:
 
 | key                 | value type               | description |
 | ---                 | ---                      | --- |
-| `default_network`   | `str \| None`            | chain_id of default network
+| `name`              | `str`                    | name of profile
+| `default_endpoint`  | `str \| None`            | chain_id of default network
 | `network_defaults`  | `Mapping[ChainId, str]`  | map of chain_id's to endpoint names
 
 Requirements:
@@ -112,7 +113,7 @@ Requirements:
 - Every endpoint name specified in `RpcConfig.default_endpoint` and in `RpcConfig.network_defaults` must exist in `RpcConfig.endpoints`.
 - These key-value structures can be easily represented in JSON and in most common programming languages.
 - Each `chain_id` should be represented using either a decimal string or a hex string. Strings are used because chain id's can be 256 bits and most languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
-- Names of endpoints, networks, and profiles should not include spaces or any other symbols beyond: dashes, underscores, periods.
+- Names of endpoints, networks, and profiles should be composed of characters that are either alphanumeric, dashes, underscores, or periods. Names should be at least 1 character long and should not be entirely numeric, to distinguish them from chain_ids.
 
 ##### Metadata
 
@@ -141,6 +142,7 @@ The `global_metadata` and `endpoint_metadata` fields allow for optional or idios
 | `last_modified_by`   | `str`                         | versioned tool used to create configuration                               | `mesc__1.0` |
 | `last_modified_time` | `int`                         | timestamp of config modification                                          | `1700200462` |
 | `creation_time`      | `int`                         | timestamp of config creation                                              | `1700200462` |
+| `api_keys`           | `Mapping[str, str]`           | API keys to RPC-related services                                          | `{"etherscan": "abc123"}` |
 | `groups`             | `Mapping[str, Sequence[str]]` | groupings of endpoints, mapping of group name to list of endpoint names   | `{"load_balancer": ["alchemy_optimism", "quicknode_optimism"]}` |
 | `conceal`            | `bool`                        | whether tool should avoid casually revealing private RPC url's unprompted | `true` |
 
@@ -188,13 +190,14 @@ These overrides use a simple syntax that is intended to be easily written by hum
 | `MESC_NETWORK_DEFAULTS`  | space-separated pairs of `<chain_id>=<endpoint>`                  | `5=alchemy_optimism 1=local_mainnet` |
 | `MESC_NETWORK_NAMES`     | space-separated pairs of `<name>=<chain_id>`                      | `zora=7777777` |
 | `MESC_ENDPOINTS`         | space-separated items of `[<name>[:<chain_id>]=]<url>`            | `alchemy_optimism=https://aclhemy.com/fjsj local_goerli:5=https://ach` |
-| `MESC_PROFILES`          | space-separated pairs of `<profile>.<key>[.<chain_id]=<endpoint>` | `foundry.default_network=5 foundry.default_endpoints.5=alchemy_optimism` |
+| `MESC_PROFILES`          | space-separated pairs of `<profile>.<key>[.<chain_id]=<endpoint>` | `foundry.default_endpoint=5 foundry.network_defaults.5=alchemy_optimism` |
 | `MESC_GLOBAL_METADATA`   | JSON formatted global metadata                                    | `{}` |
 | `MESC_ENDPOINT_METADATA` | JSON mapping of `{"endpoint_name": {<ENDPOINT_METADATA>}}`        | `{}` |
 
+- Overrides can be placed within a shell script or inlined to a shell command. For example, to quickly change the default endpoint used by cli tool `xyz`, could use the command `MESC_DEFAULT_ENDPOINT=goerli xyz`. Overrides can also be used with CI/CD environments or containers.
 - If URL's are given to `MESC_DEFAULT_ENDPOINT`, `MESC_NETWORK_DEFAULTS`, or `MESC_ENDPOINTS`, `Endpoint` entries will be created as needed in `RpcConfig.endpoints`. If a name is not provided, a random name should be assigned.
-- Overrides can be placed within a shell script or inlined to a shell command. For example, to quickly change the default endpoint used by tool `xyz`, could use the command `MESC_DEFAULT_ENDPOINT=goerli xyz`. Overrides can also be used with CI/CD environments or containers.
 - Setting an override variable to an empty value will disable use of that override.
+- Setting an override variable to an invalid value should result in an error upon loading the config.
 - Metadata overrides (`MESC_GLOBAL_METADATA` and `MESC_ENDPOINT_METADATA`) merge into the underlying config values instead of replacing them.
 
 #### Querying Data
