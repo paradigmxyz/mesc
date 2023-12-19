@@ -136,16 +136,24 @@ pub struct PingArgs {
 #[derive(Parser)]
 pub struct EndpointArgs {
     /// query
-    #[clap(short, long)]
+    #[clap()]
     pub query: Option<String>,
 
-    /// print as json
-    #[clap(short, long)]
-    pub json: bool,
+    /// name
+    #[clap(long)]
+    pub name: Option<String>,
+
+    /// network
+    #[clap(long)]
+    pub network: Option<String>,
 
     /// profile
     #[clap(short, long)]
     pub profile: Option<String>,
+
+    /// print as json
+    #[clap(short, long)]
+    pub json: bool,
 }
 
 /// Arguments for the `url` subcommand
@@ -154,6 +162,14 @@ pub struct UrlArgs {
     /// query
     #[clap()]
     pub query: Option<String>,
+
+    /// name
+    #[clap(long)]
+    pub name: Option<String>,
+
+    /// network
+    #[clap(long)]
+    pub network: Option<String>,
 
     /// profile
     #[clap(short, long)]
