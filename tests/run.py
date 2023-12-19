@@ -20,7 +20,7 @@ from mesc import RpcConfig
 def get_setups():
     return {
         "path": setup_config_path,
-        # "env": setup_config_env_var,
+        "env": setup_config_env_var,
     }
 
 
@@ -40,7 +40,7 @@ def setup_config_path(config: RpcConfig):
 def setup_config_env_var(config: RpcConfig):
     config_data = json.dumps(config)
     try:
-        yield {"MESC_CONFIG_MODE": "ENV", "MESC_CONFIG_JSON": config_data}
+        yield {"MESC_CONFIG_MODE": "ENV", "MESC_CONFIG_ENV": config_data}
     finally:
         pass
 

@@ -157,19 +157,19 @@ Other metadata keys that are specific to tool should be prefixed by that tool's 
 To locate the configuration, this specification introduces 3 environment variables:
 - `MESC_CONFIG_MODE`
 - `MESC_CONFIG_PATH`
-- `MESC_CONFIG_JSON`
+- `MESC_CONFIG_ENV`
 
 The following resolution order is then used:
 1. check `MESC_CONFIG_MODE`
     - if set to `"PATH"`, interpret file at `MESC_CONFIG_PATH` as JSON `RpcConfig` data
-    - if set to `"ENV"`, interpret the contents of `MESC_CONFIG_JSON` as JSON `RpcConfig` data
+    - if set to `"ENV"`, interpret the contents of `MESC_CONFIG_ENV` as JSON `RpcConfig` data
     - if set to `"ENABLED"` or unset or empty, continue to (2)
     - if set to `"DISABLED"` or other value, raise error
 2. check `MESC_CONFIG_PATH`
     - if set to an existing file, interpret as JSON `RpcConfig` data
     - if set to a nonexistent file, raise error
     - if unset or empty, continue to (3)
-3. check `MESC_CONFIG_JSON`
+3. check `MESC_CONFIG_ENV`
     - if set to valid JSON, interpret as JSON `RpcConfig` data
     - if nonempty and set to invalid JSON, raise error
     - if unset or empty, MESC is not being used, continue to (4)
@@ -302,7 +302,7 @@ Want to satsfy all of these constraints:
 
 No backward compatibility issues found.
 
-MESC is an opt-in specification that only becomes activated when a user explicitly sets one or more of the environment variables listed above (`MESC_CONFIG_MODE`, `MESC_CONFIG_PATH`, or `MESC_CONFIG_JSON`). These variables are not currently used by any common EVM tools. Tools that use `ETH_RPC_URL` or other configuration approaches will continue working as before.
+MESC is an opt-in specification that only becomes activated when a user explicitly sets one or more of the environment variables listed above (`MESC_CONFIG_MODE`, `MESC_CONFIG_PATH`, or `MESC_CONFIG_ENV`). These variables are not currently used by any common EVM tools. Tools that use `ETH_RPC_URL` or other configuration approaches will continue working as before.
 
 <!-- ## Test Cases -->
 

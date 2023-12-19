@@ -5,7 +5,7 @@ from typing import Any, MutableMapping, TypedDict, Literal
 mesc_env_vars = [
     "MESC_CONFIG_MODE",
     "MESC_CONFIG_PATH",
-    "MESC_CONFIG_JSON",
+    "MESC_CONFIG_ENV",
     "MESC_ENDPOINT_METADATA",
     "MESC_GLOBAL_METADATA",
     "MESC_ENDPOINTS",

@@ -19,7 +19,7 @@ def read_config_data() -> RpcConfig:
         raise Exception("invalid mode: " + str(mode))
     elif os.environ.get("MESC_CONFIG_PATH") not in ["", None]:
         config = read_file_config()
-    elif os.environ.get("MESC_CONFIG_JSON") not in ["", None]:
+    elif os.environ.get("MESC_CONFIG_ENV") not in ["", None]:
         config = read_env_config()
     else:
         raise Exception("config not specified")
@@ -30,7 +30,7 @@ def read_config_data() -> RpcConfig:
 
 
 def read_env_config() -> RpcConfig:
-    return json.loads(os.environ.get("MESC_CONFIG_JSON"))  # type: ignore
+    return json.loads(os.environ.get("MESC_CONFIG_ENV"))  # type: ignore
 
 
 def read_file_config() -> RpcConfig:
