@@ -3,6 +3,8 @@
 
 This is a reference implementation of the Python MESC Standard
 
+It has no required external dependencies.
+
 - [Installation](#installation)
 - [Example Usage](#example-usage)
 - [Reference](#reference)

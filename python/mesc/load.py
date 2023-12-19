@@ -2,17 +2,12 @@ from __future__ import annotations
 import json
 import os
 
-from .types import mesc_env_vars, RpcConfig
+from .types import RpcConfig
 from . import exceptions
 from . import overrides
 
 
-def is_mesc_enabled() -> bool:
-    for var in mesc_env_vars:
-        if os.environ.get(var) not in [None, ""]:
-            return True
-    return False
-
+import time
 
 def read_config_data() -> RpcConfig:
     mode = os.environ.get("MESC_CONFIG_MODE")
@@ -41,5 +36,6 @@ def read_env_config() -> RpcConfig:
 
 
 def read_file_config() -> RpcConfig:
-    with open(os.environ.get("MESC_CONFIG_PATH"), "r") as f:  # type: ignore
+    path = os.path.expanduser(os.environ.get("MESC_CONFIG_PATH")) # type: ignore
+    with open(path, "r") as f:  # type: ignore
         return json.load(f)  # type: ignore
