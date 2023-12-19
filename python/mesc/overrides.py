@@ -41,7 +41,7 @@ def apply_env_overrides(config: RpcConfig | None) -> RpcConfig:
 
 def env_default_endpoint(config: RpcConfig) -> str | None:
     default_endpoint = os.environ.get("MESC_DEFAULT_ENDPOINT")
-    if default_endpoint is None or default_endpoint == '':
+    if default_endpoint is None or default_endpoint == "":
         return None
 
     if default_endpoint in config["endpoints"]:
@@ -56,7 +56,9 @@ def env_default_endpoint(config: RpcConfig) -> str | None:
     if dir_chain_id is not None:
         return _chain_id_to_endpoint_name(dir_chain_id, config)
     else:
-        raise exceptions.InvalidOverride("Invalid syntax used for MESC_DEFAULT_ENDPOINT")
+        raise exceptions.InvalidOverride(
+            "Invalid syntax used for MESC_DEFAULT_ENDPOINT"
+        )
 
 
 def _chain_id_to_endpoint_name(chain_id: str, config: RpcConfig) -> str:
@@ -71,7 +73,7 @@ def _chain_id_to_endpoint_name(chain_id: str, config: RpcConfig) -> str:
 
 def env_network_defaults() -> Mapping[str, str]:
     network_defaults = os.environ.get("MESC_NETWORK_DEFAULTS")
-    if network_defaults is None or network_defaults == '':
+    if network_defaults is None or network_defaults == "":
         return {}
     else:
         items = [item.split("=", 1) for item in network_defaults.split(" ")]
@@ -142,7 +144,7 @@ def env_endpoints() -> Mapping[str, Endpoint]:
 
 def env_profiles() -> Mapping[str, Profile]:
     raw_profiles = os.environ.get("MESC_PROFILES")
-    if raw_profiles is None or raw_profiles == '':
+    if raw_profiles is None or raw_profiles == "":
         return {}
 
     profiles: MutableMapping[str, Profile] = {}
@@ -165,7 +167,7 @@ def env_profiles() -> Mapping[str, Profile]:
 
 def env_global_metadata() -> Mapping[str, Any]:
     global_metadata = os.environ.get("MESC_GLOBAL_METADATA")
-    if global_metadata is None or global_metadata == '':
+    if global_metadata is None or global_metadata == "":
         return {}
     else:
         return json.loads(global_metadata)  # type: ignore
@@ -173,7 +175,7 @@ def env_global_metadata() -> Mapping[str, Any]:
 
 def env_endpoint_metadata() -> Mapping[str, Mapping[str, Any]]:
     endpoint_metadata = os.environ.get("MESC_ENDPOINT_METADATA")
-    if endpoint_metadata is None or endpoint_metadata == '':
+    if endpoint_metadata is None or endpoint_metadata == "":
         return {}
     else:
         return json.loads(endpoint_metadata)  # type: ignore

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 known_networks = {
-    "ethereum": '1',
-    "goerli": '5',
+    "ethereum": "1",
+    "goerli": "5",
 }
 
 

@@ -47,10 +47,7 @@ class EndpointQuery(TypedDict):
         "user_input_query",
     ]
     fields: (
-        DefaultEndpointQuery
-        | EndpointNameQuery
-        | EndpointNetworkQuery
-        | UserInputQuery
+        DefaultEndpointQuery | EndpointNameQuery | EndpointNetworkQuery | UserInputQuery
     )
 
 

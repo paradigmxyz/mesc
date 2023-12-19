@@ -7,8 +7,6 @@ from . import exceptions
 from . import overrides
 
 
-import time
-
 def read_config_data() -> RpcConfig:
     mode = os.environ.get("MESC_CONFIG_MODE")
     if mode == "DISABLE":
@@ -36,6 +34,6 @@ def read_env_config() -> RpcConfig:
 
 
 def read_file_config() -> RpcConfig:
-    path = os.path.expanduser(os.environ.get("MESC_CONFIG_PATH")) # type: ignore
+    path = os.path.expanduser(os.environ.get("MESC_CONFIG_PATH"))  # type: ignore
     with open(path, "r") as f:  # type: ignore
         return json.load(f)  # type: ignore
