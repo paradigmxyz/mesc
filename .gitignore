@@ -2,3 +2,4 @@ target
 /target
 TODO.md
 *.json
+__pycache__
