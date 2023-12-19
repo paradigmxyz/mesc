@@ -1,13 +1,14 @@
 use crate::{ChainId, MescError, TryIntoChainId};
 
 #[derive(Debug, Default, Clone)]
-pub struct EndpointQuery {
+pub struct MultiEndpointQuery {
     pub chain_id: Option<ChainId>,
     pub name_contains: Option<String>,
     pub url_contains: Option<String>,
 }
 
-impl EndpointQuery {
+/// builder for MultiEndpointQuery
+impl MultiEndpointQuery {
     pub fn new() -> Self {
         Self::default()
     }
@@ -26,4 +27,46 @@ impl EndpointQuery {
         self.url_contains = Some(query.as_ref().to_string());
         Ok(self)
     }
+}
+
+//
+// // individual queries
+//
+
+pub struct EndpointQuery {
+    pub query_type: EndpointQueryType,
+    pub fields: QueryFields,
+}
+
+pub enum EndpointQueryType {
+    DefaultEndpoint,
+    EndpointByName,
+    EndpointByNetwork,
+    UserInputQuery,
+}
+
+pub enum QueryFields {
+    DefaultEndpointQuery(DefaultEndpointQuery),
+    EndpointNameQuery(EndpointNameQuery),
+    EndpointNetworkQuery(EndpointNetworkQuery),
+    UserInputQuery(UserInputQuery),
+}
+
+pub struct DefaultEndpointQuery {
+    pub profile: Option<String>,
+}
+
+pub struct EndpointNameQuery {
+    pub profile: Option<String>,
+    pub name: String,
+}
+
+pub struct EndpointNetworkQuery {
+    pub profile: Option<String>,
+    pub chain_id: String,
+}
+
+pub struct UserInputQuery {
+    pub profile: Option<String>,
+    pub user_input: String,
 }

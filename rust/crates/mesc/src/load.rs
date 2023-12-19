@@ -1,14 +1,7 @@
-use crate::{apply_overrides, MescError, RpcConfig};
+use crate::overrides::apply_overrides;
+use crate::{ConfigMode, MescError, RpcConfig};
 use std::env;
 use std::fs;
-
-pub fn is_mesc_enabled() -> bool {
-    matches!(
-        get_config_mode(),
-        Ok(ConfigMode::Path) | Ok(ConfigMode::Env)
-    )
-}
-use crate::ConfigMode;
 
 pub fn get_config_mode() -> Result<ConfigMode, MescError> {
     let mode = env::var("MESC_CONFIG_MODE").unwrap_or_default();

@@ -21,6 +21,7 @@ impl Endpoint {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Profile {
+    pub name: String,
     pub default_endpoint: Option<String>,
     pub network_defaults: HashMap<ChainId, String>,
 }

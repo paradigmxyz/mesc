@@ -1,7 +1,14 @@
 use crate::directory;
-use crate::load::load_config_data;
+use crate::load::{get_config_mode, load_config_data};
 use crate::types::{Endpoint, MescError};
-use crate::{EndpointQuery, TryIntoChainId};
+use crate::{ConfigMode, MultiEndpointQuery, TryIntoChainId};
+
+pub fn is_mesc_enabled() -> bool {
+    matches!(
+        get_config_mode(),
+        Ok(ConfigMode::Path) | Ok(ConfigMode::Env)
+    )
+}
 
 pub fn get_default_endpoint(profile: Option<&str>) -> Result<Option<Endpoint>, MescError> {
     let config = load_config_data()?;
@@ -82,7 +89,7 @@ pub fn parse_user_query(query: &str, profile: Option<&str>) -> Result<Option<End
     Ok(None)
 }
 
-pub fn find_endpoints(query: EndpointQuery) -> Result<Vec<Endpoint>, MescError> {
+pub fn find_endpoints(query: MultiEndpointQuery) -> Result<Vec<Endpoint>, MescError> {
     let config = load_config_data()?;
     let mut candidates: Vec<Endpoint> = config.endpoints.into_values().collect();
 

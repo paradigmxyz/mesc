@@ -26,6 +26,30 @@ pub(crate) fn validate_config(config: &RpcConfig) -> Result<(), MescError> {
         }
     }
 
+    // default endpoints of each network actually use that specified network
+    for (chain_id, endpoint_name) in config.network_defaults.iter() {
+        if let Some(endpoint) = config.endpoints.get(endpoint_name) {
+            if Some(chain_id) != endpoint.chain_id.as_ref() {
+                return Err(MescError::IntegrityError(format!(
+                    "endpoint {} chain_id does not match default chain_id",
+                    endpoint_name
+                )));
+            }
+        }
+    }
+    for profile in config.profiles.values() {
+        for (chain_id, endpoint_name) in profile.network_defaults.iter() {
+            if let Some(endpoint) = config.endpoints.get(endpoint_name) {
+                if Some(chain_id) != endpoint.chain_id.as_ref() {
+                    return Err(MescError::IntegrityError(format!(
+                        "endpoint {} chain_id does not match default chain_id",
+                        endpoint_name
+                    )));
+                }
+            }
+        }
+    }
+
     // endpoint map keys match endpoint name fields
     for (name, endpoint) in config.endpoints.iter() {
         if name != endpoint.name.as_str() {
@@ -36,15 +60,25 @@ pub(crate) fn validate_config(config: &RpcConfig) -> Result<(), MescError> {
         }
     }
 
-    // urls are unique
-    let urls: std::collections::HashSet<_> = config
-        .endpoints
-        .values()
-        .map(|endpoint| endpoint.url.clone())
-        .collect();
-    if urls.len() != config.endpoints.len() {
-        return Err(MescError::IntegrityError("urls are not unique".to_string()));
+    // profile map keys match profile name fields
+    for (name, profile) in config.profiles.iter() {
+        if name != profile.name.as_str() {
+            return Err(MescError::IntegrityError(format!(
+                "map key does not match name field for profile, {} != {}",
+                name, profile.name
+            )));
+        }
     }
+
+    // // urls are unique
+    // let urls: std::collections::HashSet<_> = config
+    //     .endpoints
+    //     .values()
+    //     .map(|endpoint| endpoint.url.clone())
+    //     .collect();
+    // if urls.len() != config.endpoints.len() {
+    //     return Err(MescError::IntegrityError("urls are not unique".to_string()));
+    // }
 
     // chain_id's are valid
     for network in config.network_defaults.keys() {
