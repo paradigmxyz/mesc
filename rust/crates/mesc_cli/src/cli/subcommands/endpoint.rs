@@ -29,7 +29,7 @@ pub(crate) fn endpoint_command(args: EndpointArgs) -> Result<(), MescCliError> {
             }
         }
         Ok(None) => {}
-        Err(_) => eprintln!("could not load RPC config"),
+        Err(e) => eprintln!("could not load RPC config: {:?}", e),
     };
     Ok(())
 }

@@ -2,7 +2,7 @@ use crate::{print_endpoints, LsArgs, MescCliError};
 
 pub(crate) fn ls_command(args: LsArgs) -> Result<(), MescCliError> {
     // get endpoints
-    let mut query = mesc::EndpointQuery::new();
+    let mut query = mesc::MultiEndpointQuery::new();
     if let Some(network) = args.network {
         query = query.chain_id(network)?;
     }

@@ -22,7 +22,7 @@ pub(crate) fn url_command(args: UrlArgs) -> Result<(), MescCliError> {
     match endpoint {
         Ok(Some(endpoint)) => println!("{}", endpoint.url),
         Ok(None) => {}
-        Err(_) => eprintln!("could not load RPC config"),
+        Err(e) => eprintln!("could not load RPC config: {:?}", e),
     };
     Ok(())
 }

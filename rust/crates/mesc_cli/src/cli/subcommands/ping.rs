@@ -27,7 +27,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     };
 
     // get endpoints
-    let mut query = mesc::EndpointQuery::new();
+    let mut query = mesc::MultiEndpointQuery::new();
     if let Some(network) = args.network {
         query = query.chain_id(network)?;
     }

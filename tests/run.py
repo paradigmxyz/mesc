@@ -18,7 +18,10 @@ from mesc import RpcConfig
 
 
 def get_setups():
-    return {"path": setup_config_path, "env": setup_config_env_var}
+    return {
+        "path": setup_config_path,
+        # "env": setup_config_env_var,
+    }
 
 
 @contextlib.contextmanager
@@ -57,26 +60,37 @@ def run_basic_query_tests(tests, adapter, verbose: bool, halt: bool):
     for test in tests:
         name, config, query, endpoint = test
         for setup_name, setup in setups.items():
-            # index += 1
-            # print(index)
-            # if index != 29:
+            index += 1
+            print(index)
+            # if index != 2:
             #     continue
 
             with setup(config) as env:
                 cmd = [adapter, json.dumps(query)]
-                output = subprocess.check_output([sys.executable] + cmd, env=env)
-                output = output.decode("utf-8").strip()
+                env['PATH'] = os.environ['PATH']
+
                 try:
+                    output = subprocess.check_output([sys.executable] + cmd, env=env)
+                except:
+                    print("adapter broken")
+                    if halt:
+                        sys.exit()
+                    failure.append(name)
+                    continue
+
+                try:
+                    output = output.decode("utf-8").strip()
                     output = json.loads(output)
                     if not json_equal(output, endpoint):
                         raise
                     success.append(name)
-                except:
+                except Exception as e:
                     if verbose:
                         print("CONFIG", json.dumps(config, sort_keys=True, indent=True))
                         print("QUERY:", query)
                         print("OUTPUT:", output)
                         print("EXPECTED:", endpoint)
+                        print("EXCEPTION:", type(e), e)
                         print()
                     if halt:
                         sys.exit()
