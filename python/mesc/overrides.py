@@ -23,9 +23,23 @@ def apply_env_overrides(config: RpcConfig | None) -> RpcConfig:
             "global_metadata": {},
         }
 
-    config["endpoints"].update(env_endpoints())
+    for name, endpoint in env_endpoints().items():
+        if name in config['endpoints']:
+            if endpoint['url'] is not None:
+                config['endpoints'][name]['url'] = endpoint['url']
+            if endpoint['chain_id'] is not None:
+                config['endpoints'][name]['chain_id'] = endpoint['chain_id']
+            for key, value in endpoint['endpoint_metadata'].items():
+                config['endpoints'][name]['endpoint_metadata'][key] = value
+        else:
+            config['endpoints'][name] = endpoint
     config["network_names"].update(env_network_names())
-    config["network_defaults"].update(env_network_defaults())
+    for chain_id, endpoint_name in env_network_defaults().items():
+        if endpoint_name == '':
+            if chain_id in config['network_defaults']:
+                del config["network_defaults"][chain_id]
+        else:
+            config["network_defaults"][chain_id] = endpoint_name
     config["profiles"].update(env_profiles())
     default_endpoint = env_default_endpoint(config)
     if default_endpoint is not None:
@@ -101,13 +115,22 @@ def env_endpoints() -> Mapping[str, Endpoint]:
         return endpoints
 
     # gather explicit endpoints
-    pattern = r"^(?P<name>[A-Za-z_-]+)(:(?P<chain_id>\w+))?=(?P<url>.*)"
+    # pattern = r"^(?P<name>[A-Za-z_-]+)(:(?P<chain_id>\w+))?=(?P<url>.*)"
+    pattern = r"^(?:(?P<name>[A-Za-z_-]+)(?::(?P<chain_id>\w+))?=\s*)?(?P<url>\S+)$"
     for item in raw_endpoints.split(" "):
         match = re.match(pattern, item)
         if match:
-            name = match.group("name")
             chain_id = match.group("chain_id")
             url = match.group("url")
+            name = match.group("name")
+            if name is None:
+                from urllib.parse import urlparse
+                if not urlparse(url).scheme:
+                    name = urlparse('http://' + url).hostname
+                else:
+                    name = urlparse(url).hostname
+                name = '.'.join(name.split('.')[:-1])
+
             endpoints[name] = {
                 "name": name,
                 "url": url,

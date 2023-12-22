@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from typing import Mapping
+from typing import Any, Mapping
 from .types import mesc_env_vars, Endpoint
 from . import directory
 from . import exceptions
@@ -17,8 +17,10 @@ def is_mesc_enabled() -> bool:
 
 def get_default_endpoint(profile: str | None = None) -> Endpoint | None:
     config = load.read_config_data()
-    if profile is not None and profile in config['profiles']:
-        endpoint = config['profiles'][profile].get('default_endpoint', config['default_endpoint'])
+    if profile is not None and profile in config["profiles"]:
+        endpoint = config["profiles"][profile].get(
+            "default_endpoint", config["default_endpoint"]
+        )
     else:
         endpoint = config["default_endpoint"]
     if endpoint is None:
@@ -39,12 +41,16 @@ def get_endpoint_by_network(
     chain_id: str | int, *, profile: str | None = None
 ) -> Endpoint | None:
     config = load.read_config_data()
+    if chain_id is None:
+        raise ValueError('chain_id must be a str')
     chain_id = str(chain_id)
-    network_defaults = config['network_defaults']
+    network_defaults = config["network_defaults"]
     default_name = network_defaults.get(chain_id)
 
     if profile and profile in config["profiles"]:
-        name = config["profiles"][profile]["network_defaults"].get(chain_id, default_name)
+        name = config["profiles"][profile]["network_defaults"].get(
+            chain_id, default_name
+        )
     else:
         name = default_name
 
@@ -86,7 +92,7 @@ def query_user_input(user_input: str, *, profile: str | None = None) -> Endpoint
 def is_chain_id(chain_id: str):
     if chain_id.isdecimal():
         return True
-    elif chain_id.startswith('0x'):
+    elif chain_id.startswith("0x"):
         try:
             int(chain_id, 16)
             return True
@@ -95,19 +101,42 @@ def is_chain_id(chain_id: str):
     return False
 
 
-
-def find_endpoints(*, chain_id: str | int | None = None) -> Mapping[str, Endpoint]:
+def find_endpoints(
+    *,
+    chain_id: str | int | None = None,
+    name_contains: str | None = None,
+    url_contains: str | None = None,
+) -> Sequence[Endpoint]:
     config = load.read_config_data()
-    endpoints = config["endpoints"]
+    endpoints = list(config["endpoints"].values())
 
     # check chain id
     if chain_id is not None:
         if isinstance(chain_id, int):
             chain_id = str(chain_id)
-        endpoints = {
-            name: endpoint
-            for name, endpoint in endpoints.items()
-            if endpoint["chain_id"] != chain_id
-        }
+        endpoints = [
+            endpoint
+            for endpoint in endpoints
+            if endpoint["chain_id"] == chain_id
+        ]
+
+    if name_contains is not None:
+        endpoints = [
+            endpoint
+            for endpoint in endpoints
+            if name_contains in endpoint['name']
+        ]
+
+    if url_contains is not None:
+        endpoints = [
+            endpoint
+            for endpoint in endpoints
+            if url_contains in endpoint['url']
+        ]
 
     return endpoints
+
+
+def get_global_metadata() -> Mapping[str, Any]:
+    config = load.read_config_data()
+    return config["global_metadata"]

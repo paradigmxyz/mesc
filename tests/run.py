@@ -2,14 +2,13 @@
 
 import argparse
 import contextlib
-import copy
 import os
 import json
 import shutil
 import subprocess
 import sys
 import tempfile
-from typing import Any, Mapping, MutableSequence
+from typing import Any, Callable, ContextManager, Generator, Mapping, MutableSequence
 
 from mesc.types import EndpointQuery, MultiEndpointQuery, RpcConfig
 
@@ -33,7 +32,9 @@ class FailedQuery(Exception):
     pass
 
 
-def get_setups():
+def get_setups() -> (
+    Mapping[str, Callable[[RpcConfig], ContextManager[Mapping[str, str]]]]
+):
     return {
         "path": setup_config_path,
         "env": setup_config_env_var,
@@ -41,7 +42,7 @@ def get_setups():
 
 
 @contextlib.contextmanager
-def setup_config_path(config: RpcConfig):
+def setup_config_path(config: RpcConfig) -> Generator[Mapping[str, str], None, None]:
     temp_dir = tempfile.mkdtemp()
     temp_path = os.path.join(temp_dir, "config.json")
     with open(temp_path, "w") as f:
@@ -53,7 +54,7 @@ def setup_config_path(config: RpcConfig):
 
 
 @contextlib.contextmanager
-def setup_config_env_var(config: RpcConfig):
+def setup_config_env_var(config: RpcConfig) -> Generator[Mapping[str, str], None, None]:
     config_data = json.dumps(config)
     try:
         yield {"MESC_CONFIG_MODE": "ENV", "MESC_CONFIG_ENV": config_data}
@@ -61,7 +62,7 @@ def setup_config_env_var(config: RpcConfig):
         pass
 
 
-def parse_args():
+def parse_args() -> Mapping[str, Any]:
     parser = argparse.ArgumentParser()
     parser.add_argument("adapters", help="path to adapter", nargs="+")
     parser.add_argument(
@@ -122,36 +123,37 @@ def run_test(
         else:
             message = "success when expecting failure"
             failures.append((adapter, setup_name, test_name, message))
+            if verbose:
+                print(message)
+                print_summary(
+                    config=config,
+                    env=env,
+                    test_name=test_name,
+                    query=query,
+                    output=output,
+                    target_result=target_result,
+                    exception=None,
+                    successes=successes,
+                    failures=failures,
+                )
             if halt:
-                if verbose:
-                    print(message)
                 sys.exit()
-    except Exception as e:
+            else:
+                return
+    except Exception as exception:
         if should_succeed:
             if verbose:
-                print("CONFIG", json.dumps(config, sort_keys=True, indent=4))
-                print(
-                    "ENV:",
-                    json.dumps(
-                        {k: v for k, v in env.items() if k != "PATH"},
-                        sort_keys=True,
-                        indent=4,
-                    ),
+                print_summary(
+                    config=config,
+                    env=env,
+                    test_name=test_name,
+                    query=query,
+                    output=output,
+                    target_result=target_result,
+                    exception=exception,
+                    successes=successes,
+                    failures=failures,
                 )
-                print("QUERY:", query)
-                try:
-                    print(
-                        "OUTPUT:",
-                        json.dumps(
-                            json.loads(output.decode("utf-8")), indent=4, sort_keys=True
-                        ),
-                    )
-                except Exception:
-                    print("OUTPUT:", output.decode('utf-8').strip())
-                print("EXPECTED:", json.dumps(target_result, indent=4, sort_keys=True))
-                print("EXCEPTION:", type(e), e)
-                print("TEST_NAME:", test_name)
-                print("INDEX:", len(successes) + len(failures))
             if halt:
                 sys.exit()
             if len(output) == 0:
@@ -159,13 +161,47 @@ def run_test(
             elif output.decode("utf-8").startswith("FAIL"):
                 message = "QueryFailed:"
             else:
-                message = str(type(e).__name__) + ": " + str(e.args[0])
+                message = str(type(exception).__name__) + ": " + str(exception.args[0])
             failures.append((adapter, setup_name, test_name, message))
         else:
             successes.append((adapter, setup_name, test_name))
 
 
-def json_equal(lhs: Any, rhs: Any):
+def print_summary(
+    config: Any,
+    env: Mapping[str, str],
+    test_name: str,
+    query: Any,
+    output: Any,
+    target_result: Any,
+    exception: Exception | None,
+    successes: MutableSequence[tuple[str, str, str]],
+    failures: MutableSequence[tuple[str, str, str, str]],
+) -> None:
+    print("CONFIG", json.dumps(config, sort_keys=True, indent=4))
+    print(
+        "ENV:",
+        json.dumps(
+            {k: v for k, v in env.items() if k != "PATH"},
+            sort_keys=True,
+            indent=4,
+        ),
+    )
+    print("QUERY:", query)
+    try:
+        print(
+            "OUTPUT:",
+            json.dumps(json.loads(output.decode("utf-8")), indent=4, sort_keys=True),
+        )
+    except Exception:
+        print("OUTPUT:", output.decode("utf-8").strip())
+    print("EXPECTED:", json.dumps(target_result, indent=4, sort_keys=True))
+    print("EXCEPTION:", type(exception), exception)
+    print("TEST_NAME:", test_name)
+    print("INDEX:", len(successes) + len(failures))
+
+
+def json_equal(lhs: Any, rhs: Any) -> bool:
     return json.dumps(lhs, sort_keys=True) == json.dumps(rhs, sort_keys=True)
 
 

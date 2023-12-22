@@ -7,6 +7,7 @@ from .interface import (
     get_endpoint_by_network,
     query_user_input,
     find_endpoints,
+    get_global_metadata,
 )
 from .types import Endpoint, Profile, RpcConfig
 
@@ -22,4 +23,5 @@ __all__ = (
     "get_endpoint_by_network",
     "query_user_input",
     "find_endpoints",
+    "get_global_metadata",
 )

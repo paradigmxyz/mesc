@@ -6,7 +6,7 @@ import copy
 import json
 import os
 import time
-from typing import Any, TypeVar, MutableMapping, Sequence
+from typing import Any, TypeVar, Sequence
 
 from mesc import RpcConfig, Profile, Endpoint
 from mesc.types import EndpointQuery, MultiEndpointQuery, GlobalMetadataQuery

@@ -44,7 +44,7 @@ class EndpointQuery(TypedDict):
         "default_endpoint",
         "endpoint_by_name",
         "endpoint_by_network",
-        "user_input_query",
+        "user_input",
     ]
     fields: (
         DefaultEndpointQuery | EndpointNameQuery | EndpointNetworkQuery | UserInputQuery
@@ -56,7 +56,6 @@ class DefaultEndpointQuery(TypedDict):
 
 
 class EndpointNameQuery(TypedDict):
-    profile: str | None
     name: str
 
 
@@ -70,7 +69,13 @@ class UserInputQuery(TypedDict):
     user_input: str
 
 
-class MultiEndpointQuery(TypedDict):
+class MultiEndpointQuery(TypedDict, total=False):
+    query_type: Literal["multi_endpoint"]
     name_contains: str | None
     url_contains: str | None
-    network: str | None
+    chain_id: str | None
+
+
+class GlobalMetadataQuery(TypedDict, total=False):
+    query_type: Literal["global_metadata"]
+    path: Sequence[str]
