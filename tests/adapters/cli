@@ -28,13 +28,13 @@ def run_query(query: EndpointQuery) -> Endpoint | typing.Sequence[Endpoint] | No
             cmd.append("--profile")
             cmd.append(query["fields"]["profile"])
         output = subprocess.check_output(cmd)
-    elif query["query_type"] == "user_input_query":
+    elif query["query_type"] == "user_input":
         cmd = ["mesc", "endpoint", query["fields"]["user_input"], "--json"]
         if query["fields"].get("profile") is not None:
             cmd.append("--profile")
             cmd.append(query["fields"]["profile"])
         output = subprocess.check_output(cmd)
-    elif query["query_type"] == "multi_query":
+    elif query["query_type"] == "multi_endpoint":
         cmd = ["mesc", "ls", "--json"]
         for field in ["name", "url", "network"]:
             if query["fields"].get(field) is not None:

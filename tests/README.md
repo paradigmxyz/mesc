@@ -16,5 +16,7 @@ These tests are language-agnostic. Each MESC implementation has an adapter that 
 To make a custom adaptor:
 1. adapter should be a script that takes a JSON `Query` as its single argument
 2. the adapter should run the query and output the result as JSON
-3. if the query fails, simply output the word `FAIL`
+3. if the config loading or the query fails, simply output the word `FAIL`
+
+The adapter should never crash upon failure, just print the word `FAIL`
 
