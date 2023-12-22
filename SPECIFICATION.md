@@ -97,7 +97,7 @@ This approach is built on three key-value schemas:
 | ---                 | ---                 | --- |
 | `name`              | `str`               | name of endpoint
 | `url`               | `str`               | url of endpoint, including transport
-| `chain_id`          | `ChainId | None`    | chain id of network
+| `chain_id`          | `ChainId \| None`    | chain id of network
 | `endpoint_metadata` | `Mapping[str, Any]` | endpoint metadata entries
 
 ##### `Profile` schema:
@@ -189,8 +189,8 @@ These overrides use a simple syntax that is intended to be easily written by hum
 | `MESC_DEFAULT_ENDPOINT`  | url, endpoint name, chain id, network name                        | `localhost:9999` |
 | `MESC_NETWORK_DEFAULTS`  | space-separated pairs of `<chain_id>=<endpoint>`                  | `5=alchemy_optimism 1=local_mainnet` |
 | `MESC_NETWORK_NAMES`     | space-separated pairs of `<name>=<chain_id>`                      | `zora=7777777` |
-| `MESC_ENDPOINTS`         | space-separated items of `[<name>[:<chain_id>]=]<url>`            | `alchemy_optimism=https://aclhemy.com/fjsj local_goerli:5=https://ach` |
-| `MESC_PROFILES`          | space-separated pairs of `<profile>.<key>[.<chain_id]=<endpoint>` | `foundry.default_endpoint=5 foundry.network_defaults.5=alchemy_optimism` |
+| `MESC_ENDPOINTS`         | space-separated items of `[<name>[:<chain_id>]=]<url>`            | `alchemy_optimism=https://alchemy.com/fjsj local_goerli:5=localhost:8545` |
+| `MESC_PROFILES`          | space-separated pairs of `<profile>.<key>[.<chain_id]=<endpoint>` | `foundry.default_endpoint=local_goerli foundry.network_defaults.5=alchemy_optimism` |
 | `MESC_GLOBAL_METADATA`   | JSON formatted global metadata                                    | `{}` |
 | `MESC_ENDPOINT_METADATA` | JSON mapping of `{"endpoint_name": {<ENDPOINT_METADATA>}}`        | `{}` |
 
