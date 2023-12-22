@@ -15,7 +15,7 @@ def network_name_to_chain_id(
     network_name: str, *, config: RpcConfig | None = None
 ) -> str | None:
     network_name = network_name.lower()
-    if network_name in config["network_names"]:
+    if config is not None and network_name in config["network_names"]:
         return config["network_names"][network_name]
     else:
         return known_networks.get(network_name.lower())

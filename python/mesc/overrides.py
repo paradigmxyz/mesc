@@ -24,19 +24,19 @@ def apply_env_overrides(config: RpcConfig | None) -> RpcConfig:
         }
 
     for name, endpoint in env_endpoints().items():
-        if name in config['endpoints']:
-            if endpoint['url'] is not None:
-                config['endpoints'][name]['url'] = endpoint['url']
-            if endpoint['chain_id'] is not None:
-                config['endpoints'][name]['chain_id'] = endpoint['chain_id']
-            for key, value in endpoint['endpoint_metadata'].items():
-                config['endpoints'][name]['endpoint_metadata'][key] = value
+        if name in config["endpoints"]:
+            if endpoint["url"] is not None:
+                config["endpoints"][name]["url"] = endpoint["url"]
+            if endpoint["chain_id"] is not None:
+                config["endpoints"][name]["chain_id"] = endpoint["chain_id"]
+            for key, value in endpoint["endpoint_metadata"].items():
+                config["endpoints"][name]["endpoint_metadata"][key] = value
         else:
-            config['endpoints'][name] = endpoint
+            config["endpoints"][name] = endpoint
     config["network_names"].update(env_network_names())
     for chain_id, endpoint_name in env_network_defaults().items():
-        if endpoint_name == '':
-            if chain_id in config['network_defaults']:
+        if endpoint_name == "":
+            if chain_id in config["network_defaults"]:
                 del config["network_defaults"][chain_id]
         else:
             config["network_defaults"][chain_id] = endpoint_name
@@ -47,8 +47,8 @@ def apply_env_overrides(config: RpcConfig | None) -> RpcConfig:
 
     # metadata
     config["global_metadata"].update(env_global_metadata())
-    for endpoint, metadata in env_endpoint_metadata().items():
-        config["endpoints"][endpoint]["endpoint_metadata"].update(metadata)
+    for endpoint_name, metadata in env_endpoint_metadata().items():
+        config["endpoints"][endpoint_name]["endpoint_metadata"].update(metadata)
 
     return config
 
@@ -115,7 +115,6 @@ def env_endpoints() -> Mapping[str, Endpoint]:
         return endpoints
 
     # gather explicit endpoints
-    # pattern = r"^(?P<name>[A-Za-z_-]+)(:(?P<chain_id>\w+))?=(?P<url>.*)"
     pattern = r"^(?:(?P<name>[A-Za-z_-]+)(?::(?P<chain_id>\w+))?=\s*)?(?P<url>\S+)$"
     for item in raw_endpoints.split(" "):
         match = re.match(pattern, item)
@@ -125,11 +124,14 @@ def env_endpoints() -> Mapping[str, Endpoint]:
             name = match.group("name")
             if name is None:
                 from urllib.parse import urlparse
+
                 if not urlparse(url).scheme:
-                    name = urlparse('http://' + url).hostname
+                    name = urlparse("http://" + url).hostname
                 else:
                     name = urlparse(url).hostname
-                name = '.'.join(name.split('.')[:-1])
+                if name is None:
+                    raise Exception("could create name for endpoint")
+                name = ".".join(name.split(".")[:-1])
 
             endpoints[name] = {
                 "name": name,

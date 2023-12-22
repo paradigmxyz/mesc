@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, MutableMapping, TypedDict, Literal
+from typing import Any, MutableMapping, TypedDict, Literal, Sequence
 
 
 mesc_env_vars = [
@@ -70,12 +70,29 @@ class UserInputQuery(TypedDict):
 
 
 class MultiEndpointQuery(TypedDict, total=False):
-    query_type: Literal["multi_endpoint"]
     name_contains: str | None
     url_contains: str | None
     chain_id: str | None
 
 
 class GlobalMetadataQuery(TypedDict, total=False):
-    query_type: Literal["global_metadata"]
-    path: Sequence[str]
+    path: Sequence[str] | None
+
+
+class MescQuery(TypedDict):
+    query_type: Literal[
+        "default_endpoint",
+        "endpoint_by_name",
+        "endpoint_by_network",
+        "user_input",
+        "multi_endpoint",
+        "global_metadata",
+    ]
+    fields: (
+        DefaultEndpointQuery
+        | EndpointNameQuery
+        | EndpointNetworkQuery
+        | UserInputQuery
+        | MultiEndpointQuery
+        | GlobalMetadataQuery
+    )

@@ -9,7 +9,7 @@ import time
 from typing import Any, TypeVar, Sequence
 
 from mesc import RpcConfig, Profile, Endpoint
-from mesc.types import EndpointQuery, MultiEndpointQuery, GlobalMetadataQuery
+from mesc.types import EndpointQuery, MultiEndpointQuery, GlobalMetadataQuery, MescQuery
 
 blank_config: RpcConfig = {
     "mesc_version": "MESC 1.0",
@@ -111,7 +111,7 @@ Test = tuple[
     str,
     dict[str, str],
     RpcConfig,
-    None | EndpointQuery | MultiEndpointQuery | GlobalMetadataQuery,
+    None | MescQuery,
     Any,
     bool,
 ]
@@ -510,7 +510,7 @@ def create_basic_query_tests() -> list[Test]:
             "fuzzy name query",
             {},
             full_config,
-            {"query_type": "multi_endpoint", "name_contains": "local"},
+            {"query_type": "multi_endpoint", "fields": {"name_contains": "local"}},
             [
                 full_config["endpoints"]["local_ethereum"],
                 full_config["endpoints"]["local_goerli"],
@@ -522,7 +522,7 @@ def create_basic_query_tests() -> list[Test]:
             "fuzzy url query",
             {},
             full_config,
-            {"query_type": "multi_endpoint", "url_contains": "llama"},
+            {"query_type": "multi_endpoint", "fields": {"url_contains": "llama"}},
             [
                 full_config["endpoints"]["llamanodes_ethereum"],
                 full_config["endpoints"]["llamanodes_optimism"],
@@ -533,7 +533,7 @@ def create_basic_query_tests() -> list[Test]:
             "chain_id query",
             {},
             full_config,
-            {"query_type": "multi_endpoint", "chain_id": "1"},
+            {"query_type": "multi_endpoint", "fields": {"chain_id": "1"}},
             [
                 full_config["endpoints"]["local_ethereum"],
                 full_config["endpoints"]["llamanodes_ethereum"],
@@ -1106,7 +1106,7 @@ def create_override_tests() -> list[Test]:
             "override endpoints blank",
             {"MESC_ENDPOINTS": ""},
             full_config,
-            {"query_type": "multi_endpoint"},
+            {"query_type": "multi_endpoint", "fields": {}},
             list(full_config["endpoints"].values()),
             True,
         ),
@@ -1194,7 +1194,7 @@ def create_override_tests() -> list[Test]:
             "override global metadata, change existing key",
             {"MESC_GLOBAL_METADATA": '{"api_keys": {"etherscan": "new_key"}}'},
             full_config,
-            {"query_type": "global_metadata", "path": None},
+            {"query_type": "global_metadata", "fields": {"path": None}},
             {"api_keys": {"etherscan": "new_key"}},
             True,
         ),
@@ -1202,7 +1202,7 @@ def create_override_tests() -> list[Test]:
             "override global metadata, add new key",
             {"MESC_GLOBAL_METADATA": '{"some_new_key": "value"}'},
             full_config,
-            {"query_type": "global_metadata", "path": None},
+            {"query_type": "global_metadata", "fields": {"path": None}},
             dict(full_config["global_metadata"], some_new_key="value"),
             True,
         ),
@@ -1210,7 +1210,7 @@ def create_override_tests() -> list[Test]:
             "override global metadata blank",
             {"MESC_GLOBAL_METADATA": ""},
             full_config,
-            {"query_type": "global_metadata", "path": None},
+            {"query_type": "global_metadata", "fields": {"path": None}},
             full_config["global_metadata"],
             True,
         ),

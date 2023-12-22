@@ -4,50 +4,40 @@ import argparse
 import json
 import os
 import subprocess
-import sys
-import typing
-from mesc.types import Endpoint, EndpointQuery
+from typing import cast
+from mesc.types import MescQuery
 
 
-def run_query(query: EndpointQuery) -> Endpoint | typing.Sequence[Endpoint] | None:
+def run_query(query: MescQuery) -> str:
     if query["query_type"] == "default_endpoint":
-        cmd = ["mesc", "endpoint", "--json"]
-        if query["fields"].get("profile") is not None:
-            cmd.append("--profile")
-            cmd.append(query["fields"]["profile"])
-        output = subprocess.check_output(cmd, env=dict(os.environ))
+        cmd: list[str] = ["mesc", "endpoint", "--json"]
     elif query["query_type"] == "endpoint_by_name":
-        cmd = ["mesc", "endpoint", "--json", "--name", query["fields"]["name"]]
-        if query["fields"].get("profile") is not None:
-            cmd.append("--profile")
-            cmd.append(query["fields"]["profile"])
-        output = subprocess.check_output(cmd)
+        name = cast(str, query["fields"]["name"])  # type: ignore
+        cmd = ["mesc", "endpoint", "--json", "--name", name]
     elif query["query_type"] == "endpoint_by_network":
-        cmd = ["mesc", "endpoint", "--json", "--network", query["fields"]["chain_id"]]
-        if query["fields"].get("profile") is not None:
-            cmd.append("--profile")
-            cmd.append(query["fields"]["profile"])
-        output = subprocess.check_output(cmd)
+        chain_id = cast(str, query["fields"]["chain_id"])  # type: ignore
+        cmd = ["mesc", "endpoint", "--json", "--network", chain_id]
     elif query["query_type"] == "user_input":
-        cmd = ["mesc", "endpoint", query["fields"]["user_input"], "--json"]
-        if query["fields"].get("profile") is not None:
-            cmd.append("--profile")
-            cmd.append(query["fields"]["profile"])
-        output = subprocess.check_output(cmd)
+        user_input = query["fields"]["user_input"]  # type: ignore
+        cmd = ["mesc", "endpoint", user_input, "--json"]
     elif query["query_type"] == "multi_endpoint":
         cmd = ["mesc", "ls", "--json"]
         for field in ["name", "url", "network"]:
             if query["fields"].get(field) is not None:
                 cmd.append("--" + field)
-                cmd.append(str(query["fields"][field]))
-        output = subprocess.check_output(cmd)
+                cmd.append(str(query["fields"][field]))  # type: ignore
     else:
         raise Exception("invalid query query_type: " + str(query["query_type"]))
 
-    output = output.decode('utf-8').strip()
+    if query["fields"].get("profile") is not None:
+        cmd.append("--profile")
+        cmd.append(query["fields"]["profile"])  # type: ignore
 
-    if output == '':
-        output = 'null'
+    # output = subprocess.check_output(cmd)
+    raw_output = subprocess.check_output(cmd, env=dict(os.environ))
+    output = raw_output.decode("utf-8").strip()
+    if output == "":
+        output = "null"
 
     return output
 
@@ -58,8 +48,6 @@ if __name__ == "__main__":
     parser.add_argument("test")
     args = parser.parse_args()
     test = json.loads(args.test)
-
-    # print("THE ENVIRON", os.environ)
 
     # run test
     try:

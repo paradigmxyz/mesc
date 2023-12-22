@@ -1,6 +1,6 @@
 from __future__ import annotations
 import os
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 from .types import mesc_env_vars, Endpoint
 from . import directory
 from . import exceptions
@@ -42,7 +42,7 @@ def get_endpoint_by_network(
 ) -> Endpoint | None:
     config = load.read_config_data()
     if chain_id is None:
-        raise ValueError('chain_id must be a str')
+        raise ValueError("chain_id must be a str")
     chain_id = str(chain_id)
     network_defaults = config["network_defaults"]
     default_name = network_defaults.get(chain_id)
@@ -77,7 +77,7 @@ def query_user_input(user_input: str, *, profile: str | None = None) -> Endpoint
             pass
 
     if is_chain_id(user_input):
-        chain_id = user_input
+        chain_id: str | None = user_input
     else:
         chain_id = directory.network_name_to_chain_id(user_input, config=config)
     if chain_id is not None:
@@ -89,7 +89,7 @@ def query_user_input(user_input: str, *, profile: str | None = None) -> Endpoint
     return None
 
 
-def is_chain_id(chain_id: str):
+def is_chain_id(chain_id: str) -> bool:
     if chain_id.isdecimal():
         return True
     elif chain_id.startswith("0x"):
@@ -115,23 +115,17 @@ def find_endpoints(
         if isinstance(chain_id, int):
             chain_id = str(chain_id)
         endpoints = [
-            endpoint
-            for endpoint in endpoints
-            if endpoint["chain_id"] == chain_id
+            endpoint for endpoint in endpoints if endpoint["chain_id"] == chain_id
         ]
 
     if name_contains is not None:
         endpoints = [
-            endpoint
-            for endpoint in endpoints
-            if name_contains in endpoint['name']
+            endpoint for endpoint in endpoints if name_contains in endpoint["name"]
         ]
 
     if url_contains is not None:
         endpoints = [
-            endpoint
-            for endpoint in endpoints
-            if url_contains in endpoint['url']
+            endpoint for endpoint in endpoints if url_contains in endpoint["url"]
         ]
 
     return endpoints
