@@ -2,6 +2,7 @@ use crate::directory;
 use crate::load::{get_config_mode, load_config_data};
 use crate::types::{Endpoint, MescError};
 use crate::{ConfigMode, MultiEndpointQuery, TryIntoChainId};
+use std::collections::HashMap;
 
 pub fn is_mesc_enabled() -> bool {
     matches!(
@@ -106,4 +107,9 @@ pub fn find_endpoints(query: MultiEndpointQuery) -> Result<Vec<Endpoint>, MescEr
     }
 
     Ok(candidates)
+}
+
+pub fn get_global_metadata() -> Result<HashMap<String, serde_json::Value>, MescError> {
+    let config = load_config_data()?;
+    Ok(config.global_metadata)
 }

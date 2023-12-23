@@ -1,11 +1,10 @@
-use crate::metadata::EndpointMetadata;
-use crate::{metadata, MescCliError, PingArgs};
+use crate::network::EndpointNetworkInfo;
+use crate::{network, MescCliError, PingArgs};
 use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
 use std::collections::HashSet;
 use tokio::task::JoinHandle;
-use toolstr::Colorize;
-use toolstr::{ColumnFormatShorthand, FontStyle};
+use toolstr::ColumnFormatShorthand;
 
 pub(crate) fn all_ping_fields() -> Vec<String> {
     vec![
@@ -20,8 +19,7 @@ pub(crate) fn all_ping_fields() -> Vec<String> {
 pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     let mut tasks = FuturesUnordered::<JoinHandle<_>>::new();
 
-    let fields = if args.fields.contains(&"all".to_string())
-        | (args.json & args.fields.is_empty())
+    let fields = if args.fields.contains(&"all".to_string()) | (args.json & args.fields.is_empty())
     {
         all_ping_fields()
     } else if args.fields.is_empty() {
@@ -48,9 +46,10 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
         let name = endpoint.name.clone();
         let url = endpoint.url.clone();
         let fields = fields.clone();
-        let task: JoinHandle<(String, Result<EndpointMetadata, MescCliError>)> =
+        let task: JoinHandle<(String, Result<EndpointNetworkInfo, MescCliError>)> =
             tokio::spawn(async move {
-                let result = metadata::get_node_metadata(url.clone(), &fields, args.timeout).await;
+                let result =
+                    network::get_node_network_info(url.clone(), &fields, args.timeout).await;
                 (name, result)
             });
         tasks.push(task);
@@ -58,7 +57,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     let mut names = vec![];
     let mut urls = vec![];
     let mut networks = vec![];
-    let mut metadatas = vec![];
+    let mut network_infos = vec![];
     let mut ips = vec![];
     let mut block_numbers = vec![];
     let mut failed_endpoints = vec![];
@@ -66,8 +65,8 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     let mut locations: Vec<Option<String>> = vec![];
     while let Some(result) = tasks.next().await {
         match result {
-            Ok((name, Ok(metadata))) => {
-                metadatas.push(metadata);
+            Ok((name, Ok(network_info))) => {
+                network_infos.push(network_info);
 
                 for endpoint in endpoints.iter() {
                     if endpoint.name == name {
@@ -91,22 +90,22 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     }
 
     let mut node_clients = Vec::new();
-    for metadata in metadatas.into_iter() {
-        node_clients.push(metadata.node_client_version.unwrap_or("-".to_string()));
-        ips.push(metadata.ip_address.unwrap_or("-".to_string()));
+    for network_info in network_infos.into_iter() {
+        node_clients.push(network_info.node_client_version.unwrap_or("-".to_string()));
+        ips.push(network_info.ip_address.unwrap_or("-".to_string()));
         block_numbers.push(
-            metadata
+            network_info
                 .current_block
                 .map(|b| b.to_string())
                 .unwrap_or("-".to_string()),
         );
         latencies.push(
-            metadata
+            network_info
                 .latency
                 .map(|l| (l * 1000.0).to_string()[0..5].to_string())
                 .unwrap_or("-".to_string()),
         );
-        locations.push(metadata.location);
+        locations.push(network_info.location);
     }
 
     if args.json {
@@ -136,58 +135,31 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
         return Ok(());
     }
 
-    let grey = toolstr::Color::TrueColor {
-        r: 40,
-        g: 40,
-        b: 40,
-    };
-    let header = toolstr::Color::TrueColor {
-        r: 206,
-        g: 147,
-        b: 249,
-    };
-    let metavar = toolstr::Color::TrueColor {
-        r: 137,
-        g: 233,
-        b: 253,
-    };
-    let description = toolstr::Color::TrueColor {
-        r: 185,
-        g: 242,
-        b: 159,
-    };
-    let option = toolstr::Color::TrueColor {
-        r: 100,
-        g: 170,
-        b: 170,
-    };
-    let content = toolstr::Color::TrueColor {
-        r: 241,
-        g: 250,
-        b: 140,
-    };
-    let comment = toolstr::Color::TrueColor {
-        r: 98,
-        g: 114,
-        b: 164,
-    };
+    let mut title_style = crate::metadata::get_theme_font_style("title")?;
+    title_style.bold();
+    let metavar_style = crate::metadata::get_theme_font_style("metavar")?;
+    let mut description_style = crate::metadata::get_theme_font_style("description")?;
+    description_style.bold();
+    let option_style = crate::metadata::get_theme_font_style("option")?;
+    let _content_style = crate::metadata::get_theme_font_style("content")?;
+    let comment_style = crate::metadata::get_theme_font_style("comment")?;
 
     let mut format = toolstr::TableFormat::default()
-        .border_font_style("".color(comment))
-        .label_font_style("".color(header).bold());
+        .border_font_style(comment_style.clone())
+        .label_font_style(title_style.clone());
     let mut table = toolstr::Table::default();
 
     table.add_column("endpoint", names)?;
     format.add_column(
         ColumnFormatShorthand::new()
             .name("endpoint")
-            .font_style("".color(metavar)),
+            .font_style(metavar_style),
     );
     table.add_column("network", networks)?;
     format.add_column(
         ColumnFormatShorthand::new()
             .name("network")
-            .font_style("".color(description).bold()),
+            .font_style(description_style.clone()),
     );
 
     for field in fields.iter() {
@@ -197,7 +169,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
                 format.add_column(
                     ColumnFormatShorthand::new()
                         .name("latency")
-                        .font_style("".color(description).bold()),
+                        .font_style(description_style.clone()),
                 );
             }
             "ip" => {
@@ -205,7 +177,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
                 format.add_column(
                     ColumnFormatShorthand::new()
                         .name("ip")
-                        .font_style("".color(option)),
+                        .font_style(option_style.clone()),
                 );
             }
             "block" => {
@@ -213,7 +185,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
                 format.add_column(
                     ColumnFormatShorthand::new()
                         .name("block")
-                        .font_style("".color(description).bold()),
+                        .font_style(description_style.clone()),
                 );
             }
             "location" => {
@@ -221,7 +193,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
                 format.add_column(
                     ColumnFormatShorthand::new()
                         .name("location")
-                        .font_style("".color(option)),
+                        .font_style(option_style.clone()),
                 );
             }
             "client" => {
@@ -229,7 +201,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
                 format.add_column(
                     ColumnFormatShorthand::new()
                         .name("node client")
-                        .font_style("".color(option)),
+                        .font_style(option_style.clone()),
                 );
             }
             _ => {
@@ -243,7 +215,6 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     format.print(table)?;
 
     println!();
-    let comment_style = FontStyle("".color(comment));
     if failed_endpoints.is_empty() {
         println!(
             "{}",

@@ -1,106 +1,92 @@
-use super::rpc;
 use crate::MescCliError;
-use std::net::ToSocketAddrs;
-use std::time::Instant;
+use mesc::MescError;
+use serde::de::DeserializeOwned;
+use std::collections::HashMap;
+use toolstr::Color;
+use toolstr::FontStyle;
 
-pub(crate) struct EndpointMetadata {
-    pub url: String,
-    pub node_client_version: Option<String>,
-    pub current_block: Option<u32>,
-    pub ip_address: Option<String>,
-    pub latency: Option<f64>,
-    pub namespaces: Option<Vec<String>>,
-    pub location: Option<String>,
-}
+const DEFAULT_COLOR_TITLE: Color = toolstr::Color::TrueColor {
+    r: 206,
+    g: 147,
+    b: 249,
+};
+const DEFAULT_COLOR_METAVAR: Color = toolstr::Color::TrueColor {
+    r: 137,
+    g: 233,
+    b: 253,
+};
+const DEFAULT_COLOR_DESCRIPTION: Color = toolstr::Color::TrueColor {
+    r: 185,
+    g: 242,
+    b: 159,
+};
+const DEFAULT_COLOR_OPTION: Color = toolstr::Color::TrueColor {
+    r: 100,
+    g: 170,
+    b: 170,
+};
+const DEFAULT_COLOR_CONTENT: Color = toolstr::Color::TrueColor {
+    r: 241,
+    g: 250,
+    b: 140,
+};
+const DEFAULT_COLOR_COMMENT: Color = toolstr::Color::TrueColor {
+    r: 98,
+    g: 114,
+    b: 164,
+};
 
-pub(crate) async fn get_node_metadata(
-    url: String,
-    fields: &[String],
-    timeout: u64,
-) -> Result<EndpointMetadata, MescCliError> {
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(timeout))
-        .build()?;
-
-    // node client
-    let node_client_version = if fields.contains(&"client".to_string()) {
-        Some(rpc::request_node_client_version(client.clone(), url.clone()).await?)
-    } else {
-        None
-    };
-
-    // latest block and latency
-    let (current_block, latency) =
-        if fields.contains(&"block".to_string()) | fields.contains(&"latency".to_string()) {
-            let start = Instant::now();
-            let current_block = rpc::request_block_number(client.clone(), url.clone()).await?;
-            let duration = start.elapsed();
-            let response_latency =
-                (duration.as_secs() as f64) + ((duration.subsec_nanos() as f64) / 1_000_000_000.0);
-            (Some(current_block), Some(response_latency))
-        } else {
-            (None, None)
-        };
-
-    // ip address and location
-    let (ip_address, location) =
-        if fields.contains(&"ip".to_string()) | fields.contains(&"location".to_string()) {
-            match get_ip_address(url.as_str()) {
-                Ok(ip) => {
-                    let service = ipgeolocate::Service::IpApi;
-                    let location = match ipgeolocate::Locator::get(ip.as_str(), service).await {
-                        Ok(ip) => format!("{}, {}, {}", ip.city, ip.region, ip.country),
-                        Err(_) => "-".to_string(),
-                    };
-                    (Some(ip), Some(location))
-                }
-                Err(_) => (None, None),
-            }
-        } else {
-            (None, None)
-        };
-
-    // namespaces
-    let namespaces = None;
-
-    Ok(EndpointMetadata {
-        url,
-        node_client_version,
-        current_block,
-        ip_address,
-        latency,
-        namespaces,
-        location,
-    })
-}
-
-fn get_ip_address(url: &str) -> Result<String, MescCliError> {
-    let parsed_url = url::Url::parse(url)
-        .map_err(|_| MescCliError::UrlError("could not parse url".to_string()))?;
-    let host = parsed_url
-        .host_str()
-        .ok_or(MescCliError::UrlError("could not parse host".to_string()))?;
-    let port = parsed_url
-        .port_or_known_default()
-        .ok_or(MescCliError::UrlError("could not parse port".to_string()))?;
-    let addr_str = format!("{}:{}", host, port);
-
-    match addr_str.to_socket_addrs() {
-        Ok(mut addresses) => {
-            if let Some(address) = addresses.next() {
-                Ok(address.ip().to_string())
-            } else {
-                Err(MescCliError::InvalidNetworkResponse)
-            }
-        }
-        Err(_) => Err(MescCliError::InvalidNetworkResponse),
+pub(crate) fn get_theme_font_style(id: &str) -> Result<FontStyle, MescCliError> {
+    match get_cli_theme() {
+        Ok(theme) => match theme.get(id) {
+            Some(style) => Ok(style.clone()),
+            None => Ok(FontStyle::default()),
+        },
+        _ => match id {
+            "title" => Ok(DEFAULT_COLOR_TITLE.into()),
+            "metavar" => Ok(DEFAULT_COLOR_METAVAR.into()),
+            "description" => Ok(DEFAULT_COLOR_DESCRIPTION.into()),
+            "option" => Ok(DEFAULT_COLOR_OPTION.into()),
+            "content" => Ok(DEFAULT_COLOR_CONTENT.into()),
+            "comment" => Ok(DEFAULT_COLOR_COMMENT.into()),
+            _ => Ok(FontStyle::default()),
+        },
     }
 }
 
-fn is_using_trace_namespace() -> Result<bool, MescCliError> {
-    todo!()
+fn get_cli_theme() -> Result<HashMap<String, FontStyle>, MescCliError> {
+    let global_metadata = mesc::get_global_metadata()?;
+    let path: Vec<&str> = vec![];
+    let cli_theme: HashMap<String, String> = match global_metadata.get("cli_theme") {
+        Some(value) => get_value_at(value, &path)?,
+        None => return Err(MescError::IntegrityError("no cli theme".to_string()).into()),
+    };
+
+    let cli_theme = cli_theme
+        .into_iter()
+        .map(|(k, v)| {
+            let style: FontStyle = toolstr::hex_to_color(&v)
+                .map_err(MescCliError::from)?
+                .into();
+            Ok((k, style))
+        })
+        .collect::<Result<HashMap<String, FontStyle>, MescCliError>>()?;
+
+    Ok(cli_theme)
 }
 
-fn is_using_debug_namespace() -> Result<bool, MescCliError> {
-    todo!()
+fn get_value_at<T>(root: &serde_json::Value, path: &[&str]) -> Result<T, MescCliError>
+where
+    T: DeserializeOwned,
+{
+    let mut current = root;
+
+    for key in path {
+        current = match current.get(key) {
+            Some(value) => value,
+            None => return Err(MescError::IntegrityError("missing path".to_string()).into()),
+        };
+    }
+
+    Ok(serde_json::from_value(current.clone())?)
 }

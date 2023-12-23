@@ -2,6 +2,7 @@
 
 mod cli;
 mod metadata;
+mod network;
 mod printing;
 mod rpc;
 mod types;
