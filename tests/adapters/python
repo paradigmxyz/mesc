@@ -22,10 +22,7 @@ def run_query(query: EndpointQuery) -> Endpoint | Sequence[Endpoint] | None:
         user_input_fields = cast(mesc.types.UserInputQuery, query["fields"])
         return mesc.query_user_input(**user_input_fields)
     elif query["query_type"] == "multi_endpoint":
-        multi_endpoint_fields = cast(
-            mesc.types.MultiEndpointQuery,
-            {k: v for k, v in query.items() if k != "query_type"},
-        )
+        multi_endpoint_fields = cast(mesc.types.MultiEndpointQuery, query['fields'])
         return mesc.find_endpoints(**multi_endpoint_fields)
     elif query["query_type"] == "global_metadata":
         return mesc.get_global_metadata()

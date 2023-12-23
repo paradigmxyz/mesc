@@ -74,6 +74,7 @@ def parse_args() -> Mapping[str, Any]:
         help="path to generated tests",
         default="./generated/tests.json",
     )
+    parser.add_argument('--index', help='test indices to run', nargs='+')
     args = parser.parse_args()
 
     return {
@@ -81,6 +82,7 @@ def parse_args() -> Mapping[str, Any]:
         "generated_path": args.generated_path,
         "verbose": args.verbose,
         "halt": args.halt,
+        'index': args.index,
     }
 
 
@@ -93,6 +95,7 @@ def run_test(
     verbose: bool,
     successes: MutableSequence[tuple[str, str, str]],
     failures: MutableSequence[tuple[str, str, str, str]],
+    index: int,
 ) -> None:
     test_name, test_env, config, query, target_result, should_succeed = test
 
@@ -135,6 +138,7 @@ def run_test(
                     exception=None,
                     successes=successes,
                     failures=failures,
+                    index=index,
                 )
             if halt:
                 sys.exit()
@@ -153,6 +157,7 @@ def run_test(
                     exception=exception,
                     successes=successes,
                     failures=failures,
+                    index=index,
                 )
             if halt:
                 sys.exit()
@@ -177,6 +182,7 @@ def print_summary(
     exception: Exception | None,
     successes: MutableSequence[tuple[str, str, str]],
     failures: MutableSequence[tuple[str, str, str, str]],
+    index: int,
 ) -> None:
     print("CONFIG", json.dumps(config, sort_keys=True, indent=4))
     print(
@@ -198,11 +204,17 @@ def print_summary(
     print("EXPECTED:", json.dumps(target_result, indent=4, sort_keys=True))
     print("EXCEPTION:", type(exception), exception)
     print("TEST_NAME:", test_name)
-    print("INDEX:", len(successes) + len(failures))
+    print("INDEX:", index)
 
 
 def json_equal(lhs: Any, rhs: Any) -> bool:
-    return json.dumps(lhs, sort_keys=True) == json.dumps(rhs, sort_keys=True)
+    return cannonical_json(lhs) == cannonical_json(rhs)
+
+
+def cannonical_json(data: Any):
+    if isinstance(data, list):
+        data = sorted(cannonical_json(item) for item in data)
+    return json.dumps(data, sort_keys=True)
 
 
 if __name__ == "__main__":
@@ -229,11 +241,14 @@ if __name__ == "__main__":
         len(adapters),
         "adapter(s)",
     )
-    print()
+    index = -1
     for adapter in adapters:
         for test in tests:
             for setup_name, setup in setups.items():
                 with setup(test[2]) as setup_env:
+                    index += 1
+                    if args['index'] is not None and str(index) not in args['index']:
+                        continue
                     run_test(
                         adapter=adapter,
                         test=test,
@@ -243,11 +258,12 @@ if __name__ == "__main__":
                         verbose=args["verbose"],
                         successes=successes,
                         failures=failures,
+                        index=index,
                     )
 
     # summary
     print()
-    print(len(successes), "/", len(setups) * len(tests), "successful")
+    print(len(successes), "/", len(adapters) * len(setups) * len(tests), "successful")
     n_failures = len(failures)
     if n_failures == 0:
         print()

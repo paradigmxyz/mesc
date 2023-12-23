@@ -22,10 +22,17 @@ def run_query(query: MescQuery) -> str:
         cmd = ["mesc", "endpoint", user_input, "--json"]
     elif query["query_type"] == "multi_endpoint":
         cmd = ["mesc", "ls", "--json"]
-        for field in ["name", "url", "network"]:
-            if query["fields"].get(field) is not None:
-                cmd.append("--" + field)
-                cmd.append(str(query["fields"][field]))  # type: ignore
+        if query["fields"].get('name_contains') is not None:
+            cmd.append('--name')
+            cmd.append(query['fields']['name_contains'])
+        if query["fields"].get('url_contains') is not None:
+            cmd.append('--url')
+            cmd.append(query['fields']['url_contains'])
+        if query["fields"].get('chain_id') is not None:
+            cmd.append('--network')
+            cmd.append(query['fields']['chain_id'])
+    elif query['query_type'] == 'global_metadata':
+        cmd = ["mesc", "metadata"]
     else:
         raise Exception("invalid query query_type: " + str(query["query_type"]))
 
@@ -33,8 +40,7 @@ def run_query(query: MescQuery) -> str:
         cmd.append("--profile")
         cmd.append(query["fields"]["profile"])  # type: ignore
 
-    # output = subprocess.check_output(cmd)
-    raw_output = subprocess.check_output(cmd, env=dict(os.environ))
+    raw_output = subprocess.check_output(cmd, env=dict(os.environ), stderr=subprocess.DEVNULL)
     output = raw_output.decode("utf-8").strip()
     if output == "":
         output = "null"
@@ -51,8 +57,15 @@ if __name__ == "__main__":
 
     # run test
     try:
-        result = json.loads(run_query(test))
-        print(json.dumps(result))
+        raw_output = run_query(test)
+        try:
+            result = json.loads(raw_output)
+            print(json.dumps(result, indent=4, sort_keys=True))
+        except Exception as e:
+            print("FAIL")
+            print(e)
+            print('RAW_OUTPUT:', raw_output)
     except Exception as e:
         print("FAIL")
         print(e)
+

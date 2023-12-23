@@ -37,9 +37,9 @@ pub enum ConfigMode {
 pub struct RpcConfig {
     pub mesc_version: String,
     pub default_endpoint: Option<String>,
+    pub endpoints: HashMap<String, Endpoint>,
     pub network_defaults: HashMap<ChainId, String>,
     pub network_names: HashMap<String, ChainId>,
-    pub endpoints: HashMap<String, Endpoint>,
     pub profiles: HashMap<String, Profile>,
     pub global_metadata: HashMap<String, serde_json::Value>,
 }

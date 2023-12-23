@@ -3,22 +3,33 @@ use std::collections::HashMap;
 
 pub fn apply_overrides(config: &mut RpcConfig) -> Result<(), MescError> {
     if let Some(default_endpoint) = get_default_endpoint_override() {
-        config.default_endpoint = Some(default_endpoint)
+        if !default_endpoint.is_empty() {
+            config.default_endpoint = Some(default_endpoint)
+        }
     }
     if let Some(network_defaults) = get_network_defaults_override()? {
-        config.network_defaults = network_defaults
+        config.network_defaults = network_defaults;
     }
     if let Some(network_names) = get_network_names_override()? {
         config.network_names = network_names
     }
     if let Some(endpoints) = get_endpoints_override()? {
-        config.endpoints = endpoints
+        for (endpoint_name, endpoint) in endpoints.into_iter() {
+            if let Some(current_endpoint) = config.endpoints.get_mut(&endpoint_name) {
+                if endpoint.chain_id.is_some() {
+                    current_endpoint.chain_id = endpoint.chain_id;
+                }
+                current_endpoint.url = endpoint.url;
+            } else {
+                config.endpoints.insert(endpoint_name, endpoint);
+            }
+        }
     }
     if let Some(profiles) = get_profiles_override()? {
         config.profiles = profiles
     }
     if let Some(global_metadata) = get_global_metadata_override()? {
-        config.global_metadata = global_metadata
+        config.global_metadata.extend(global_metadata)
     }
     if let Some(endpoint_metadatas) = get_endpoint_metadata_override()? {
         for (name, metadata) in endpoint_metadatas.into_iter() {
@@ -42,6 +53,9 @@ fn get_default_endpoint_override() -> Option<String> {
 
 fn get_network_defaults_override() -> Result<Option<HashMap<ChainId, String>>, MescError> {
     if let Ok(raw) = std::env::var("MESC_NETWORK_DEFAULTS") {
+        if raw.is_empty() {
+            return Ok(None);
+        }
         let mut network_defaults = HashMap::new();
         for piece in raw.split(' ') {
             match piece.split('=').collect::<Vec<&str>>().as_slice() {
@@ -65,7 +79,10 @@ fn get_network_defaults_override() -> Result<Option<HashMap<ChainId, String>>, M
 }
 
 fn get_network_names_override() -> Result<Option<HashMap<String, ChainId>>, MescError> {
-    if let Ok(raw) = std::env::var("MESC_NETWORK_DEFAULTS") {
+    if let Ok(raw) = std::env::var("MESC_NETWORK_NAMES") {
+        if raw.is_empty() {
+            return Ok(None);
+        }
         let mut network_names = HashMap::new();
         for piece in raw.split(' ') {
             match piece.split('=').collect::<Vec<&str>>().as_slice() {
@@ -90,6 +107,9 @@ fn get_network_names_override() -> Result<Option<HashMap<String, ChainId>>, Mesc
 
 fn get_endpoints_override() -> Result<Option<HashMap<String, Endpoint>>, MescError> {
     if let Ok(raw) = std::env::var("MESC_ENDPOINTS") {
+        if raw.is_empty() {
+            return Ok(None);
+        }
         let mut endpoints = HashMap::new();
         for piece in raw.split(' ') {
             let endpoint = parse_endpoint(piece)?;
@@ -105,7 +125,7 @@ fn parse_endpoint(input: &str) -> Result<Endpoint, MescError> {
     let mut parts = input.split('=');
     let (name_chain, url) = match (parts.next(), parts.next()) {
         (Some(name), Some(url)) => (name, url),
-        (None, Some(url)) => ("", url),
+        (Some(url), None) => ("", url),
         _ => {
             return Err(MescError::OverrideError(
                 "invalid endpoint override".to_string(),
@@ -117,8 +137,17 @@ fn parse_endpoint(input: &str) -> Result<Endpoint, MescError> {
     let name = name_chain_parts
         .next()
         .map(|s| s.to_string())
-        .unwrap_or_else(|| get_default_name(url))
+        .unwrap_or(get_default_name(url).ok_or(MescError::OverrideError(
+            "could not create endpoint name".to_string(),
+        ))?)
         .to_string();
+    let name = if name.is_empty() {
+        get_default_name(url).ok_or(MescError::OverrideError(
+            "could not create endpoint name".to_string(),
+        ))?
+    } else {
+        name
+    };
     let chain_id = match name_chain_parts.next() {
         Some(chain_id) => Some(chain_id.try_into_chain_id()?),
         None => None,
@@ -132,15 +161,44 @@ fn parse_endpoint(input: &str) -> Result<Endpoint, MescError> {
     })
 }
 
-fn get_default_name(url: &str) -> String {
-    url.to_string()
+fn get_default_name(url: &str) -> Option<String> {
+    // Find the start of the main part of the URL, skipping the protocol if present
+    let start = if let Some(pos) = url.find("://") {
+        pos + 3
+    } else {
+        0
+    };
+
+    // Extract the main part of the URL, from the protocol (if present) to the end
+    let main_part = &url[start..];
+
+    // Find the end of the domain part, which could be before a slash (path) or the end of the string
+    let end = main_part.find('/').unwrap_or(main_part.len());
+
+    // Extract the domain part
+    let domain_part = &main_part[..end];
+
+    // Check if the domain part contains a period, which is typical for a hostname
+    if domain_part.contains('.') {
+        // Find the last period in the domain part
+        if let Some(last_period_pos) = domain_part.rfind('.') {
+            Some(domain_part[..last_period_pos].to_string())
+        } else {
+            Some(domain_part.to_string())
+        }
+    } else {
+        Some(domain_part.to_string())
+    }
 }
 
 fn get_profiles_override() -> Result<Option<HashMap<String, Profile>>, MescError> {
-    let raw = match std::env::var("MESC_NETWORK_DEFAULTS") {
+    let raw = match std::env::var("MESC_PROFILES") {
         Ok(raw) => raw,
         Err(_) => return Ok(None),
     };
+    if raw.is_empty() {
+        return Ok(None);
+    }
 
     let mut profiles: HashMap<String, Profile> = HashMap::new();
 
@@ -152,20 +210,23 @@ fn get_profiles_override() -> Result<Option<HashMap<String, Profile>>, MescError
         let (left_side, endpoint) = match (parts.next(), parts.next()) {
             (Some(l), Some(r)) => (l, r),
             _ => {
-                return Err(MescError::OverrideError(
-                    "invalid profiles override".to_string(),
-                ))
+                return Err(MescError::OverrideError(format!(
+                    "invalid profiles override, bad match: {}",
+                    entry
+                )))
             }
         };
 
         let mut left_parts = left_side.split('.');
         let (profile_name, key, chain_id) =
             match (left_parts.next(), left_parts.next(), left_parts.next()) {
-                (Some(p), Some(k), cid) => (p, k, cid),
+                (Some(profile), Some(key), Some(chain_id)) => (profile, key, Some(chain_id)),
+                (Some(profile), Some(key), None) => (profile, key, None),
                 _ => {
-                    return Err(MescError::OverrideError(
-                        "invalid profiles override".to_string(),
-                    ))
+                    return Err(MescError::OverrideError(format!(
+                        "invalid profiles override, bad target: {}",
+                        left_side
+                    )))
                 }
             };
 
@@ -178,8 +239,8 @@ fn get_profiles_override() -> Result<Option<HashMap<String, Profile>>, MescError
             });
 
         match key {
-            "default" => profile.default_endpoint = Some(endpoint.to_string()),
-            "network" => {
+            "default_endpoint" => profile.default_endpoint = Some(endpoint.to_string()),
+            "network_defaults" => {
                 if let Some(cid) = chain_id {
                     profile
                         .network_defaults
@@ -187,9 +248,10 @@ fn get_profiles_override() -> Result<Option<HashMap<String, Profile>>, MescError
                 }
             }
             _ => {
-                return Err(MescError::OverrideError(
-                    "invalid profile override".to_string(),
-                ))
+                return Err(MescError::OverrideError(format!(
+                    "invalid profile override, bad key: {}",
+                    key
+                )));
             }
         }
     }
@@ -199,6 +261,9 @@ fn get_profiles_override() -> Result<Option<HashMap<String, Profile>>, MescError
 
 fn get_global_metadata_override() -> Result<Option<HashMap<String, serde_json::Value>>, MescError> {
     if let Ok(raw) = std::env::var("MESC_GLOBAL_METADATA") {
+        if raw.is_empty() {
+            return Ok(None);
+        }
         let parsed: Result<HashMap<String, serde_json::Value>, _> =
             serde_json::from_str(raw.as_str());
         Ok(Some(parsed?))
@@ -210,7 +275,10 @@ fn get_global_metadata_override() -> Result<Option<HashMap<String, serde_json::V
 type Metadata = HashMap<String, serde_json::Value>;
 
 fn get_endpoint_metadata_override() -> Result<Option<HashMap<String, Metadata>>, MescError> {
-    if let Ok(raw) = std::env::var("MESC_GLOBAL_METADATA") {
+    if let Ok(raw) = std::env::var("MESC_ENDPOINT_METADATA") {
+        if raw.is_empty() {
+            return Ok(None);
+        }
         let parsed: Result<HashMap<String, HashMap<String, serde_json::Value>>, _> =
             serde_json::from_str(raw.as_str());
         Ok(Some(parsed?))

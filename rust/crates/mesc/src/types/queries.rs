@@ -33,40 +33,85 @@ impl MultiEndpointQuery {
 // // individual queries
 //
 
+#[derive(Debug, Clone)]
 pub struct EndpointQuery {
     pub query_type: EndpointQueryType,
-    pub fields: QueryFields,
+    pub fields: EndpointQueryFields,
 }
 
+#[derive(Debug, Clone)]
 pub enum EndpointQueryType {
     DefaultEndpoint,
     EndpointByName,
     EndpointByNetwork,
-    UserInputQuery,
+    UserInput,
 }
 
-pub enum QueryFields {
-    DefaultEndpointQuery(DefaultEndpointQuery),
-    EndpointNameQuery(EndpointNameQuery),
-    EndpointNetworkQuery(EndpointNetworkQuery),
-    UserInputQuery(UserInputQuery),
+#[derive(Debug, Clone)]
+pub enum EndpointQueryFields {
+    DefaultEndpoint(DefaultEndpointQuery),
+    EndpointName(EndpointNameQuery),
+    EndpointNetwork(EndpointNetworkQuery),
+    UserInput(UserInputQuery),
 }
 
+#[derive(Debug, Clone)]
 pub struct DefaultEndpointQuery {
     pub profile: Option<String>,
 }
 
+#[derive(Debug, Clone)]
 pub struct EndpointNameQuery {
-    pub profile: Option<String>,
     pub name: String,
 }
 
+#[derive(Debug, Clone)]
 pub struct EndpointNetworkQuery {
     pub profile: Option<String>,
     pub chain_id: String,
 }
 
+#[derive(Debug, Clone)]
 pub struct UserInputQuery {
     pub profile: Option<String>,
     pub user_input: String,
+}
+
+//
+// // global metadata
+//
+
+#[derive(Debug, Clone)]
+pub struct GlobalMetadataQuery {
+    pub path: Option<Vec<String>>,
+}
+
+//
+// // general MESC queries
+//
+
+#[derive(Debug, Clone)]
+pub struct MescQuery {
+    pub query_type: MescQueryType,
+    pub fields: MescQueryFields,
+}
+
+#[derive(Debug, Clone)]
+pub enum MescQueryType {
+    DefaultEndpoint,
+    EndpointByName,
+    EndpointByNetwork,
+    UserInput,
+    MultiEndpoint,
+    GlobalMetadata,
+}
+
+#[derive(Debug, Clone)]
+pub enum MescQueryFields {
+    DefaultEndpoint(DefaultEndpointQuery),
+    EndpointName(EndpointNameQuery),
+    EndpointNetwork(EndpointNetworkQuery),
+    UserInput(UserInputQuery),
+    MultiEndpoint(MultiEndpointQuery),
+    GlobalMetadata(GlobalMetadataQuery),
 }
