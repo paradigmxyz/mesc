@@ -10,6 +10,7 @@ pub(crate) async fn run_cli() -> Result<(), MescCliError> {
         Commands::Defaults(args) => defaults_command(args),
         Commands::Ping(args) => ping_command(args).await,
         Commands::Endpoint(args) => endpoint_command(args),
+        Commands::Metadata(args) => metadata_command(args),
         Commands::Url(args) => url_command(args),
     }
 }
@@ -37,6 +38,8 @@ pub enum Commands {
     Ping(PingArgs),
     /// Print endpoint
     Endpoint(EndpointArgs),
+    /// Print metadata
+    Metadata(MetadataArgs),
     /// Print endpoint URL
     Url(UrlArgs),
 }
@@ -155,6 +158,10 @@ pub struct EndpointArgs {
     #[clap(short, long)]
     pub json: bool,
 }
+
+/// Arguments for the `metadata` subcommand
+#[derive(Parser)]
+pub struct MetadataArgs {}
 
 /// Arguments for the `url` subcommand
 #[derive(Parser)]
