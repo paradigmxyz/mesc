@@ -4,6 +4,8 @@ use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
 use std::collections::HashSet;
 use tokio::task::JoinHandle;
+use toolstr::Colorize;
+use toolstr::{ColumnFormatShorthand, FontStyle};
 
 pub(crate) fn all_ping_fields() -> Vec<String> {
     vec![
@@ -18,7 +20,9 @@ pub(crate) fn all_ping_fields() -> Vec<String> {
 pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     let mut tasks = FuturesUnordered::<JoinHandle<_>>::new();
 
-    let fields = if args.fields.contains(&"all".to_string()) {
+    let fields = if args.fields.contains(&"all".to_string())
+        | (args.json & args.fields.is_empty())
+    {
         all_ping_fields()
     } else if args.fields.is_empty() {
         vec!["latency".to_string(), "block".to_string()]
@@ -52,6 +56,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
         tasks.push(task);
     }
     let mut names = vec![];
+    let mut urls = vec![];
     let mut networks = vec![];
     let mut metadatas = vec![];
     let mut ips = vec![];
@@ -73,6 +78,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
                                 .map(|c| c.to_string())
                                 .unwrap_or("-".to_string()),
                         );
+                        urls.push(endpoint.url.clone());
                         continue;
                     }
                 }
@@ -102,18 +108,130 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
         );
         locations.push(metadata.location);
     }
+
+    if args.json {
+        let entries = names
+            .into_iter()
+            .zip(urls)
+            .zip(networks)
+            .zip(ips)
+            .zip(locations)
+            .zip(latencies)
+            .zip(node_clients)
+            .zip(block_numbers)
+            .map(
+                |(((((((name, url), network), ip), location), latency), client), block)| Entry {
+                    name,
+                    url,
+                    network,
+                    ip,
+                    location,
+                    latency,
+                    client,
+                    block,
+                },
+            )
+            .collect::<Vec<Entry>>();
+        println!("{}", serde_json::to_string_pretty(&entries)?);
+        return Ok(());
+    }
+
+    let grey = toolstr::Color::TrueColor {
+        r: 40,
+        g: 40,
+        b: 40,
+    };
+    let header = toolstr::Color::TrueColor {
+        r: 206,
+        g: 147,
+        b: 249,
+    };
+    let metavar = toolstr::Color::TrueColor {
+        r: 137,
+        g: 233,
+        b: 253,
+    };
+    let description = toolstr::Color::TrueColor {
+        r: 185,
+        g: 242,
+        b: 159,
+    };
+    let option = toolstr::Color::TrueColor {
+        r: 100,
+        g: 170,
+        b: 170,
+    };
+    let content = toolstr::Color::TrueColor {
+        r: 241,
+        g: 250,
+        b: 140,
+    };
+    let comment = toolstr::Color::TrueColor {
+        r: 98,
+        g: 114,
+        b: 164,
+    };
+
+    let mut format = toolstr::TableFormat::default()
+        .border_font_style("".color(comment))
+        .label_font_style("".color(header).bold());
     let mut table = toolstr::Table::default();
 
     table.add_column("endpoint", names)?;
+    format.add_column(
+        ColumnFormatShorthand::new()
+            .name("endpoint")
+            .font_style("".color(metavar)),
+    );
     table.add_column("network", networks)?;
+    format.add_column(
+        ColumnFormatShorthand::new()
+            .name("network")
+            .font_style("".color(description).bold()),
+    );
 
     for field in fields.iter() {
         match field.as_str() {
-            "latency" => table.add_column("latency\n(ms)", latencies.clone())?,
-            "ip" => table.add_column("ip", ips.clone())?,
-            "block" => table.add_column("block", block_numbers.clone())?,
-            "location" => table.add_column("location", locations.clone())?,
-            "client" => table.add_column("node client", node_clients.clone())?,
+            "latency" => {
+                table.add_column("latency", latencies.clone())?;
+                format.add_column(
+                    ColumnFormatShorthand::new()
+                        .name("latency")
+                        .font_style("".color(description).bold()),
+                );
+            }
+            "ip" => {
+                table.add_column("ip", ips.clone())?;
+                format.add_column(
+                    ColumnFormatShorthand::new()
+                        .name("ip")
+                        .font_style("".color(option)),
+                );
+            }
+            "block" => {
+                table.add_column("block", block_numbers.clone())?;
+                format.add_column(
+                    ColumnFormatShorthand::new()
+                        .name("block")
+                        .font_style("".color(description).bold()),
+                );
+            }
+            "location" => {
+                table.add_column("location", locations.clone())?;
+                format.add_column(
+                    ColumnFormatShorthand::new()
+                        .name("location")
+                        .font_style("".color(option)),
+                );
+            }
+            "client" => {
+                table.add_column("node client", node_clients.clone())?;
+                format.add_column(
+                    ColumnFormatShorthand::new()
+                        .name("node client")
+                        .font_style("".color(option)),
+                );
+            }
             _ => {
                 return Err(MescCliError::InvalidInput(format!(
                     "unknown field: {}",
@@ -122,19 +240,23 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
             }
         }
     }
-    let format = toolstr::TableFormat::default();
     format.print(table)?;
 
     println!();
+    let comment_style = FontStyle("".color(comment));
     if failed_endpoints.is_empty() {
-        println!("{} endpoints responded without error", n_endpoints);
-    } else {
         println!(
+            "{}",
+            comment_style.format(format!("{} endpoints responded without error", n_endpoints))
+        );
+    } else {
+        let text = format!(
             "failed collection for {} of {} endpoints: {}",
             failed_endpoints.len(),
             n_endpoints,
             failed_endpoints.join(", ")
         );
+        println!("{}", comment_style.format(text));
     };
 
     let field_set: HashSet<_> = fields.into_iter().collect();
@@ -143,11 +265,24 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     let additional_fields: Vec<_> = additional_fields.iter().map(|s| s.as_str()).collect();
     if !additional_fields.is_empty() {
         println!();
-        println!(
+        let text = format!(
             "additional fields avaiable: {}",
             additional_fields.join(", ")
         );
+        println!("{}", comment_style.format(text));
     };
 
     Ok(())
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct Entry {
+    name: String,
+    url: String,
+    network: String,
+    ip: String,
+    location: Option<String>,
+    latency: String,
+    client: String,
+    block: String,
 }

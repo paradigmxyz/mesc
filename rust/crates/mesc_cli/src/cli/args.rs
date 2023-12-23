@@ -133,6 +133,10 @@ pub struct PingArgs {
     /// timeout, in seconds
     #[clap(long, default_value_t = 1)]
     pub timeout: u64,
+
+    /// output as json
+    #[clap(long)]
+    pub json: bool,
 }
 
 /// Arguments for the `json` subcommand
