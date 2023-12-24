@@ -60,7 +60,7 @@ def get_endpoint_by_network(
         return get_endpoint_by_name(name)
 
 
-def query_user_input(user_input: str, *, profile: str | None = None) -> Endpoint | None:
+def get_endpoint_by_query(user_input: str, *, profile: str | None = None) -> Endpoint | None:
     """
     resolution order:
     1. endpoint name

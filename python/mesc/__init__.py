@@ -5,7 +5,7 @@ from .interface import (
     get_default_endpoint,
     get_endpoint_by_name,
     get_endpoint_by_network,
-    query_user_input,
+    get_endpoint_by_query,
     find_endpoints,
     get_global_metadata,
 )
@@ -21,7 +21,7 @@ __all__ = (
     "get_default_endpoint",
     "get_endpoint_by_name",
     "get_endpoint_by_network",
-    "query_user_input",
+    "get_endpoint_by_query",
     "find_endpoints",
     "get_global_metadata",
 )

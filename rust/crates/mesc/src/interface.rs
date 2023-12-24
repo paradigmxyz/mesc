@@ -63,7 +63,7 @@ pub fn get_endpoint_by_name(name: &str) -> Result<Endpoint, MescError> {
 }
 
 /// parse user query
-pub fn parse_user_query(query: &str, profile: Option<&str>) -> Result<Option<Endpoint>, MescError> {
+pub fn get_endpoint_by_query(query: &str, profile: Option<&str>) -> Result<Option<Endpoint>, MescError> {
     let mut config = load_config_data()?;
 
     // by endpoint name

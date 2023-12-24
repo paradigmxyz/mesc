@@ -77,7 +77,7 @@ endpoint = mesc.get_endpoint_by_name('local_goerli')
 
 # parse a user-provided string into a matching endpoint
 # (first try 1. endpoint name, then 2. chain id, then 3. network name)
-endpoint = mesc.parse_user_query(user_str, profile='xyz_tool')
+endpoint = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
 
 # find all endpoints matching given criteria
 endpoints = mesc.find_endpoints(chain_id=5)
@@ -96,7 +96,13 @@ If `xyz` uses MESC, then `-r` can leverage MESC endpoint data. Instead of just a
 Internally `xyz` can perform RPC url resolution using:
 
 ```python
-# code used by xyz tool
-endpoint = mesc.parse_user_query(user_input, profile='xyz')
+# python code used by xyz tool
+endpoint = mesc.get_endpoint_by_query(user_input, profile='xyz')
 url = endpoint['url']
+```
+
+```rust
+// rust code used by xyz tool
+let endpoint = mesc::get_endpoint_by_query(user_input, Some("xyz"))?;
+let url = endpoint.url;
 ```

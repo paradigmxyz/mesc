@@ -11,7 +11,7 @@ pub(crate) fn url_command(args: UrlArgs) -> Result<(), MescCliError> {
             mesc::get_endpoint_by_network(network.as_str(), args.profile.as_deref())
         }
         (None, None, Some(query)) => {
-            mesc::parse_user_query(query.as_str(), args.profile.as_deref())
+            mesc::get_endpoint_by_query(query.as_str(), args.profile.as_deref())
         }
         (None, None, None) => mesc::get_default_endpoint(args.profile.as_deref()),
     };
