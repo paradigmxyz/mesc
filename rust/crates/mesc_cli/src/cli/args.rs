@@ -75,36 +75,34 @@ pub struct LsArgs {
     #[clap(short, long)]
     pub reveal: bool,
 
-    // /// verbose, show all endpoints and defaults
-    // #[clap(short, long)]
-    // pub verbose: bool,
     /// filter by name (fuzzy match)
     #[clap(long)]
     pub name: Option<String>,
 
     /// filter by chain id
-    #[clap(short, long)]
+    #[clap(long)]
     pub network: Option<String>,
 
     /// filter by url (fuzzy match)
-    #[clap(short, long)]
+    #[clap(long)]
     pub url: Option<String>,
 
     /// metadata, space-separated key=value pairs
-    #[clap(short, long)]
+    #[clap(long)]
     pub metadata: Vec<String>,
 
     /// output as json
     #[clap(long)]
     pub json: bool,
+
+    /// output url's only (space-separate)
+    #[clap(long)]
+    pub urls: bool,
 }
 
 /// Arguments for the `ls` subcommand
 #[derive(Parser)]
 pub struct DefaultsArgs {
-    // /// verbose, show all endpoints and defaults
-    // #[clap(short, long)]
-    // pub verbose: bool,
     /// output as json
     #[clap(long)]
     pub json: bool,

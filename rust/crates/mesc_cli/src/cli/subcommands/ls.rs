@@ -14,6 +14,12 @@ pub(crate) fn ls_command(args: LsArgs) -> Result<(), MescCliError> {
     }
     let endpoints = mesc::find_endpoints(query)?;
 
+    if args.urls {
+        let urls: Vec<_> = endpoints.into_iter().map(|e| e.url).collect();
+        println!("{}", urls.join(" "));
+        return Ok(());
+    }
+
     // check reveal
     let config = mesc::load::load_config_data()?;
     let reveal = if args.reveal {
