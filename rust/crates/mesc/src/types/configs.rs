@@ -33,6 +33,13 @@ pub struct Profile {
     pub network_defaults: HashMap<ChainId, String>,
 }
 
+impl Profile {
+    /// create new profile
+    pub fn new<T: Into<String>>(name: T) -> Profile {
+        Profile { name: name.into(), default_endpoint: None, network_defaults: HashMap::new() }
+    }
+}
+
 /// ConfigMode
 #[derive(Debug)]
 pub enum ConfigMode {

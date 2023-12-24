@@ -17,5 +17,7 @@ pub mod load;
 pub use interface::*;
 /// overrides module
 pub mod overrides;
+/// queries module
+pub mod query;
 /// write module
 pub mod write;

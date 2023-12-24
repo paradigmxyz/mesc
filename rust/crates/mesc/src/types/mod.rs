@@ -1,11 +1,11 @@
 /// chain_ids types module
-pub mod chain_ids;
+mod chain_ids;
 /// configs types module
-pub mod configs;
+mod configs;
 /// errors types modules
-pub mod errors;
+mod errors;
 /// queries types modules
-pub mod queries;
+mod queries;
 
 pub use chain_ids::*;
 pub use configs::*;

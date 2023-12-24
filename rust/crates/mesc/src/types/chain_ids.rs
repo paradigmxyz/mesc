@@ -19,6 +19,12 @@ impl ChainId {
             }
         }
     }
+
+    /// return chain_id as &str
+    pub fn as_str(&self) -> &str {
+        let ChainId(chain_id) = self;
+        chain_id.as_str()
+    }
 }
 
 impl PartialOrd for ChainId {
