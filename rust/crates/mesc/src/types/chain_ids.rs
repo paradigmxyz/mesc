@@ -7,10 +7,6 @@ use serde::{Deserialize, Serialize};
 pub struct ChainId(String);
 
 impl ChainId {
-    pub fn null_chain_id() -> ChainId {
-        ChainId("0".to_string())
-    }
-
     /// convert to hex representation
     pub fn to_hex(&self) -> Result<String, MescError> {
         let ChainId(chain_id) = self;
@@ -69,6 +65,7 @@ impl_from_uint_for_chainid!(u8, u16, u32, u64, u128, usize);
 
 /// use custom trait instead of TryInto so that Error type is always the same
 pub trait TryIntoChainId {
+    /// try to convert into chain id
     fn try_into_chain_id(self) -> Result<ChainId, MescError>;
 }
 

@@ -1,11 +1,13 @@
 use crate::{MescError, RpcConfig, TryIntoChainId};
 use std::fs::File;
 
+/// write config to file
 pub fn write_config(config: RpcConfig, path: String) -> Result<(), MescError> {
     let file = File::create(path)?;
     Ok(serde_json::to_writer(file, &config)?)
 }
 
+/// update name of endpoint
 pub fn update_endpoint_name(
     config: &mut RpcConfig,
     old_name: &str,
@@ -52,6 +54,7 @@ pub fn update_endpoint_name(
     Ok(())
 }
 
+/// update endpoint chain_id
 pub fn update_endpoint_chain_id<T: TryIntoChainId>(
     config: &mut RpcConfig,
     endpoint_name: &str,
@@ -88,6 +91,7 @@ pub fn update_endpoint_chain_id<T: TryIntoChainId>(
     Ok(())
 }
 
+/// delete endpoint from config
 pub fn delete_endpoint(config: &mut RpcConfig, endpoint: &str) -> Result<(), MescError> {
     // remove from endpoints
     config.endpoints.remove(endpoint);

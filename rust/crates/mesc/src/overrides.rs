@@ -1,6 +1,7 @@
 use crate::{ChainId, Endpoint, MescError, Profile, RpcConfig, TryIntoChainId};
 use std::collections::HashMap;
 
+/// apply overrides to config
 pub fn apply_overrides(config: &mut RpcConfig) -> Result<(), MescError> {
     if let Some(default_endpoint) = get_default_endpoint_override() {
         if !default_endpoint.is_empty() {
@@ -36,10 +37,7 @@ pub fn apply_overrides(config: &mut RpcConfig) -> Result<(), MescError> {
             if let Some(endpoint) = config.endpoints.get_mut(&name) {
                 endpoint.endpoint_metadata.extend(metadata)
             } else {
-                return Err(MescError::OverrideError(format!(
-                    "endpoint does not exist: {}",
-                    name
-                )));
+                return Err(MescError::OverrideError(format!("endpoint does not exist: {}", name)));
             }
         }
     }
@@ -60,10 +58,8 @@ fn get_network_defaults_override() -> Result<Option<HashMap<ChainId, String>>, M
         for piece in raw.split(' ') {
             match piece.split('=').collect::<Vec<&str>>().as_slice() {
                 [chain_id, endpoint] => {
-                    network_defaults.insert(
-                        (chain_id.to_string()).try_into_chain_id()?,
-                        endpoint.to_string(),
-                    );
+                    network_defaults
+                        .insert((chain_id.to_string()).try_into_chain_id()?, endpoint.to_string());
                 }
                 _ => {
                     return Err(MescError::OverrideError(
@@ -87,10 +83,8 @@ fn get_network_names_override() -> Result<Option<HashMap<String, ChainId>>, Mesc
         for piece in raw.split(' ') {
             match piece.split('=').collect::<Vec<&str>>().as_slice() {
                 [name, chain_id] => {
-                    network_names.insert(
-                        name.to_string(),
-                        (chain_id.to_string()).try_into_chain_id()?,
-                    );
+                    network_names
+                        .insert(name.to_string(), (chain_id.to_string()).try_into_chain_id()?);
                 }
                 _ => {
                     return Err(MescError::OverrideError(
@@ -126,25 +120,21 @@ fn parse_endpoint(input: &str) -> Result<Endpoint, MescError> {
     let (name_chain, url) = match (parts.next(), parts.next()) {
         (Some(name), Some(url)) => (name, url),
         (Some(url), None) => ("", url),
-        _ => {
-            return Err(MescError::OverrideError(
-                "invalid endpoint override".to_string(),
-            ))
-        }
+        _ => return Err(MescError::OverrideError("invalid endpoint override".to_string())),
     };
 
     let mut name_chain_parts = name_chain.split(':');
     let name = name_chain_parts
         .next()
         .map(|s| s.to_string())
-        .unwrap_or(get_default_name(url).ok_or(MescError::OverrideError(
-            "could not create endpoint name".to_string(),
-        ))?)
+        .unwrap_or(
+            get_default_name(url)
+                .ok_or(MescError::OverrideError("could not create endpoint name".to_string()))?,
+        )
         .to_string();
     let name = if name.is_empty() {
-        get_default_name(url).ok_or(MescError::OverrideError(
-            "could not create endpoint name".to_string(),
-        ))?
+        get_default_name(url)
+            .ok_or(MescError::OverrideError("could not create endpoint name".to_string()))?
     } else {
         name
     };
@@ -153,26 +143,18 @@ fn parse_endpoint(input: &str) -> Result<Endpoint, MescError> {
         None => None,
     };
 
-    Ok(Endpoint {
-        name,
-        url: url.to_string(),
-        chain_id,
-        endpoint_metadata: HashMap::new(),
-    })
+    Ok(Endpoint { name, url: url.to_string(), chain_id, endpoint_metadata: HashMap::new() })
 }
 
 fn get_default_name(url: &str) -> Option<String> {
     // Find the start of the main part of the URL, skipping the protocol if present
-    let start = if let Some(pos) = url.find("://") {
-        pos + 3
-    } else {
-        0
-    };
+    let start = if let Some(pos) = url.find("://") { pos + 3 } else { 0 };
 
     // Extract the main part of the URL, from the protocol (if present) to the end
     let main_part = &url[start..];
 
-    // Find the end of the domain part, which could be before a slash (path) or the end of the string
+    // Find the end of the domain part, which could be before a slash (path) or the end of the
+    // string
     let end = main_part.find('/').unwrap_or(main_part.len());
 
     // Extract the domain part
@@ -230,21 +212,17 @@ fn get_profiles_override() -> Result<Option<HashMap<String, Profile>>, MescError
                 }
             };
 
-        let profile = profiles
-            .entry(profile_name.to_string())
-            .or_insert_with(|| Profile {
-                name: profile_name.to_string(),
-                default_endpoint: None,
-                network_defaults: HashMap::new(),
-            });
+        let profile = profiles.entry(profile_name.to_string()).or_insert_with(|| Profile {
+            name: profile_name.to_string(),
+            default_endpoint: None,
+            network_defaults: HashMap::new(),
+        });
 
         match key {
             "default_endpoint" => profile.default_endpoint = Some(endpoint.to_string()),
             "network_defaults" => {
                 if let Some(cid) = chain_id {
-                    profile
-                        .network_defaults
-                        .insert(cid.try_into_chain_id()?, endpoint.to_string());
+                    profile.network_defaults.insert(cid.try_into_chain_id()?, endpoint.to_string());
                 }
             }
             _ => {

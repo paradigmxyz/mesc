@@ -1,7 +1,7 @@
 use mesc::MescError;
 
 #[derive(Debug)]
-pub enum MescCliError {
+pub(crate) enum MescCliError {
     MescError(MescError),
     NetworkError(reqwest::Error),
     InquireError(inquire::InquireError),

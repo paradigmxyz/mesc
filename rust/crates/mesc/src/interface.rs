@@ -1,25 +1,23 @@
-use crate::directory;
-use crate::load::{get_config_mode, load_config_data};
-use crate::types::{Endpoint, MescError};
-use crate::{ConfigMode, MultiEndpointQuery, TryIntoChainId};
+use crate::{
+    directory,
+    load::{get_config_mode, load_config_data},
+    types::{Endpoint, MescError},
+    ConfigMode, MultiEndpointQuery, TryIntoChainId,
+};
 use std::collections::HashMap;
 
+/// check whether mesc is enabled
 pub fn is_mesc_enabled() -> bool {
-    matches!(
-        get_config_mode(),
-        Ok(ConfigMode::Path) | Ok(ConfigMode::Env)
-    )
+    matches!(get_config_mode(), Ok(ConfigMode::Path) | Ok(ConfigMode::Env))
 }
 
+/// get default endpoint
 pub fn get_default_endpoint(profile: Option<&str>) -> Result<Option<Endpoint>, MescError> {
     let config = load_config_data()?;
 
     // if using a profile, check if that profile has a default endpoint for chain_id
     if let Some(profile) = profile {
-        let name = config
-            .profiles
-            .get(profile)
-            .and_then(|p| p.default_endpoint.clone());
+        let name = config.profiles.get(profile).and_then(|p| p.default_endpoint.clone());
         if let Some(name) = name {
             return get_endpoint_by_name(name.as_str()).map(Some);
         }
@@ -31,6 +29,7 @@ pub fn get_default_endpoint(profile: Option<&str>) -> Result<Option<Endpoint>, M
     }
 }
 
+/// get endpoint by network
 pub fn get_endpoint_by_network<T: TryIntoChainId>(
     chain_id: T,
     profile: Option<&str>,
@@ -40,10 +39,7 @@ pub fn get_endpoint_by_network<T: TryIntoChainId>(
 
     // if using a profile, check if that profile has a default endpoint for chain_id
     if let Some(profile) = profile {
-        let name = config
-            .profiles
-            .get(profile)
-            .and_then(|p| p.network_defaults.get(&chain_id));
+        let name = config.profiles.get(profile).and_then(|p| p.network_defaults.get(&chain_id));
         if let Some(name) = name {
             return get_endpoint_by_name(name).map(Some);
         }
@@ -56,6 +52,7 @@ pub fn get_endpoint_by_network<T: TryIntoChainId>(
     }
 }
 
+/// get endpoint by name
 pub fn get_endpoint_by_name(name: &str) -> Result<Endpoint, MescError> {
     let config = load_config_data()?;
     if let Some(endpoint) = config.endpoints.get(name) {
@@ -65,6 +62,7 @@ pub fn get_endpoint_by_name(name: &str) -> Result<Endpoint, MescError> {
     }
 }
 
+/// parse user query
 pub fn parse_user_query(query: &str, profile: Option<&str>) -> Result<Option<Endpoint>, MescError> {
     let mut config = load_config_data()?;
 
@@ -90,6 +88,7 @@ pub fn parse_user_query(query: &str, profile: Option<&str>) -> Result<Option<End
     Ok(None)
 }
 
+/// find endpoints
 pub fn find_endpoints(query: MultiEndpointQuery) -> Result<Vec<Endpoint>, MescError> {
     let config = load_config_data()?;
     let mut candidates: Vec<Endpoint> = config.endpoints.into_values().collect();
@@ -109,6 +108,7 @@ pub fn find_endpoints(query: MultiEndpointQuery) -> Result<Vec<Endpoint>, MescEr
     Ok(candidates)
 }
 
+/// get global metadata
 pub fn get_global_metadata() -> Result<HashMap<String, serde_json::Value>, MescError> {
     let config = load_config_data()?;
     Ok(config.global_metadata)

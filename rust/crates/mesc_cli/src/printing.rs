@@ -2,21 +2,19 @@ use crate::MescCliError;
 use mesc::Endpoint;
 use toolstr::ColumnFormatShorthand;
 
-pub fn print_endpoint_json(endpoint: Endpoint) {
+pub(crate) fn print_endpoint_json(endpoint: Endpoint) {
     match serde_json::to_string(&endpoint) {
         Ok(as_str) => println!("{}", as_str),
         Err(_) => eprintln!("could not serialize endpoint"),
     }
 }
 
-pub fn print_endpoint_pretty(endpoint: Endpoint) {
+pub(crate) fn print_endpoint_pretty(endpoint: Endpoint) {
     println!("Endpoint: {}", endpoint.name);
     println!("- url: {}", endpoint.url);
     println!(
         "- chain_id: {}",
-        endpoint
-            .chain_id
-            .map_or("-".to_string(), |chain_id| chain_id.to_string())
+        endpoint.chain_id.map_or("-".to_string(), |chain_id| chain_id.to_string())
     );
     println!("- metadata: {:?}", endpoint.endpoint_metadata);
 }
@@ -68,28 +66,16 @@ pub(crate) fn print_endpoints(
             // header_separator_delimiter: " . ".to_string(),
             ..format
         };
-        let mut format = format
-            .border_font_style(comment_style.clone())
-            .label_font_style(title_style.clone());
+        let mut format =
+            format.border_font_style(comment_style.clone()).label_font_style(title_style.clone());
         let mut table = toolstr::Table::default();
         table.add_column("endpoint", names)?;
-        format.add_column(
-            ColumnFormatShorthand::new()
-                .name("endpoint")
-                .font_style(metavar_style),
-        );
+        format.add_column(ColumnFormatShorthand::new().name("endpoint").font_style(metavar_style));
         table.add_column("network", networks)?;
-        format.add_column(
-            ColumnFormatShorthand::new()
-                .name("network")
-                .font_style(description_style),
-        );
+        format
+            .add_column(ColumnFormatShorthand::new().name("network").font_style(description_style));
         table.add_column("url", urls)?;
-        format.add_column(
-            ColumnFormatShorthand::new()
-                .name("url")
-                .font_style(option_style),
-        );
+        format.add_column(ColumnFormatShorthand::new().name("url").font_style(option_style));
         format.print(table)?;
     };
 
@@ -125,28 +111,15 @@ pub(crate) fn print_defaults(config: &mesc::RpcConfig) -> Result<(), MescCliErro
         // indent: 4,
         ..format
     };
-    let mut format = format
-        .border_font_style(comment_style.clone())
-        .label_font_style(title_style.clone());
+    let mut format =
+        format.border_font_style(comment_style.clone()).label_font_style(title_style.clone());
     let mut table = toolstr::Table::default();
     table.add_column("", classes)?;
-    format.add_column(
-        ColumnFormatShorthand::new()
-            .name("")
-            .font_style(option_style),
-    );
+    format.add_column(ColumnFormatShorthand::new().name("").font_style(option_style));
     table.add_column("network", networks)?;
-    format.add_column(
-        ColumnFormatShorthand::new()
-            .name("network")
-            .font_style(description_style),
-    );
+    format.add_column(ColumnFormatShorthand::new().name("network").font_style(description_style));
     table.add_column("endpoint", names)?;
-    format.add_column(
-        ColumnFormatShorthand::new()
-            .name("endpoint")
-            .font_style(metavar_style),
-    );
+    format.add_column(ColumnFormatShorthand::new().name("endpoint").font_style(metavar_style));
     format.print(table)?;
 
     // if config.profiles.is_empty() {

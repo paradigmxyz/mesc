@@ -1,7 +1,5 @@
-use crate::network::EndpointNetworkInfo;
-use crate::{network, MescCliError, PingArgs};
-use futures::stream::FuturesUnordered;
-use futures::stream::StreamExt;
+use crate::{network, network::EndpointNetworkInfo, MescCliError, PingArgs};
+use futures::stream::{FuturesUnordered, StreamExt};
 use std::collections::HashSet;
 use tokio::task::JoinHandle;
 use toolstr::ColumnFormatShorthand;
@@ -93,12 +91,8 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     for network_info in network_infos.into_iter() {
         node_clients.push(network_info.node_client_version.unwrap_or("-".to_string()));
         ips.push(network_info.ip_address.unwrap_or("-".to_string()));
-        block_numbers.push(
-            network_info
-                .current_block
-                .map(|b| b.to_string())
-                .unwrap_or("-".to_string()),
-        );
+        block_numbers
+            .push(network_info.current_block.map(|b| b.to_string()).unwrap_or("-".to_string()));
         latencies.push(
             network_info
                 .latency
@@ -109,28 +103,20 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     }
 
     if args.json {
-        let entries = names
-            .into_iter()
-            .zip(urls)
-            .zip(networks)
-            .zip(ips)
-            .zip(locations)
-            .zip(latencies)
-            .zip(node_clients)
-            .zip(block_numbers)
-            .map(
-                |(((((((name, url), network), ip), location), latency), client), block)| Entry {
-                    name,
-                    url,
-                    network,
-                    ip,
-                    location,
-                    latency,
-                    client,
-                    block,
-                },
-            )
-            .collect::<Vec<Entry>>();
+        let entries =
+            names
+                .into_iter()
+                .zip(urls)
+                .zip(networks)
+                .zip(ips)
+                .zip(locations)
+                .zip(latencies)
+                .zip(node_clients)
+                .zip(block_numbers)
+                .map(|(((((((name, url), network), ip), location), latency), client), block)| {
+                    Entry { name, url, network, ip, location, latency, client, block }
+                })
+                .collect::<Vec<Entry>>();
         println!("{}", serde_json::to_string_pretty(&entries)?);
         return Ok(());
     }
@@ -150,16 +136,10 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     let mut table = toolstr::Table::default();
 
     table.add_column("endpoint", names)?;
-    format.add_column(
-        ColumnFormatShorthand::new()
-            .name("endpoint")
-            .font_style(metavar_style),
-    );
+    format.add_column(ColumnFormatShorthand::new().name("endpoint").font_style(metavar_style));
     table.add_column("network", networks)?;
     format.add_column(
-        ColumnFormatShorthand::new()
-            .name("network")
-            .font_style(description_style.clone()),
+        ColumnFormatShorthand::new().name("network").font_style(description_style.clone()),
     );
 
     for field in fields.iter() {
@@ -175,9 +155,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
             "ip" => {
                 table.add_column("ip", ips.clone())?;
                 format.add_column(
-                    ColumnFormatShorthand::new()
-                        .name("ip")
-                        .font_style(option_style.clone()),
+                    ColumnFormatShorthand::new().name("ip").font_style(option_style.clone()),
                 );
             }
             "block" => {
@@ -191,9 +169,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
             "location" => {
                 table.add_column("location", locations.clone())?;
                 format.add_column(
-                    ColumnFormatShorthand::new()
-                        .name("location")
-                        .font_style(option_style.clone()),
+                    ColumnFormatShorthand::new().name("location").font_style(option_style.clone()),
                 );
             }
             "client" => {
@@ -204,12 +180,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
                         .font_style(option_style.clone()),
                 );
             }
-            _ => {
-                return Err(MescCliError::InvalidInput(format!(
-                    "unknown field: {}",
-                    field
-                )))
-            }
+            _ => return Err(MescCliError::InvalidInput(format!("unknown field: {}", field))),
         }
     }
     format.print(table)?;
@@ -236,10 +207,7 @@ pub(crate) async fn ping_command(args: PingArgs) -> Result<(), MescCliError> {
     let additional_fields: Vec<_> = additional_fields.iter().map(|s| s.as_str()).collect();
     if !additional_fields.is_empty() {
         println!();
-        let text = format!(
-            "additional fields avaiable: {}",
-            additional_fields.join(", ")
-        );
+        let text = format!("additional fields avaiable: {}", additional_fields.join(", "));
         println!("{}", comment_style.format(text));
     };
 

@@ -18,14 +18,14 @@ pub(crate) async fn run_cli() -> Result<(), MescCliError> {
 /// Utility for creating and managing MESC RPC configurations
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
-pub struct Cli {
+pub(crate) struct Cli {
     #[clap(subcommand)]
-    pub command: Commands,
+    pub(crate) command: Commands,
 }
 
 /// Define your subcommands as an enum
 #[derive(Subcommand)]
-pub enum Commands {
+pub(crate) enum Commands {
     /// Create or modify configuration
     Setup(SetupArgs),
     /// Print status of configuration
@@ -46,141 +46,141 @@ pub enum Commands {
 
 /// Arguments for the `setup` subcommand
 #[derive(Parser)]
-pub struct SetupArgs {
+pub(crate) struct SetupArgs {
     /// path to use
     #[clap(short, long)]
-    pub path: Option<String>,
+    pub(crate) path: Option<String>,
 
     /// edit data in editor
     #[clap(short, long)]
-    pub editor: bool,
+    pub(crate) editor: bool,
 }
 
 /// Arguments for the `status` subcommand
 #[derive(Parser)]
-pub struct StatusArgs {
+pub(crate) struct StatusArgs {
     /// reveal all endpoint url's in output
     #[clap(short, long)]
-    pub reveal: bool,
+    pub(crate) reveal: bool,
 
     /// verbose, show all endpoints and defaults
     #[clap(short, long)]
-    pub verbose: bool,
+    pub(crate) verbose: bool,
 }
 
 /// Arguments for the `ls` subcommand
 #[derive(Parser)]
-pub struct LsArgs {
+pub(crate) struct LsArgs {
     /// reveal all endpoint url's in output
     #[clap(short, long)]
-    pub reveal: bool,
+    pub(crate) reveal: bool,
 
     /// filter by name (fuzzy match)
     #[clap(long)]
-    pub name: Option<String>,
+    pub(crate) name: Option<String>,
 
     /// filter by chain id
     #[clap(long)]
-    pub network: Option<String>,
+    pub(crate) network: Option<String>,
 
     /// filter by url (fuzzy match)
     #[clap(long)]
-    pub url: Option<String>,
+    pub(crate) url: Option<String>,
 
     /// metadata, space-separated key=value pairs
     #[clap(long)]
-    pub metadata: Vec<String>,
+    pub(crate) metadata: Vec<String>,
 
     /// output as json
     #[clap(long)]
-    pub json: bool,
+    pub(crate) json: bool,
 
     /// output url's only (space-separate)
     #[clap(long)]
-    pub urls: bool,
+    pub(crate) urls: bool,
 }
 
 /// Arguments for the `ls` subcommand
 #[derive(Parser)]
-pub struct DefaultsArgs {
+pub(crate) struct DefaultsArgs {
     /// output as json
     #[clap(long)]
-    pub json: bool,
+    pub(crate) json: bool,
 }
 
 /// Arguments for the `ping` subcommand
 #[derive(Parser)]
-pub struct PingArgs {
+pub(crate) struct PingArgs {
     /// data fields to gather
     /// one or more of: {ip, location, latency, client, namespaces, all}
     #[clap(num_args=0.., verbatim_doc_comment)]
-    pub fields: Vec<String>,
+    pub(crate) fields: Vec<String>,
 
     /// filter endpoints by endpoint name (fuzzy match)
     #[clap(long)]
-    pub name: Option<String>,
+    pub(crate) name: Option<String>,
 
     /// filter endpoints by url (fuzzy match)
     #[clap(long)]
-    pub url: Option<String>,
+    pub(crate) url: Option<String>,
 
     /// filter endpoints by network
     #[clap(long)]
-    pub network: Option<String>,
+    pub(crate) network: Option<String>,
 
     /// timeout, in seconds
     #[clap(long, default_value_t = 1)]
-    pub timeout: u64,
+    pub(crate) timeout: u64,
 
     /// output as json
     #[clap(long)]
-    pub json: bool,
+    pub(crate) json: bool,
 }
 
 /// Arguments for the `json` subcommand
 #[derive(Parser)]
-pub struct EndpointArgs {
+pub(crate) struct EndpointArgs {
     /// query
     #[clap()]
-    pub query: Option<String>,
+    pub(crate) query: Option<String>,
 
     /// name
     #[clap(long)]
-    pub name: Option<String>,
+    pub(crate) name: Option<String>,
 
     /// network
     #[clap(long)]
-    pub network: Option<String>,
+    pub(crate) network: Option<String>,
 
     /// profile
     #[clap(short, long)]
-    pub profile: Option<String>,
+    pub(crate) profile: Option<String>,
 
     /// print as json
     #[clap(short, long)]
-    pub json: bool,
+    pub(crate) json: bool,
 }
 
 /// Arguments for the `metadata` subcommand
 #[derive(Parser)]
-pub struct MetadataArgs {}
+pub(crate) struct MetadataArgs {}
 
 /// Arguments for the `url` subcommand
 #[derive(Parser)]
-pub struct UrlArgs {
+pub(crate) struct UrlArgs {
     /// query
     #[clap()]
-    pub query: Option<String>,
+    pub(crate) query: Option<String>,
 
     /// name
     #[clap(long)]
-    pub name: Option<String>,
+    pub(crate) name: Option<String>,
 
     /// network
     #[clap(long)]
-    pub network: Option<String>,
+    pub(crate) network: Option<String>,
 
     /// profile
     #[clap(short, long)]
-    pub profile: Option<String>,
+    pub(crate) profile: Option<String>,
 }

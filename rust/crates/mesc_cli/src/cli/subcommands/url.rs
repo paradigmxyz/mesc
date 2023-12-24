@@ -5,9 +5,7 @@ pub(crate) fn url_command(args: UrlArgs) -> Result<(), MescCliError> {
     let endpoint = match (args.name, args.network, args.query) {
         (Some(name), _, _) => mesc::get_endpoint_by_name(name.as_str()).map(Some),
         (None, Some(_), Some(_)) => {
-            return Err(MescCliError::InvalidInput(
-                "specify either query or --network".to_string(),
-            ))
+            return Err(MescCliError::InvalidInput("specify either query or --network".to_string()))
         }
         (None, Some(network), None) => {
             mesc::get_endpoint_by_network(network.as_str(), args.profile.as_deref())

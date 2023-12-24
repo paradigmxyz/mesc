@@ -24,3 +24,4 @@ toolstr = { version = "0.1.0", path = "../../../../toolstr/toolstr-rust" }
 edit = "0.1.4"
 url = "2.2.2"
 ipgeolocate = "0.3.6"
+colored_json = "4.1.0"

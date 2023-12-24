@@ -4,7 +4,7 @@ use mesc::{Endpoint, RpcConfig, TryIntoChainId};
 use std::collections::{HashMap, HashSet};
 use toolstr::Colorize;
 
-pub fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
+pub(crate) fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
     inquire::set_global_render_config(get_render_config());
 
     if args.editor {

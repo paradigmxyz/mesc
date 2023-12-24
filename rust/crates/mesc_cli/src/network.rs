@@ -1,16 +1,15 @@
 use super::rpc;
 use crate::MescCliError;
-use std::net::ToSocketAddrs;
-use std::time::Instant;
+use std::{net::ToSocketAddrs, time::Instant};
 
 pub(crate) struct EndpointNetworkInfo {
-    pub url: String,
-    pub node_client_version: Option<String>,
-    pub current_block: Option<u32>,
-    pub ip_address: Option<String>,
-    pub latency: Option<f64>,
-    pub namespaces: Option<Vec<String>>,
-    pub location: Option<String>,
+    pub(crate) url: String,
+    pub(crate) node_client_version: Option<String>,
+    pub(crate) current_block: Option<u32>,
+    pub(crate) ip_address: Option<String>,
+    pub(crate) latency: Option<f64>,
+    pub(crate) namespaces: Option<Vec<String>>,
+    pub(crate) location: Option<String>,
 }
 
 pub(crate) async fn get_node_network_info(
@@ -18,9 +17,8 @@ pub(crate) async fn get_node_network_info(
     fields: &[String],
     timeout: u64,
 ) -> Result<EndpointNetworkInfo, MescCliError> {
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(timeout))
-        .build()?;
+    let client =
+        reqwest::Client::builder().timeout(std::time::Duration::from_secs(timeout)).build()?;
 
     // node client
     let node_client_version = if fields.contains(&"client".to_string()) {
@@ -77,9 +75,8 @@ pub(crate) async fn get_node_network_info(
 fn get_ip_address(url: &str) -> Result<String, MescCliError> {
     let parsed_url = url::Url::parse(url)
         .map_err(|_| MescCliError::UrlError("could not parse url".to_string()))?;
-    let host = parsed_url
-        .host_str()
-        .ok_or(MescCliError::UrlError("could not parse host".to_string()))?;
+    let host =
+        parsed_url.host_str().ok_or(MescCliError::UrlError("could not parse host".to_string()))?;
     let port = parsed_url
         .port_or_known_default()
         .ok_or(MescCliError::UrlError("could not parse port".to_string()))?;
