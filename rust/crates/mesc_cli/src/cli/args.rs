@@ -26,7 +26,7 @@ pub(crate) struct Cli {
 /// Define your subcommands as an enum
 #[derive(Subcommand)]
 pub(crate) enum Commands {
-    /// Create or modify configuration
+    /// Create new configuration or modify existing configuration
     Setup(SetupArgs),
     /// Print status of configuration
     Status(StatusArgs),
@@ -34,7 +34,7 @@ pub(crate) enum Commands {
     Ls(LsArgs),
     /// Print list of defaults
     Defaults(DefaultsArgs),
-    /// Ping endpoints and fetch various metadata
+    /// Ping endpoints and fetch metadata
     Ping(PingArgs),
     /// Print endpoint
     Endpoint(EndpointArgs),

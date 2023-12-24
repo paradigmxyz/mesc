@@ -1,5 +1,5 @@
 use crate::MescCliError;
-use mesc::Endpoint;
+use mesc::{Endpoint, RpcConfig};
 use toolstr::ColumnFormatShorthand;
 
 pub(crate) fn print_endpoint_json(endpoint: Endpoint) {
@@ -82,21 +82,62 @@ pub(crate) fn print_endpoints(
     Ok(())
 }
 
-pub(crate) fn print_defaults(config: &mesc::RpcConfig) -> Result<(), MescCliError> {
+pub(crate) fn print_defaults(config: &RpcConfig) -> Result<(), MescCliError> {
     let mut classes = Vec::new();
     let mut networks = Vec::new();
     let mut names = Vec::new();
+    let mut profiles = Vec::new();
+
+    // global default endpoint
     classes.push("global default");
-    if let Some(default_endpoint) = mesc::get_default_endpoint(None)? {
-        names.push(default_endpoint.name.clone());
-        networks.push(default_endpoint.chain_id_string());
+    if let Some(default_endpoint_name) = &config.default_endpoint {
+        if let Some(endpoint) = config.endpoints.get(default_endpoint_name) {
+            names.push(default_endpoint_name.clone());
+            networks.push(endpoint.chain_id_string());
+        } else {
+            names.push("[none]".into());
+            networks.push("[none]".into());
+        }
+    } else {
+        names.push("[none]".into());
+        networks.push("[none]".into());
     }
+    profiles.push("-".to_string());
+
+    // global network defaults
     for (chain_id, name) in config.network_defaults.iter() {
         classes.push("network default");
         networks.push(chain_id.to_string());
         names.push(name.clone());
+        profiles.push("-".to_string());
     }
-    let format = toolstr::TableFormat::default();
+
+    // profile defaults
+    for (profile_name, profile) in config.profiles.clone().into_iter() {
+        // profile default endpoint
+        classes.push("profile global default");
+        if let Some(default_endpoint_name) = profile.default_endpoint {
+            if let Some(endpoint) = config.endpoints.get(&default_endpoint_name) {
+                names.push(default_endpoint_name.clone());
+                networks.push(endpoint.chain_id_string());
+            } else {
+                names.push("[none]".into());
+                networks.push("[none]".into());
+            }
+        } else {
+            names.push("[none]".into());
+            networks.push("[none]".into());
+        }
+        profiles.push(profile_name.clone());
+
+        // profile network default
+        for (chain_id, name) in profile.network_defaults.iter() {
+            classes.push("profile network default");
+            networks.push(chain_id.to_string());
+            names.push(name.clone());
+            profiles.push(profile_name.clone());
+        }
+    }
 
     let mut title_style = crate::metadata::get_theme_font_style("title")?;
     title_style.bold();
@@ -107,32 +148,19 @@ pub(crate) fn print_defaults(config: &mesc::RpcConfig) -> Result<(), MescCliErro
     let _content_style = crate::metadata::get_theme_font_style("content")?;
     let comment_style = crate::metadata::get_theme_font_style("comment")?;
 
-    let format = toolstr::TableFormat {
-        // indent: 4,
-        ..format
-    };
+    let format = toolstr::TableFormat::default();
     let mut format =
         format.border_font_style(comment_style.clone()).label_font_style(title_style.clone());
     let mut table = toolstr::Table::default();
     table.add_column("", classes)?;
-    format.add_column(ColumnFormatShorthand::new().name("").font_style(option_style));
+    format.add_column(ColumnFormatShorthand::new().name("").font_style(option_style.clone()));
     table.add_column("network", networks)?;
     format.add_column(ColumnFormatShorthand::new().name("network").font_style(description_style));
     table.add_column("endpoint", names)?;
     format.add_column(ColumnFormatShorthand::new().name("endpoint").font_style(metavar_style));
+    table.add_column("profile", profiles)?;
+    format.add_column(ColumnFormatShorthand::new().name("profile").font_style(option_style));
     format.print(table)?;
 
-    // if config.profiles.is_empty() {
-    //     // println!();
-    //     // println!();
-    //     // println!("[none]");
-    // } else {
-    //     println!();
-    //     println!();
-    //     toolstr::print_header("Additional Profiles", &theme);
-    //     for (name, _profile) in config.profiles.iter() {
-    //         println!("- {}", name);
-    //     }
-    // };
     Ok(())
 }
