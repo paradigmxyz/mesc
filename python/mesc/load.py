@@ -8,7 +8,7 @@ from . import overrides
 
 
 def read_config_data() -> RpcConfig:
-    mode = os.environ.get("MESC_CONFIG_MODE")
+    mode = os.environ.get("MESC_MODE")
     if mode == "DISABLE":
         raise exceptions.MescDisabled("MESC disabled, check with is_mesc_enabled()")
     if mode == "PATH":
@@ -17,9 +17,9 @@ def read_config_data() -> RpcConfig:
         config = read_env_config()
     elif mode not in ["", None]:
         raise Exception("invalid mode: " + str(mode))
-    elif os.environ.get("MESC_CONFIG_PATH") not in ["", None]:
+    elif os.environ.get("MESC_PATH") not in ["", None]:
         config = read_file_config()
-    elif os.environ.get("MESC_CONFIG_ENV") not in ["", None]:
+    elif os.environ.get("MESC_ENV") not in ["", None]:
         config = read_env_config()
     else:
         raise Exception("config not specified")
@@ -30,10 +30,10 @@ def read_config_data() -> RpcConfig:
 
 
 def read_env_config() -> RpcConfig:
-    return json.loads(os.environ.get("MESC_CONFIG_ENV"))  # type: ignore
+    return json.loads(os.environ.get("MESC_ENV"))  # type: ignore
 
 
 def read_file_config() -> RpcConfig:
-    path = os.path.expanduser(os.environ.get("MESC_CONFIG_PATH"))  # type: ignore
+    path = os.path.expanduser(os.environ.get("MESC_PATH"))  # type: ignore
     with open(path, "r") as f:  # type: ignore
         return json.load(f)  # type: ignore

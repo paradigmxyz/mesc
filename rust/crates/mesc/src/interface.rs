@@ -1,14 +1,15 @@
 use crate::{
-    load::{get_config_mode, load_config_data},
+    load,
+    load::load_config_data,
     query,
     types::{Endpoint, MescError},
-    ConfigMode, MultiEndpointQuery, TryIntoChainId,
+    MultiEndpointQuery, TryIntoChainId,
 };
 use std::collections::HashMap;
 
 /// check whether mesc is enabled
 pub fn is_mesc_enabled() -> bool {
-    matches!(get_config_mode(), Ok(ConfigMode::Path) | Ok(ConfigMode::Env))
+    load::is_mesc_enabled()
 }
 
 /// get default endpoint

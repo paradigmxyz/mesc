@@ -23,7 +23,7 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
             values.push(format!("{:?}", mode));
             // if in path mode, print path
             if let mesc::ConfigMode::Path = mode {
-                match std::env::var("MESC_CONFIG_PATH") {
+                match std::env::var("MESC_PATH") {
                     Ok(path) => {
                         keys.push("path");
                         values.push(path);

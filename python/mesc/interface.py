@@ -8,7 +8,8 @@ from . import load
 
 
 def is_mesc_enabled() -> bool:
-    # replace with something more explicit and copy the rust version
+    if os.environ.get('MESC_MODE') == 'DISABLED':
+        return False
     for var in mesc_env_vars:
         if os.environ.get(var) not in [None, ""]:
             return True

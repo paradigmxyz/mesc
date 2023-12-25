@@ -3,9 +3,9 @@ from typing import Any, MutableMapping, TypedDict, Literal, Sequence
 
 
 mesc_env_vars = [
-    "MESC_CONFIG_MODE",
-    "MESC_CONFIG_PATH",
-    "MESC_CONFIG_ENV",
+    "MESC_MODE",
+    "MESC_PATH",
+    "MESC_ENV",
     "MESC_ENDPOINT_METADATA",
     "MESC_GLOBAL_METADATA",
     "MESC_ENDPOINTS",

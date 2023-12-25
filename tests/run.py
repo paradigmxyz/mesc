@@ -48,7 +48,7 @@ def setup_config_path(config: RpcConfig) -> Generator[Mapping[str, str], None, N
     with open(temp_path, "w") as f:
         json.dump(config, f)
     try:
-        yield {"MESC_CONFIG_MODE": "PATH", "MESC_CONFIG_PATH": temp_path}
+        yield {"MESC_MODE": "PATH", "MESC_PATH": temp_path}
     finally:
         shutil.rmtree(temp_dir)
 
@@ -57,7 +57,7 @@ def setup_config_path(config: RpcConfig) -> Generator[Mapping[str, str], None, N
 def setup_config_env_var(config: RpcConfig) -> Generator[Mapping[str, str], None, None]:
     config_data = json.dumps(config)
     try:
-        yield {"MESC_CONFIG_MODE": "ENV", "MESC_CONFIG_ENV": config_data}
+        yield {"MESC_MODE": "ENV", "MESC_ENV": config_data}
     finally:
         pass
 

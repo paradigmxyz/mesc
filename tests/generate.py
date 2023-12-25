@@ -888,7 +888,7 @@ def create_invalid_tests() -> list[Test]:
     tests += [
         (
             "invalid config mode: ALL",
-            {"MESC_CONFIG_MODE": "ALL"},
+            {"MESC_MODE": "ALL"},
             full_config,
             None,
             None,
@@ -896,23 +896,23 @@ def create_invalid_tests() -> list[Test]:
         ),
         (
             "invalid config mode: path",
-            {"MESC_CONFIG_MODE": "path"},
+            {"MESC_MODE": "path"},
             full_config,
             None,
             None,
             False,
         ),
         (
-            "invalid MESC_CONFIG_PATH: DNE",
-            {"MESC_CONFIG_PATH": "/this/path/dne.json"},
+            "invalid MESC_PATH: DNE",
+            {"MESC_PATH": "/this/path/dne.json"},
             full_config,
             None,
             None,
             False,
         ),
         (
-            "invalid MESC_CONFIG_ENV",
-            {"MESC_CONFIG_ENV": "{invalid}"},
+            "invalid MESC_ENV",
+            {"MESC_ENV": "{invalid}"},
             full_config,
             None,
             None,

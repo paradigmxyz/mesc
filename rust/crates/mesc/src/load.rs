@@ -1,9 +1,35 @@
 use crate::{overrides::apply_overrides, ConfigMode, MescError, RpcConfig};
 use std::{env, fs};
 
+/// check whether mesc is enabled
+pub fn is_mesc_enabled() -> bool {
+    if let Ok("DISABLED") = std::env::var("MESC_MODE").as_deref() {
+        return false
+    };
+    let env_vars = [
+        "MESC_MODE",
+        "MESC_PATH",
+        "MESC_ENV",
+        "MESC_NETWORK_NAMES",
+        "MESC_NETWORK_DEFAULTS",
+        "MESC_ENDPOINTS",
+        "MESC_DEFAULT_ENDPOINT",
+        "MESC_GLOBAL_METADATA",
+        "MESC_ENDPOINT_METADATA",
+        "MESC_PROFILES",
+    ];
+    for env_var in env_vars.iter() {
+        match std::env::var(env_var).as_deref() {
+            Ok(value) if !value.is_empty() => return true,
+            _ => {},
+        }
+    }
+    false
+}
+
 /// get config mode
 pub fn get_config_mode() -> Result<ConfigMode, MescError> {
-    let mode = env::var("MESC_CONFIG_MODE").unwrap_or_default();
+    let mode = env::var("MESC_MODE").unwrap_or_default();
     if mode == "PATH" {
         return Ok(ConfigMode::Path);
     } else if mode == "ENV" {
@@ -13,12 +39,12 @@ pub fn get_config_mode() -> Result<ConfigMode, MescError> {
     } else if !mode.is_empty() {
         return Err(MescError::InvalidConfigMode);
     }
-    if let Ok(path) = env::var("MESC_CONFIG_PATH") {
+    if let Ok(path) = env::var("MESC_PATH") {
         if !path.is_empty() {
             return Ok(ConfigMode::Path);
         }
     }
-    if let Ok(env_config) = env::var("MESC_CONFIG_ENV") {
+    if let Ok(env_config) = env::var("MESC_ENV") {
         if !env_config.is_empty() {
             return Ok(ConfigMode::Env);
         }
@@ -43,7 +69,7 @@ pub fn load_config_data() -> Result<RpcConfig, MescError> {
 
 /// load env config
 pub fn load_env_config() -> Result<RpcConfig, MescError> {
-    let config_json = env::var("MESC_CONFIG_ENV")?;
+    let config_json = env::var("MESC_ENV")?;
     serde_json::from_str(&config_json).map_err(|_| MescError::InvalidJson)
 }
 
@@ -56,7 +82,7 @@ pub fn load_file_config() -> Result<RpcConfig, MescError> {
 
 /// get config path
 pub fn get_config_path() -> Result<String, MescError> {
-    let path = env::var("MESC_CONFIG_PATH")?;
+    let path = env::var("MESC_PATH")?;
     let path = expand_path(path)?;
     Ok(path)
 }
