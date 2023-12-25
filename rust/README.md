@@ -22,11 +22,34 @@ Inside a `Cargo.toml`: `mesc = "1.0"`
 
 Basic data structures
 ```rust
-struct Endpoint {
-    chain_id: u64,
-    url: String,
-    endpoint_extras: HashMap<str, serde_json::Value>,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RpcConfig {
+    pub mesc_version: String,
+    pub default_endpoint: Option<String>,
+    pub endpoints: HashMap<String, Endpoint>,
+    pub network_defaults: HashMap<ChainId, String>,
+    pub network_names: HashMap<String, ChainId>,
+    pub profiles: HashMap<String, Profile>,
+    pub global_metadata: HashMap<String, serde_json::Value>,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Endpoint {
+    pub name: String,
+    pub url: String,
+    pub chain_id: Option<ChainId>,
+    pub endpoint_metadata: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Profile {
+    pub name: String,
+    pub default_endpoint: Option<String>,
+    pub network_defaults: HashMap<ChainId, String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
+pub struct ChainId(String);
 ```
 
 Basic read functions

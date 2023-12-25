@@ -365,15 +365,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "acbf1af155f9b9ef647e42cdc158db4b64a1b61f743629225fde6f3e0be2a7c7"
 
 [[package]]
-name = "colored"
-version = "2.1.0"
-source = "git+https://github.com/colored-rs/colored?rev=d4da0f4192c912816ef9baaaa0768f86167ea849#d4da0f4192c912816ef9baaaa0768f86167ea849"
-dependencies = [
- "lazy_static",
- "windows-sys 0.48.0",
-]
-
-[[package]]
 name = "colored_json"
 version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2451,10 +2442,18 @@ name = "toolstr"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "colored",
  "polars",
  "regex",
+ "toolstr_colored",
  "unicode-truncate",
+]
+
+[[package]]
+name = "toolstr_colored"
+version = "2.1.1"
+dependencies = [
+ "lazy_static",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
