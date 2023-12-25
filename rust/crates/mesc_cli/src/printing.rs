@@ -1,6 +1,6 @@
 use crate::MescCliError;
 use mesc::{Endpoint, RpcConfig};
-use toolstr::ColumnFormatShorthand;
+use toolstr::{Colorize, ColumnFormatShorthand};
 
 pub(crate) fn print_endpoint_json(endpoint: Endpoint) {
     match serde_json::to_string(&endpoint) {
@@ -163,4 +163,33 @@ pub(crate) fn print_defaults(config: &RpcConfig) -> Result<(), MescCliError> {
     format.print(table)?;
 
     Ok(())
+}
+
+pub(crate) fn print_environment_variables(indent: usize) {
+    let indentation = " ".repeat(indent);
+    let indentation2 = " ".repeat(indent + 4);
+    let env_vars = ["MESC_MODE", "MESC_PATH", "MESC_ENV"];
+    println!("{}Current environment variables:", indentation);
+    for env_var in env_vars.iter() {
+        match std::env::var(env_var) {
+            Ok(value) => println!("{}{}: {}", indentation2, env_var.bold(), value.green()),
+            Err(_) => println!("{}{}: {}", indentation2, env_var.bold(), "[not set]".green()),
+        }
+    }
+    let overrides = [
+        "MESC_NETWORK_NAMES",
+        "MESC_NETWORK_DEFAULTS",
+        "MESC_ENDPOINTS",
+        "MESC_DEFAULT_ENDPOINT",
+        "MESC_GLOBAL_METADATA",
+        "MESC_ENDPOINT_METADATA",
+        "MESC_PROFILES",
+    ];
+    println!("{}Current environment overrides:", indentation);
+    for env_var in overrides.iter() {
+        match std::env::var(env_var) {
+            Ok(value) => println!("{}{}: {}", indentation2, env_var.bold(), value.green()),
+            Err(_) => println!("{}{}: {}", indentation2, env_var.bold(), "[not set]".green()),
+        }
+    }
 }

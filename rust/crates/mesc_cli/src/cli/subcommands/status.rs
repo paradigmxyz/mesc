@@ -1,11 +1,11 @@
 use crate::{print_defaults, print_endpoints, MescCliError, StatusArgs};
 use mesc::MescError;
+use toolstr::Colorize;
 
 pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
     let theme = Some(toolstr::Theme::default());
 
     toolstr::print_text_box("MESC Status", &theme);
-    println!();
     let mut keys = Vec::new();
     let mut values = Vec::new();
 
@@ -63,7 +63,7 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
     };
 
     // validate config
-    keys.push("config vaild");
+    keys.push("config valid");
     match config.validate() {
         Ok(()) => {
             values.push("true".to_string());
@@ -75,20 +75,27 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
     };
 
     let format = toolstr::TableFormat::default();
-    // let column_formats = vec![
-    //     toolstr::ColumnFormat.name("key"),
-    //     toolstr::ColumnFormat.name("value"),
-    // ];
+    let column_formats = vec![
+        toolstr::ColumnFormatShorthand::new().name("key"),
+        toolstr::ColumnFormatShorthand::new()
+            .name("v")
+            .left_justify()
+            .font_style("".green().bold()),
+    ];
     let format = toolstr::TableFormat {
         include_header_row: false,
         indent: 4,
-        // column_formats,
+        column_formats: Some(column_formats),
+        column_delimiter: "   ".to_string(),
         ..format
     };
     let mut table = toolstr::Table::default();
     table.add_column("key", keys)?;
-    table.add_column("value", values)?;
+    table.add_column("v", values)?;
     format.print(table)?;
+
+    println!();
+    crate::printing::print_environment_variables(0);
 
     // print endpoint info
     if args.verbose {

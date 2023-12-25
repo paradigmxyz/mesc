@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand};
 
 pub(crate) async fn run_cli() -> Result<(), MescCliError> {
     match Cli::parse().command {
-        Commands::Setup(args) => setup_command(args),
+        Commands::Setup(args) => setup_command(args).await,
         Commands::Status(args) => status_command(args),
         Commands::Ls(args) => ls_command(args),
         Commands::Defaults(args) => defaults_command(args),

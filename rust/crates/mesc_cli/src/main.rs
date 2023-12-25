@@ -10,7 +10,7 @@
 
 mod cli;
 mod metadata;
-mod network;
+pub(crate) mod network;
 mod printing;
 mod rpc;
 mod types;

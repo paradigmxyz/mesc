@@ -1,4 +1,5 @@
 use crate::MescCliError;
+use mesc::{ChainId, TryIntoChainId};
 use serde::Deserialize;
 use serde_json::json;
 
@@ -57,7 +58,7 @@ pub(crate) async fn request_block_number(
 pub(crate) async fn request_chain_id(
     client: reqwest::Client,
     url: String,
-) -> Result<u64, MescCliError> {
+) -> Result<ChainId, MescCliError> {
     let data = json!({
         "jsonrpc": "2.0",
         "method": "eth_chainId",
@@ -67,7 +68,7 @@ pub(crate) async fn request_chain_id(
     let json: ResponseWeb3ClientVersion = response.json().await?;
 
     match u64::from_str_radix(json.result.get(2..).unwrap_or(""), 16) {
-        Ok(value) => Ok(value),
+        Ok(value) => Ok(value.to_string().try_into_chain_id()?),
         Err(_) => Err(MescCliError::InvalidNetworkResponse),
     }
 }

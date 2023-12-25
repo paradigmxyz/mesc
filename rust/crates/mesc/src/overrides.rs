@@ -128,12 +128,12 @@ fn parse_endpoint(input: &str) -> Result<Endpoint, MescError> {
         .next()
         .map(|s| s.to_string())
         .unwrap_or(
-            get_default_name(url)
+            get_default_endpoint_name(url, None)
                 .ok_or(MescError::OverrideError("could not create endpoint name".to_string()))?,
         )
         .to_string();
     let name = if name.is_empty() {
-        get_default_name(url)
+        get_default_endpoint_name(url, None)
             .ok_or(MescError::OverrideError("could not create endpoint name".to_string()))?
     } else {
         name
@@ -146,7 +146,8 @@ fn parse_endpoint(input: &str) -> Result<Endpoint, MescError> {
     Ok(Endpoint { name, url: url.to_string(), chain_id, endpoint_metadata: HashMap::new() })
 }
 
-fn get_default_name(url: &str) -> Option<String> {
+/// get default endpoint name for a url
+pub fn get_default_endpoint_name(url: &str, chain_id: Option<ChainId>) -> Option<String> {
     // Find the start of the main part of the URL, skipping the protocol if present
     let start = if let Some(pos) = url.find("://") { pos + 3 } else { 0 };
 
@@ -161,15 +162,22 @@ fn get_default_name(url: &str) -> Option<String> {
     let domain_part = &main_part[..end];
 
     // Check if the domain part contains a period, which is typical for a hostname
-    if domain_part.contains('.') {
+    let hostname = if domain_part.contains('.') {
         // Find the last period in the domain part
         if let Some(last_period_pos) = domain_part.rfind('.') {
-            Some(domain_part[..last_period_pos].to_string())
+            domain_part[..last_period_pos].to_string()
         } else {
-            Some(domain_part.to_string())
+            domain_part.to_string()
         }
     } else {
-        Some(domain_part.to_string())
+        domain_part.to_string()
+    };
+    let hostname =
+        if let Some(split) = hostname.split('.').last() { split.to_string() } else { hostname };
+
+    match chain_id {
+        Some(chain_id) => Some(format!("{}_{}", hostname, chain_id.as_str())),
+        None => Some(hostname),
     }
 }
 

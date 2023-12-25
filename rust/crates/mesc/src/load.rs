@@ -21,7 +21,7 @@ pub fn is_mesc_enabled() -> bool {
     for env_var in env_vars.iter() {
         match std::env::var(env_var).as_deref() {
             Ok(value) if !value.is_empty() => return true,
-            _ => {},
+            _ => {}
         }
     }
     false
