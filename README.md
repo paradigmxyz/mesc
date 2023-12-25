@@ -1,9 +1,9 @@
 
-# Multiple Endpoint Shared Configuration Standard (MESC)
+# Multiple Endpoint Shared Configuration (MESC) Standard
 
-MESC is a specification for how EVM tools can configure their RPC endpoints.
+MESC is a standard for how crypto tools configure their RPC endpoints.
 
-By following this specification, a user creates a single RPC configuration for all compliant EVM tools on their system.
+By following this specification, a user creates a single RPC configuration that can be used by all crypto tools on their system.
 
 MESC is formally defined in [SPECIFICATION.md](./SPECIFICATION.md).
 
@@ -18,21 +18,23 @@ MESC is formally defined in [SPECIFICATION.md](./SPECIFICATION.md).
 ## Reference Implementations
 
 Reference implementations are provided for each of the following:
-- [cli](/cli) [TODO]
-- [go](/go) [TODO]
-- [python](/python) [WIP]
-- [rust](/rust) [WIP]
-- [typescript](/typescript) [TODO]
+- [cli](/cli)
+- [go](/go) [WIP]
+- [python](/python)
+- [rust](/rust)
+- [typescript](/typescript) [WIP]
 
-These implementations provide a consistent language-agnostic interface while still obeying the conventions of each language.
+These implementations provide a consistent language-agnostic interface while still obeying the best practices of each language.
 
 ## Quickstart
 
-The interactive [`mesc`](./cli) CLI tool makes it easy to create and manage a MESC configuration. Running `mesc setup` will prompt a user to enter their RPC endpoints, choose their defaults, and configure their environment variables.
+The interactive [`mesc`](./cli) CLI tool makes it easy to create and manage a MESC configuration.
+1. Install: `cargo install mesc`
+2. Create config interactively: `mesc setup`
 
-To perform this process manually:
-1) Create a MESC JSON file (can use [the example](./SPECIFICATION.md#example-rpcconfig) from the spec as a template).
-2) Set `RPC_CONFIG_PATH` to the path of this JSON file.
+To create a MESC config manually:
+1) Create a JSON file (can use [the example](./SPECIFICATION.md#example-rpcconfig) from the spec as a template).
+2) Set `MESC_PATH` to the path of this JSON file.
 
 ## Tutorial
 
@@ -55,8 +57,9 @@ MESC can also track other information like metadata and tool-specific defaults. 
 
 All reference MESC implementations use the same common interface.
 
-Examples from the python implementation are shown below. Other language implementations have the same functions and behaviors.
+Here is a comparison between the python interface and the rust interface:
 
+###### python
 ```python
 import mesc
 
@@ -83,17 +86,46 @@ endpoint = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
 endpoints = mesc.find_endpoints(chain_id=5)
 ```
 
+###### rust
+```rust
+use mesc;
+use mesc::MescError;
+
+// get the default endpoint
+let endpoint: Result<Endpoint, MescError> = mesc::get_default_endpoint(None);
+
+// get the default endpoint of a network
+let endpoint: Result<Endpoint, MescError> = mesc::get_endpoint_by_network(5, None);
+
+// get the default network for a particular tool
+let chain_id: Result<Endpoint, MescError> = mesc::get_default_endpoint("xyz_tool");
+
+// get the default endpoint of a network for a particular tool
+let endpoint: Result<Endpoint, MescError> = mesc::get_endpoint_by_network(5, "xyz_tool");
+
+// get an endpoint by name
+let endpoint: Result<Endpoint, MescError> = mesc::get_endpoint_by_name("local_query");
+
+// parse a user-provided string into a matching endpoint
+// (first try 1. endpoint name, then 2. chain id, then 3. network name)
+let endpoint: Result<Option<Endpoint>, MescError> = mesc::get_endpoint_by_query(user_str, "xyz_tool");
+
+// find all endpoints matching given criteria
+let query = mesc::MultiEndpointQuery::new().chain_id(5);
+let endpoints: Result<Vec<Endpoint>, MescError> = mesc::find_endpoints(query);
+```
+
 ### Typical Usage
 
-Imagine an EVM cli tool `xyz`. This tool has an argument `-r <RPC_URL>` that specifies which RPC endpoint to use.
+Imagine a crypto cli tool `xyz`. This tool has an argument `-r <RPC_URL>` that specifies which RPC endpoint to use.
 
-If `xyz` uses MESC, then `-r` can leverage MESC endpoint data. Instead of just accepting a plain URL, `-r` can accept 1. an endpoint name, 2. chain id, or 3. a network name. Each of the following might resolve to the same RPC url:
+If `xyz` uses MESC, then `-r` can become a much more versatile argument. Instead of just accepting a plain URL, `-r` can accept 1. an endpoint name, 2. chain id, or 3. a network name. Each of the following might resolve to the same RPC url:
 - `xyz -r localhost:8545` (url)
 - `xyz -r local_goerli` (endpoint name)
 - `xyz -r 5` (chain id)
 - `xyz -r goerli` (network name)
 
-Internally `xyz` can perform RPC url resolution using:
+This url resolution can implemented within `xyz` using:
 
 ```python
 # python code used by xyz tool
