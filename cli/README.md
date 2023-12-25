@@ -1,7 +1,17 @@
 
-# Cli MESC Implementation
+# MESC CLI
 
-This is a reference cli implementation of the Multiple Endpoint Shared Configuration standard.
+This is a utility for creating and managing MESC RPC configurations.
+
+Under the hood, this cli is implemented using the rust crate [here](../rust/crates/mesc_cli).
+
+The most important cli subcommands:
+1. `mesc setup`: create and modify MESC configs
+2. `mesc ls`: list endpoints
+3. `mesc ping`: ping endpoints
+4. `mesc url`: print endpoint url
+
+View help for each subcommand by typing `mesc [SUBCOMMAND] --help`
 
 ## Contents
 - [Installation](#installation)
@@ -12,13 +22,9 @@ This is a reference cli implementation of the Multiple Endpoint Shared Configura
 
 Use one of the 3 options below. Check that `mesc` is properly installed and on your `PATH` by running `mesc -h`.
 
-### Install pre-built binary
+### Install from crates.io
 
-Download the appropriate binary for your architecture from the [releases]() page.
-
-### Install using crates.io
-
-`cargo install mesc`
+`cargo install mesc_cli`
 
 Ensure that your cargo install path is on your cli path
 
@@ -48,30 +54,44 @@ curl $(mesc url goerli) ...
 curl $(mesc url local_goerli) ...
 ```
 
-Print all configuration data
+Print configuration data
 ```console
+# print all endpoints in table
+mesc ls
+
+# ping endpoints and collect metadata
+mesc ping
+
 # print default goerli endpoint data, human readable
-mesc pretty goerli
+mesc endpoint goerli
 
 # print default goerli endpoint data, as json
-mesc json goerli
-
-# print entire configuration
-mesc all --pretty
-mesc all --json
+mesc endpoint goerli --json
 ```
 
 ## Reference
 
 ```
-mesc setup                         perform configuration setup
-mesc status                        print configuration status
-mesc url [ENDPOINT_OR_NETWORK]     print endpoint url
-mesc json [ENDPOINT_OR_NETWORK]    print configuration data as json
-mesc pretty [ENDPOINT_OR_NETWORK]  print configuration data as human-readable
-mesc find                          search for endpoints
+Utility for creating and managing MESC RPC configurations
+
+Usage: mesc <COMMAND>
+
+Commands:
+  setup     Create new configuration or modify existing configuration
+  status    Print status of configuration
+  ls        Print list of endpoints
+  defaults  Print list of defaults
+  ping      Ping endpoints and fetch metadata
+  endpoint  Print endpoint
+  metadata  Print metadata
+  url       Print endpoint URL
+  help      Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
 ```
 
-- If endpoint is omitted, use default endpoint of default network
-- If a chain_id or network name is provided, use default endpoint of network
-- Can `--profile PROFILENAME` to use a particular profile
+- If an endpoint is omitted, use the default endpoint
+- If a chain_id or network name is provided, use the default endpoint of network
+- Can use `--profile PROFILENAME` to use defaults of a particular profile
