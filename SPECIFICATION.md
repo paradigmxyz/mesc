@@ -29,11 +29,13 @@ created: 2023-12-24
   TODO: Remove this comment before submitting
 -->
 
-This is a specification of how EVM tools can configure their RPC endpoints.
+MESC is a standard for how crypto tools configure their RPC endpoints.
 
-By following this specification, a user creates a single RPC configuration that can be used by all compliant tools in an OS-agnostic and language-agnostic way.
+By following this specification, a user creates a single RPC configuration that can be shared by all crypto tools on their system.
 
-This approach allows specification of 1) multiple endpoints for multiple chains, 2) a default endpoint for each chain, and 3) a default chain.
+MESC has two main design goals:
+1. make it easy to share RPC configuration data across tools, languages, and environments
+2. make it easy to manage the configuration of a large number of RPC endpoints
 
 ## Motivation
 
@@ -47,16 +49,15 @@ This approach allows specification of 1) multiple endpoints for multiple chains,
   TODO: Remove this comment before submitting
 -->
 
-Between mainnet, testnets, chainforks, rollups, and alternative L1's, modern EVM tools must manage the configuration of multiple RPC endpoints. This configuration process is not standardized across tools.
+Between mainnet, testnets, chainforks, rollups, and alternative L1's, modern crypto tools must manage the configuration of multiple RPC endpoints. This configuration process is not standardized across tools.
 
-The most common approach for configuring RPC endpoint information is the `ETH_RPC_URL` environment variable (dapptools, forge, heimdall, checkthechain). However, this is not a formal standard nor is it used universally. This approach also can only specify a single provider for a single chain. It also cannot specify any provider metadata beyond the url.
+The most common approach for configuring RPC endpoint information is the `ETH_RPC_URL` environment variable (dapptools, forge, heimdall, checkthechain). However, this is not a formal standard and many tools use other approaches. Furthermore, using `ETH_RPC_URL` can only specify a single provider for a single chain, and it cannot specify any provider metadata beyond the url.
 
 Instead it would be desirable to have a solution that:
-- allows using a single configuration across multiple tools
 - allows specifying multiple providers for multiple chains
 - allows selection of a default endpoint for each chain
-- allows selection of a default chain
 - allows using either environment variables or config files
+- is a single source of truth across multiple tools
 - is OS-agnostic, using no OS-specific features
 - is language-agnostic, using no language-specific features
 - is backwards compatible with previous solutions
@@ -77,7 +78,7 @@ We specify an approach that provides all of the desirable properties listed abov
 
 #### Schema
 
-This approach is built on three key-value schemas:
+MESC is built using three key-value data schemas:
 
 ##### `RpcConfig` schema:
 
@@ -113,7 +114,7 @@ Requirements:
 - Every endpoint name specified in `RpcConfig.default_endpoint` and in `RpcConfig.network_defaults` must exist in `RpcConfig.endpoints`.
 - These key-value structures can be easily represented in JSON and in most common programming languages.
 - Each `chain_id` should be represented using either a decimal string or a hex string. Strings are used because chain id's can be 256 bits and most languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
-- Names of endpoints, networks, and profiles should be composed of characters that are either alphanumeric, dashes, underscores, or periods. Names should be at least 1 character long and should not be entirely numeric, to distinguish them from chain_ids.
+- Names of endpoints, networks, and profiles should be composed of characters that are either alphanumeric, dashes, underscores, or periods. Names should be at least 1 character long.
 
 ##### Metadata
 
@@ -131,10 +132,10 @@ The `global_metadata` and `endpoint_metadata` fields allow for optional or idios
 | `ecosystem`             | `str`                        | ecosystem of chain, (e.g. relates mainnets to testnets) | `"ethereum"`, `"polygon"` |
 | `node_client`           | `str`                        | versioned node client                                   | `erigon/2.48.1/linux-amd64/go1.20.5` `reth/v0.1.0-alpha.10-7b781eb60/x86_64-unknown-linux-gnu` |
 | `namespaces`            | `Sequence[str]`              | RPC name spaces enabled for endpoint                    | `["eth", "trace, "debug"]`
-| `explorer`              | `str`                        | block explorer                                          | `etherscan.com`
-| `location`              | `str`                        | geographic region                                       | `location` |
-| `cloud_region`          | `str`                        | cloud provider region                                   | `aws` |
-| `labels`                | `Sequence[str]`              | tags                                                    | `mempool` `private_mempool`, `cache`, `archive`, `consensus_layer`, `execution_layer`, `validator`, `ephemeral` |
+| `explorer`              | `str`                        | block explorer url                                      | `https://etherscan.io`
+| `location`              | `str`                        | geographic region                                       | `Paris, France` |
+| `cloud_region`          | `str`                        | cloud provider region                                   | `aws-us-east-1a` |
+| `labels`                | `Sequence[str]`              | tags                                                    | `private_mempool`, `cache`, `archive`, `consensus_layer`, `execution_layer`, `validator`, `ephemeral` |
 
 **Global Metadata**
 | key                  | value type                    | description                                                               | examples |
@@ -146,7 +147,7 @@ The `global_metadata` and `endpoint_metadata` fields allow for optional or idios
 | `groups`             | `Mapping[str, Sequence[str]]` | groupings of endpoints, mapping of group name to list of endpoint names   | `{"load_balancer": ["alchemy_optimism", "quicknode_optimism"]}` |
 | `conceal`            | `bool`                        | whether tool should avoid casually revealing private RPC url's unprompted | `true` |
 
-Other metadata keys that are specific to tool should be prefixed by that tool's name (e.g. tool `xyz` should prefix its metadata keys with `"xyz__"`).
+Other metadata keys that are specific to a tool should be prefixed by that tool's name (e.g. tool `xyz` should prefix its metadata keys with `"xyz__"`).
 
 #### Environment
 
@@ -187,7 +188,7 @@ These overrides use a simple syntax that is intended to be easily written by hum
 
 | override variable | value syntax | example |
 | --- | --- | --- |
-| `MESC_DEFAULT_ENDPOINT`  | url, endpoint name, chain id, network name                        | `localhost:9999` |
+| `MESC_DEFAULT_ENDPOINT`  | url, endpoint name, or network name                               | `localhost:9999` |
 | `MESC_NETWORK_DEFAULTS`  | space-separated pairs of `<chain_id>=<endpoint>`                  | `5=alchemy_optimism 1=local_mainnet` |
 | `MESC_NETWORK_NAMES`     | space-separated pairs of `<name>=<chain_id>`                      | `zora=7777777` |
 | `MESC_ENDPOINTS`         | space-separated items of `[<name>[:<chain_id>]=]<url>`            | `alchemy_optimism=https://alchemy.com/fjsj local_goerli:5=localhost:8545` |
@@ -197,9 +198,10 @@ These overrides use a simple syntax that is intended to be easily written by hum
 
 - Overrides can be placed within a shell script or inlined to a shell command. For example, to quickly change the default endpoint used by cli tool `xyz`, could use the command `MESC_DEFAULT_ENDPOINT=goerli xyz`. Overrides can also be used with CI/CD environments or containers.
 - If URL's are given to `MESC_DEFAULT_ENDPOINT`, `MESC_NETWORK_DEFAULTS`, or `MESC_ENDPOINTS`, `Endpoint` entries will be created as needed in `RpcConfig.endpoints`. If a name is not provided, a random name should be assigned.
-- Setting an override variable to an empty value will disable use of that override.
+- Setting an override variable to an empty value will disable that override from being used.
 - Setting an override variable to an invalid value should result in an error upon loading the config.
 - Metadata overrides (`MESC_GLOBAL_METADATA` and `MESC_ENDPOINT_METADATA`) merge into the underlying config values instead of replacing them.
+- Using `MESC_MODE=DISABLED` is a simple way to completely disable MESC.
 
 #### Querying Data
 
@@ -212,7 +214,8 @@ MESC data should be searched in the following order:
 
 #### Examples
 
-##### Basic Config
+This is a basic configuration of 5 endpoints across 3 networks. It also contains a profile for a tool called `xyz` that defaults to 3rd party endpoints instead of local endpoints.
+
 ```json
 {
     "mesc_version": "MESC 1.0",
@@ -249,19 +252,17 @@ MESC data should be searched in the following order:
             "endpoint_metadata": {}
         }
     },
-    "profiles": {},
+    "profiles": {
+        "xyz": {
+            "default_endpoint": "llamanodes_polygon",
+            "network_defaults": {
+                "1": "llamanodes_ethereum",
+                "137": "llamanodes_polygon"
+            }
+        }
+    },
     "global_metadata": {}
 }
-```
-
-##### Tool Profiles
-```json
-
-```
-
-##### Custom Networks
-```json
-
 ```
 
 ## Rationale
@@ -283,6 +284,7 @@ Want to satsfy all of these constraints:
 - able to override individual settings with human-writable environment variables
 - minimize complexity
 
+Other notes:
 - `global_metadata` and `endpoint_metadata` allow extra information to be stored in the config without breaking the standard. This includes api keys, rate limits, and organizational labels. This information might be specific to idiosyncratic to each application.
 - `Profile`s allow different defaults to be assigned to each tool or each mode of operation.
 - Allowing RPC information to be configured using either a file or an environment variable allows optimal deployment patterns across a wide range of computing environments. Each also have their own advantages, e.g. file can be used with version control whereas environment variables can be changed more dynamically.
@@ -303,7 +305,7 @@ Want to satsfy all of these constraints:
 
 No backward compatibility issues found.
 
-MESC is an opt-in specification that only becomes activated when a user explicitly sets one or more of the environment variables listed above (`MESC_MODE`, `MESC_PATH`, or `MESC_ENV`). These variables are not currently used by any common EVM tools. Tools that use `ETH_RPC_URL` or other configuration approaches will continue working as before.
+MESC is an opt-in specification that only becomes activated when a user explicitly sets one or more of the environment variables listed above (`MESC_MODE`, `MESC_PATH`, or `MESC_ENV`). These variables are not currently used by any common crypto tools. Tools that use `ETH_RPC_URL` or other configuration approaches will continue working as before.
 
 <!-- ## Test Cases -->
 
@@ -327,18 +329,33 @@ MESC is an opt-in specification that only becomes activated when a user explicit
   TODO: Remove this comment before submitting
 -->
 
-A minimal reference python implementation is included in the supplemental files. A more detailed implementation might include additional caching, validation, or querying functionality.
+A library that reads raw MESC data should provide the following core functions:
 
-A library that reads raw MESC data should provide the following four core functions:
+```python
+# get the default endpoint
+endpoint = mesc.get_default_endpoint()
 
+# get the default endpoint of a network
+endpoint = mesc.get_endpoint_by_network(5)
+
+# get the default endpoint for a particular tool
+endpoint = mesc.get_default_endpoint(profile='xyz_tool')
+
+# get the default endpoint of a network for a particular tool
+endpoint = mesc.get_endpoint_by_network(5, profile='xyz_tool')
+
+# get an endpoint by name
+endpoint = mesc.get_endpoint_by_name('local_goerli')
+
+# parse a user-provided string into a matching endpoint
+# (first try 1. endpoint name, then 2. chain id, then 3. network name)
+endpoint = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
+
+# find all endpoints matching given criteria
+endpoints = mesc.find_endpoints(chain_id=5)
 ```
 
-def get_default_endpoint() -> Endpoint
-
-
-```
-
-A reference implementation of overrides is provided in the supplemental files.
+A reference implementation is provided in the supplemental files of this repository.
 
 ## Security Considerations
 
