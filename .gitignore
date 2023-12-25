@@ -1,5 +1,7 @@
 target
 /target
 TODO.md
+INTEGRATION.md
+PITCH.md
 *.json
 __pycache__

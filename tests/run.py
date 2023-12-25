@@ -232,6 +232,10 @@ if __name__ == "__main__":
     failures: MutableSequence[tuple[str, str, str, str]] = []
 
     # run tests
+    if len(adapters) == 1:
+        word = 'adapter'
+    else:
+        word = 'adapters'
     print(
         "testing",
         len(tests),
@@ -239,7 +243,7 @@ if __name__ == "__main__":
         len(setups),
         "modes for",
         len(adapters),
-        "adapter(s)",
+        word
     )
     index = -1
     for adapter in adapters:
@@ -263,7 +267,7 @@ if __name__ == "__main__":
 
     # summary
     print()
-    print(len(successes), "/", len(adapters) * len(setups) * len(tests), "successful")
+    print(len(successes), "/", len(adapters) * len(setups) * len(tests), "tests successful")
     n_failures = len(failures)
     if n_failures == 0:
         print()
