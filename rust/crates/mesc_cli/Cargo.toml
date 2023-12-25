@@ -1,6 +1,6 @@
 [package]
 name = "mesc_cli"
-description = ""
+description = "command line interface for creating, loading, and modifying MESC configuration data"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
