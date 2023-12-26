@@ -1,4 +1,5 @@
-import type { ChainId, NetworkName, RpcConfig } from '#/types.ts'
+import type { ChainId } from '#/schemas/rpc-config.ts'
+import type { NetworkName, RpcConfig } from '#/types.ts'
 
 export const knownNetworks = {
   ethereum: '1',

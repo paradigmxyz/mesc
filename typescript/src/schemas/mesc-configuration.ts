@@ -1,10 +1,9 @@
 import * as v from 'valibot'
 
-export const environmentVariablesSchema = v.object({
-  NODE_ENV: v.union([v.literal('development'), v.literal('production'), v.literal('test')]),
+export const mescConfigurationSchema = v.object({
   MESC_MODE: v.union([v.literal('PATH'), v.literal('ENV'), v.literal('DISABLED')]),
   MESC_PATH: v.string(),
-  MESC_ENV: v.string(),
+  MESC_ENV: v.optional(v.string()),
   /** JSON mapping of {"endpoint_name": {<ENDPOINT_METADATA>}} */
   MESC_ENDPOINT_METADATA: v.optional(v.string()),
   /** JSON formatted global metadata */
@@ -20,3 +19,5 @@ export const environmentVariablesSchema = v.object({
   /** space-separated pairs of <chain_id>=<endpoint> */
   MESC_NETWORK_DEFAULTS: v.optional(v.string([v.regex(/(\d+=[\w\d]+)+/)])),
 })
+
+export type RawMESCConfiguration = v.Input<typeof mescConfigurationSchema>

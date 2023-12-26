@@ -1,20 +1,28 @@
+import type { ChainId } from '#/schemas/rpc-config.ts'
+
 export type NetworkName = 'ethereum' | 'goerli' | 'optimism' | 'polygon' | 'holesky' | 'arbitrum'
-export type ChainId = '1' | '5' | '10' | '137' | '17000' | '42161'
 
 export interface RpcConfig {
   mesc_version: string
   default_endpoint?: string
-  network_defaults: Record<string, Endpoint>
-  network_names: Record<string, string>
   endpoints: Record<string, Endpoint>
-  profiles: { [key: string]: Profile }
-  global_metadata: Record<string, any>
+  network_defaults: Record<ChainId, string>
+  network_names: Record<string, ChainId>
+  profiles: Record<string, Profile>
+  global_metadata: Record<string, Json>
+}
+
+export interface Endpoint {
+  name: string
+  url: string
+  chain_id?: ChainId
+  endpoint_metadata: Record<string, Json>
 }
 
 export interface Profile {
   name: string
   default_endpoint?: string
-  network_defaults: Record<string, string>
+  network_defaults: Record<ChainId, string>
 }
 
 export interface Query {
@@ -26,11 +34,13 @@ export interface Query {
   global_metadata?: string
 }
 
-export interface Endpoint {
-  name: string
-  url: string
-  chain_id?: string
-  endpoint_metadata: Record<string, string>
-}
-
 export type Maybe<T> = T | undefined
+
+type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
+
+/**
+ * This type utility is used to unwrap complex types so you can hover over them in your editor
+ */
+export type Pretty<T> = {
+  [K in keyof T]: T[K]
+} & {}
