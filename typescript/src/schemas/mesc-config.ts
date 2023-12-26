@@ -1,6 +1,6 @@
 import * as v from 'valibot'
 
-export const mescConfigurationSchema = v.object({
+export const mescConfigSchema = v.object({
   MESC_MODE: v.union([v.literal('PATH'), v.literal('ENV'), v.literal('DISABLED')]),
   MESC_PATH: v.string(),
   MESC_ENV: v.optional(v.string()),
@@ -20,4 +20,4 @@ export const mescConfigurationSchema = v.object({
   MESC_NETWORK_DEFAULTS: v.optional(v.string([v.regex(/(\d+=[\w\d]+)+/)])),
 })
 
-export type RawMESCConfiguration = v.Input<typeof mescConfigurationSchema>
+export type RawMESCConfig = v.Input<typeof mescConfigSchema>

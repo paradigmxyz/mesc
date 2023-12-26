@@ -6,7 +6,7 @@ import {
   parseSpaceSeparatedProfiles,
   parseSpaceSeparatedEndpoints,
 } from '#/parsers.ts'
-import { mescConfigurationSchema } from '#/schemas/mesc-configuration.ts'
+import { mescConfigSchema } from '#/schemas/mesc-config'
 
 /**
  * TODO: check if MESC_NETWORK_DEFAULTS is supposed to be merged with existing network_defaults or override it
@@ -16,7 +16,7 @@ import { mescConfigurationSchema } from '#/schemas/mesc-configuration.ts'
 
 /** @see https://github.com/paradigmxyz/mesc/blob/main/SPECIFICATION.md */
 export const mescConfigurationTransform = v.transform(
-  mescConfigurationSchema,
+  mescConfigSchema,
   ({
     MESC_MODE,
     MESC_PATH,
@@ -76,15 +76,6 @@ export const mescConfigurationTransform = v.transform(
 )
 
 export type MESCConfiguration = v.Output<typeof mescConfigurationTransform>
-
-// const { output: mescConfiguration, success } = v.safeParse(mescConfigurationTransform, process.env, {
-//   abortEarly: false,
-//   abortPipeEarly: false,
-// })
-
-// if (!success) throw new Error('Failed to parse MESC configuration')
-
-// export { mescConfiguration }
 
 export function getRpcConfig(): MESCConfiguration {
   const { output, success } = v.safeParse(mescConfigurationTransform, process.env, {
