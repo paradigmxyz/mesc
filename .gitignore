@@ -5,3 +5,4 @@ INTEGRATION.md
 PITCH.md
 *.json
 __pycache__
+python/dist
