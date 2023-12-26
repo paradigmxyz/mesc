@@ -203,8 +203,12 @@ fn setup_environment(
         println!();
     } else if let Some(config_write_mode) = config_write_mode {
         match config_write_mode {
-            ConfigWriteMode::Path(path) => println!(" MESC not yet enabled, but will write config to {}", path.green().bold()),
-            ConfigWriteMode::Env(_) => println!(" ENV mode not yet available in the interactive cli"),
+            ConfigWriteMode::Path(path) => {
+                println!(" MESC not yet enabled, but will write config to {}", path.green().bold())
+            }
+            ConfigWriteMode::Env(_) => {
+                println!(" ENV mode not yet available in the interactive cli")
+            }
         };
     } else {
         let options =
@@ -214,7 +218,11 @@ fn setup_environment(
             "Store MESC config in a file" => {
                 let prompt = "Where should mesc.json file be saved? (enter a directory path)";
                 let parent = inquire::Text::new(prompt).prompt()?;
-                let parent = mesc::load::expand_path(parent)?;
+                let parent = if parent.trim().is_empty() {
+                    ".".to_string()
+                } else {
+                    mesc::load::expand_path(parent)?
+                };
                 let parent = std::path::Path::new(&parent);
                 let path: String = parent.join("mesc.json").to_string_lossy().to_string();
                 *config_write_mode = Some(ConfigWriteMode::Path(path.to_string()));

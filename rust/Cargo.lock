@@ -1154,7 +1154,7 @@ dependencies = [
 
 [[package]]
 name = "mesc"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -1162,7 +1162,7 @@ dependencies = [
 
 [[package]]
 name = "mesc_cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "colored_json",
@@ -2439,7 +2439,9 @@ dependencies = [
 
 [[package]]
 name = "toolstr"
-version = "0.1.0"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b90a491925fd828fb7dd69207b247042d525257d0932dd59fb1eb41c7fee57a"
 dependencies = [
  "chrono",
  "polars",
@@ -2451,6 +2453,8 @@ dependencies = [
 [[package]]
 name = "toolstr_colored"
 version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d335176ed9b133b9d9e226656f2f486f84ebac50250c598246ac6d6d512ac05"
 dependencies = [
  "lazy_static",
  "windows-sys 0.48.0",
