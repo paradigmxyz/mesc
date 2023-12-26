@@ -3,12 +3,18 @@ export type ChainId = '1' | '5' | '10' | '137' | '17000' | '42161'
 
 export interface RpcConfig {
   mesc_version: string
-  default_endpoint: string | null
-  network_defaults: Record<string, string>
+  default_endpoint?: string
+  network_defaults: Record<string, Endpoint>
   network_names: Record<string, string>
-  endpoints: Record<string, string>
-  profiles: Record<string, string>
-  global_metadata: Record<string, string>
+  endpoints: Record<string, Endpoint>
+  profiles: { [key: string]: Profile }
+  global_metadata: Record<string, any>
+}
+
+export interface Profile {
+  name: string
+  default_endpoint?: string
+  network_defaults: Record<string, string>
 }
 
 export interface Query {
@@ -18,4 +24,11 @@ export interface Query {
   user_input?: string
   multi_endpoint?: string
   global_metadata?: string
+}
+
+export interface Endpoint {
+  name: string
+  url: string
+  chain_id?: string
+  endpoint_metadata: Record<string, string>
 }

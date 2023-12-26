@@ -23,10 +23,14 @@
     "lint": "bunx oxlint@latest --import-plugin --ignore-path='.gitignore' --fix .",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
+  "dependencies": {
+    "valibot": "^0.24.1"
+  },
   "devDependencies": {
     "@total-typescript/ts-reset": "^0.5.1",
     "@types/bun": "^1.0.0",
     "@types/node": "^20.10.5",
+    "bun": "^1.0.20",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
@@ -35,5 +39,6 @@
     "url": "https://github.com/paradigmxyz/mesc",
     "directory": "typescript"
   },
+  "license": "MIT",
   "sideEffects": false
 }
