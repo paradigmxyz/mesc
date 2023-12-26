@@ -40,5 +40,11 @@
     "directory": "typescript"
   },
   "license": "MIT",
+  "prettier": {
+    "printWidth": 120,
+    "semi": false,
+    "arrowParens": "avoid",
+    "singleQuote": true
+  },
   "sideEffects": false
 }

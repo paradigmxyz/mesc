@@ -32,3 +32,5 @@ export interface Endpoint {
   chain_id?: string
   endpoint_metadata: Record<string, string>
 }
+
+export type Maybe<T> = T | undefined
