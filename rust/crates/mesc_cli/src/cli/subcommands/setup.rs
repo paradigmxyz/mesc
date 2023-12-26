@@ -32,7 +32,7 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
     loop {
         if mesc::is_mesc_enabled() {
             match mesc::load::load_config_data() {
-                Ok(config) => return modify_existing_config(config).await,
+                Ok(config) => return modify_existing_config(config, None).await,
                 Err(_) => {
                     println!("The current MESC config contains improper data");
                     println!();
@@ -49,7 +49,7 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
                                 println!("Edit MESC_ENV in your terminal config files and then restart your terminal");
                             }
                         },
-                        "Create a new config from scratch" => return setup_new_config(),
+                        "Create a new config from scratch" => return setup_new_config().await,
                         _ => println!("Improper selection"),
                     };
                     return Ok(());
@@ -60,11 +60,11 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
 
             if std::path::Path::new(&path).exists() {
                 println!();
-                match mesc::load::load_file_config() {
+                match mesc::load::load_file_config(None) {
                     Ok(config) => {
                         println!("To enable MESC, select \"Setup environment\" below");
                         println!();
-                        return modify_existing_config(config).await;
+                        return modify_existing_config(config, None).await;
                     }
                     Err(_) => {
                         println!("This MESC config file contains improper data");
@@ -72,18 +72,17 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
                             vec!["Fix the data manually", "Create a new config from scratch"];
                         match inquire::Select::new("How to proceed?", options).prompt()? {
                             "Fix the data manually" => edit::edit_file(path)?,
-                            "Create a new config from scratch" => return setup_new_config(),
+                            "Create a new config from scratch" => return setup_new_config().await,
                             _ => {}
                         };
                     }
                 }
             } else {
                 println!();
-                return setup_new_config();
+                return setup_new_config().await;
             }
         } else {
-            println!("Setting up new config");
-            return setup_new_config();
+            return setup_new_config().await;
         }
     }
 }
@@ -100,36 +99,30 @@ fn edit_config_in_editor(args: SetupArgs) -> Result<(), MescCliError> {
     Ok(())
 }
 
-fn setup_new_config() -> Result<(), MescCliError> {
-    println!("Creating new config...");
-    println!();
-    println!();
+async fn setup_new_config() -> Result<(), MescCliError> {
+    println!(" {}", "Creating new config...".bold());
+    let mut write_mode = None;
+    let mut config = RpcConfig::default();
+    setup_environment(&mut config, &mut write_mode)?;
+    if let Some(ConfigWriteMode::Path(path)) = write_mode.clone() {
+        if std::path::Path::new(&path).exists() {
+            println!(" Config file already exists, loading");
+            config = mesc::load::load_file_config(Some(path))?;
+        } else {
+            mesc::write::write_config(config.clone(), path)?;
+            println!(" {}", "Empty configuration created".bold());
+        }
+    }
 
-    // select and validate path
-    let _prompt = "Where to store MESC configuration file?";
-    // enter a directory path or a path to a json file
-    // default value = ~/.config/mesc.json
-    //loop {
-    //    let mut raw_path = inquire::Text::new(prompt).prompt()?;
-    //    let path = std::path::Path::new(raw_path.as_str());
-
-    //    // check that directory exists, create otherwise
-    //    let parent = path.parent();
-
-    //    //if !parent.exists() {
-    //    //    //
-    //    //}
-    //    break;
-    //}
-    println!("Empty configuration created");
-
-    // setup shell config files
-    {}
+    modify_existing_config(config, write_mode).await?;
 
     Ok(())
 }
 
-async fn modify_existing_config(config: RpcConfig) -> Result<(), MescCliError> {
+async fn modify_existing_config(
+    config: RpcConfig,
+    mut config_write_mode: Option<ConfigWriteMode>,
+) -> Result<(), MescCliError> {
     let options = [
         "Setup environment",
         "Add new endpoint",
@@ -144,14 +137,14 @@ async fn modify_existing_config(config: RpcConfig) -> Result<(), MescCliError> {
     let original_config = config.clone();
     let mut valid_config = config.clone();
     let mut config = config.clone();
-    let mut config_write_mode: Option<ConfigWriteMode> = None;
+    // let mut config_write_mode: Option<ConfigWriteMode> = None;
     loop {
         // modify config
         match inquire::Select::new("What do you want to do?", options.clone())
             .with_page_size(10)
             .prompt()?
         {
-            "Setup environment" => setup_environment(&mut config)?,
+            "Setup environment" => setup_environment(&mut config, &mut config_write_mode)?,
             "Add new endpoint" => add_endpoint(&mut config).await?,
             "Modify endpoint" => modify_endpoint(&mut config)?,
             "Modify defaults" => modify_defaults(&mut config)?,
@@ -199,25 +192,43 @@ async fn modify_existing_config(config: RpcConfig) -> Result<(), MescCliError> {
     Ok(())
 }
 
-fn setup_environment(_config: &mut RpcConfig) -> Result<(), MescCliError> {
-    // print current environment
-    crate::printing::print_environment_variables(5);
+fn setup_environment(
+    _config: &mut RpcConfig,
+    config_write_mode: &mut Option<ConfigWriteMode>,
+) -> Result<(), MescCliError> {
     if mesc::is_mesc_enabled() {
         println!();
-        println!(" MESC is already enabled. Disable by unsetting these environment variables");
+        println!(" MESC is already enabled");
+        println!(" using path {}", mesc::load::get_config_path()?.green().bold());
         println!();
+    } else if let Some(config_write_mode) = config_write_mode {
+        match config_write_mode {
+            ConfigWriteMode::Path(path) => println!(" MESC not yet enabled, but will write config to {}", path.green().bold()),
+            ConfigWriteMode::Env(_) => println!(" ENV mode not yet available in the interactive cli"),
+        };
     } else {
         let options =
             vec!["Store MESC config in a file", "Store MESC config in an environment variable"];
-        let prompt = "How do you want to setup your environment?";
+        let prompt = "How do you want to store your MESC config?";
         match inquire::Select::new(prompt, options).prompt()? {
             "Store MESC config in a file" => {
-                let prompt = "Where should this file be saved? Provide a path";
-                let _path = inquire::Text::new(prompt).prompt()?;
-                // if path already exists, confirm overrite
-                todo!()
+                let prompt = "Where should mesc.json file be saved? (enter a directory path)";
+                let parent = inquire::Text::new(prompt).prompt()?;
+                let parent = mesc::load::expand_path(parent)?;
+                let parent = std::path::Path::new(&parent);
+                let path: String = parent.join("mesc.json").to_string_lossy().to_string();
+                *config_write_mode = Some(ConfigWriteMode::Path(path.to_string()));
+                println!(
+                    " Insert this line into your {} and {} files:",
+                    "~/.bashrc".green().bold(),
+                    "~/.profile".green().bold()
+                );
+                println!(" {}{}", "MESC_PATH=".green().bold(), path.green().bold());
+                println!(" Then restart your terminal shell");
             }
-            "Store MESC config in an environment variable" => {}
+            "Store MESC config in an environment variable" => {
+                println!(" This is not available in the interactive MESC cli yet");
+            }
             _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
         }
     }

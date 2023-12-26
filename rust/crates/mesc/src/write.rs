@@ -3,8 +3,14 @@ use std::fs::File;
 
 /// write config to file
 pub fn write_config(config: RpcConfig, path: String) -> Result<(), MescError> {
+    if let Some(parent) = std::path::Path::new(&path).parent() {
+        if !parent.exists() {
+            std::fs::create_dir_all(&path)?
+        };
+    }
+
     let file = File::create(path)?;
-    Ok(serde_json::to_writer(file, &config)?)
+    Ok(serde_json::to_writer_pretty(file, &config)?)
 }
 
 /// update name of endpoint
