@@ -275,8 +275,8 @@ This is a basic configuration of 5 endpoints across 3 networks. It also contains
   TODO: Remove this comment before submitting
 -->
 
-Want to satsfy all of these constraints:
-- has an interface that can be expressed naturally in most common programming langauges
+Want to satisfy all of these constraints:
+- has an interface that can be expressed naturally in most common programming languages
 - able to manage large numbers of endpoints, including multiple endpoints per network and a default endpoint for each network
 - able to label each endpoint with metadata
 - able to express groupings of endpoints
@@ -285,9 +285,9 @@ Want to satsfy all of these constraints:
 - minimize complexity
 
 Other notes:
-- `global_metadata` and `endpoint_metadata` allow extra information to be stored in the config without breaking the standard. This includes api keys, rate limits, and organizational labels. This information might be specific to idiosyncratic to each application.
+- `global_metadata` and `endpoint_metadata` allow extra information to be stored in the config without breaking the standard. This includes api keys, rate limits, and organizational labels. This information might be specific to each application.
 - `Profile`s allow different defaults to be assigned to each tool or each mode of operation.
-- Allowing RPC information to be configured using either a file or an environment variable allows optimal deployment patterns across a wide range of computing environments. Each also have their own advantages, e.g. file can be used with version control whereas environment variables can be changed more dynamically.
+- Allowing RPC information to be configured using either a file or an environment variable allows optimal deployment patterns across a wide range of computing environments. Each also has their own advantages, e.g. file can be used with version control whereas environment variables can be changed more dynamically.
 
 
 ## Backwards Compatibility
