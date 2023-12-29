@@ -11,7 +11,7 @@ export function parseMescVariables({
   MESC_ENV,
 }: Pick<RawMESCConfig, 'MESC_MODE' | 'MESC_PATH' | 'MESC_ENV'>) {
   if (MESC_MODE.length > 0 && !['PATH', 'ENV'].includes(MESC_MODE)) {
-    throw new Error('MESC_MODE must be set to PATH or ENV')
+    raise('MESC_MODE must be set to PATH or ENV')
   }
 
   if (MESC_MODE === 'PATH') {

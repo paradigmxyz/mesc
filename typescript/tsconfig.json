@@ -3,7 +3,8 @@
     "baseUrl": ".",
     "noEmit": true,
     "paths": {
-      "#/*": ["./src/*"]
+      "#/*": ["./src/*"],
+      "~test-json": ["../tests/generated/tests.json"]
     },
     "types": ["node", "bun"],
     "lib": ["ESNext"],
@@ -30,7 +31,7 @@
     "allowJs": true,
     "checkJs": true
   },
-  "include": ["src/**/*", "scripts/**/*"],
+  "include": ["src", "test", "scripts"],
   "files": ["environment.d.ts", "reset.d.ts"],
   "exclude": ["_"]
 }

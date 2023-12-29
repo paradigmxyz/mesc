@@ -8,30 +8,32 @@ import type { ChainId } from '#/schemas/rpc-config.ts'
  */
 
 interface MESC {
-  getDefaultEndpoint({ profile }: { profile?: string }): Maybe<Endpoint>
+  getDefaultEndpoint(args?: { profile: string }): Maybe<Endpoint>
   getEndpointByName({ name }: { name: string }): Endpoint
   getEndpointByQuery({ query, profile }: { query: string; profile?: string }): Maybe<Endpoint>
   getEndpointByNetwork({ chainId, profile }: { chainId: ChainId; profile?: string }): Maybe<Endpoint>
+  findEndpoins(): Endpoint[]
 }
 
-export const mescConfiguration = getRpcConfig()
+export const mescConfiguration = getRpcConfig(process.env)
 
 export const mesc = {
-  getDefaultEndpoint({ profile }: { profile: string }): Maybe<Endpoint> {
-    const defaultEndpointName = mescConfiguration.profiles[profile]?.['default_endpoint']
-    if (!defaultEndpointName) return
-    return mescConfiguration.endpoints[defaultEndpointName]
-  },
-
-  getEndpointByName({ name }: { name: string }): Endpoint {
+  getDefaultEndpoint: args => {
     throw new Error('Method not implemented.')
   },
 
-  getEndpointByQuery({ query, profile }: { query: string; profile?: string }): Maybe<Endpoint> {
+  getEndpointByName: args => {
     throw new Error('Method not implemented.')
   },
 
-  getEndpointByNetwork({ chainId, profile }: { chainId: ChainId; profile?: string }): Maybe<Endpoint> {
+  getEndpointByQuery: args => {
+    throw new Error('Method not implemented.')
+  },
+
+  getEndpointByNetwork: args => {
+    throw new Error('Method not implemented.')
+  },
+  findEndpoins: () => {
     throw new Error('Method not implemented.')
   },
 } satisfies MESC
