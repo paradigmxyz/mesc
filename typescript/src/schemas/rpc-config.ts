@@ -24,7 +24,7 @@ export const rpcConfigSchema = v.object({
   ),
   profiles: v.record(
     v.object({
-      default_endpoint: v.optional(v.string()),
+      default_endpoint: v.optional(v.nullable(v.string())),
       network_defaults: v.record(v.string()),
     })
   ),

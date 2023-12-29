@@ -6,7 +6,7 @@ import {
   parseSpaceSeparatedProfiles,
   parseSpaceSeparatedEndpoints,
 } from '#/parsers.ts'
-import { mescConfigSchema } from '#/schemas/mesc-config'
+import { mescConfigSchema } from '#/schemas/mesc-config.ts'
 
 /**
  * TODO: check if MESC_NETWORK_DEFAULTS is supposed to be merged with existing network_defaults or override it
@@ -30,8 +30,9 @@ export const mescConfigurationTransform = v.transform(
     MESC_ENDPOINT_METADATA,
   }) => {
     // MESC is not enabled
-    // if (MESC_MODE === 'DISABLED' || [MESC_MODE, MESC_ENV, MESC_PATH].filter(Boolean).length === 0) return
-    const rpcConfig = parseMescVariables({ MESC_MODE, MESC_PATH, MESC_ENV })
+    if (MESC_MODE === 'DISABLED' || [MESC_MODE, MESC_ENV, MESC_PATH].filter(Boolean).length === 0) return null
+    const { success, output: rpcConfig, issues } = parseMescVariables({ MESC_MODE, MESC_PATH, MESC_ENV })
+    if (!success) throw new Error(`Failed to parse MESC variables: ${JSON.stringify(issues, undefined, 2)}`)
 
     if (MESC_DEFAULT_ENDPOINT?.length) {
       Object.assign(rpcConfig, { default_endpoint: MESC_DEFAULT_ENDPOINT })

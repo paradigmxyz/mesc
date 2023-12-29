@@ -18,11 +18,11 @@ export function parseMescVariables({
     const mescFileExists = fs.existsSync(MESC_PATH)
     if (!mescFileExists) raise('MESC_MODE is set to PATH but file set in MESC_PATH does not exist')
     const rawRpcConfig = fs.readFileSync(MESC_PATH, { encoding: 'utf-8' })
-    return v.parse(rpcConfigSchema, JSON.parse(rawRpcConfig), { abortEarly: false, abortPipeEarly: false })
+    return v.safeParse(rpcConfigSchema, JSON.parse(rawRpcConfig), { abortEarly: false, abortPipeEarly: false })
   }
   if (MESC_MODE === 'ENV') {
     const rawRpcConfig = MESC_ENV?.length ? MESC_ENV : raise('MESC_MODE is set to ENV but MESC_ENV is not set or empty')
-    return v.parse(rpcConfigSchema, JSON.parse(rawRpcConfig), { abortEarly: false, abortPipeEarly: false })
+    return v.safeParse(rpcConfigSchema, JSON.parse(rawRpcConfig), { abortEarly: false, abortPipeEarly: false })
   }
   raise('MESC_MODE is not enabled')
 }
