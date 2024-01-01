@@ -1,5 +1,5 @@
 use crate::{print_defaults, MescCliError, SetupArgs};
-use inquire::ui::{Attributes, Color, IndexPrefix, RenderConfig, StyleSheet, Styled};
+use inquire::{InquireError, ui::{Attributes, Color, IndexPrefix, RenderConfig, StyleSheet, Styled}};
 use mesc::{ChainId, Endpoint, RpcConfig, TryIntoChainId};
 use std::collections::{HashMap, HashSet};
 use toolstr::Colorize;
@@ -140,10 +140,17 @@ async fn modify_existing_config(
     // let mut config_write_mode: Option<ConfigWriteMode> = None;
     loop {
         // modify config
-        match inquire::Select::new("What do you want to do?", options.clone())
+        let input = match inquire::Select::new("What do you want to do?", options.clone())
             .with_page_size(10)
-            .prompt()?
+            .prompt()
         {
+            Ok(input) => input,
+            Err(InquireError::OperationCanceled) => {
+                std::process::exit(0)
+            },
+            Err(e) => return Err(e.into()),
+        };
+        match input {
             "Setup environment" => setup_environment(&mut config, &mut config_write_mode)?,
             "Add new endpoint" => add_endpoint(&mut config).await?,
             "Modify endpoint" => modify_endpoint(&mut config)?,
@@ -203,8 +210,12 @@ fn setup_environment(
         println!();
     } else if let Some(config_write_mode) = config_write_mode {
         match config_write_mode {
-            ConfigWriteMode::Path(path) => println!(" MESC not yet enabled, but will write config to {}", path.green().bold()),
-            ConfigWriteMode::Env(_) => println!(" ENV mode not yet available in the interactive cli"),
+            ConfigWriteMode::Path(path) => {
+                println!(" MESC not yet enabled, but will write config to {}", path.green().bold())
+            }
+            ConfigWriteMode::Env(_) => {
+                println!(" ENV mode not yet available in the interactive cli")
+            }
         };
     } else {
         let options =
@@ -438,13 +449,17 @@ fn modify_global_metadata(config: &mut RpcConfig) -> Result<(), MescCliError> {
 }
 
 fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
+    println!();
+    print_defaults(config)?;
+    println!();
+
     let options = [
         "Set the default endpoint",
         "Set the default endpoint for network",
         "Add new profile",
         "Modify existing profile",
         "Print current defaults",
-        "Return to main menu",
+        "Done modifying defaults",
     ]
     .to_vec();
 
@@ -463,7 +478,7 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
                 let prompt = "Set the default endpoint for which network?";
                 let chain_id = select_chain_id(config, prompt)?;
                 let prompt = "What should be the default endpoint for this network?";
-                let endpoint_name = select_endpoint(config, prompt)?;
+                let endpoint_name = select_endpoint_of_network(config, &chain_id, prompt)?;
                 config.network_defaults.insert(chain_id, endpoint_name);
             }
             "Add new profile" => {
@@ -519,7 +534,7 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
                         let prompt = "Set the profile's default endpoint for which network?";
                         let chain_id = select_chain_id(config, prompt)?;
                         let prompt = "What should be the default endpoint for this network?";
-                        let endpoint_name = select_endpoint(config, prompt)?;
+                        let endpoint_name = select_endpoint_of_network(config, &chain_id, prompt)?;
                         if let Some(profile) = config.profiles.get_mut(&profile_name) {
                             profile.network_defaults.insert(chain_id, endpoint_name);
                         } else {
@@ -536,7 +551,7 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
                 print_defaults(config)?;
                 println!();
             }
-            "Return to main menu" => return Ok(()),
+            "Done modifying defaults" => return Ok(()),
             _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
         }
     }
@@ -548,6 +563,22 @@ fn select_endpoint(config: &RpcConfig, prompt: &str) -> Result<String, MescCliEr
     Ok(inquire::Select::new(prompt, options).prompt()?)
 }
 
+fn select_endpoint_of_network(
+    config: &RpcConfig,
+    chain_id: &ChainId,
+    prompt: &str,
+) -> Result<String, MescCliError> {
+    let mut options: Vec<String> = config
+        .endpoints
+        .clone()
+        .values()
+        .filter(|endpoint| endpoint.chain_id.as_ref() == Some(chain_id))
+        .map(|endpoint| endpoint.name.clone())
+        .collect();
+    options.sort();
+    Ok(inquire::Select::new(prompt, options).prompt()?)
+}
+
 fn select_profile(config: &RpcConfig, prompt: &str) -> Result<String, MescCliError> {
     let mut options: Vec<_> = config.profiles.keys().collect();
     options.sort();
@@ -555,21 +586,25 @@ fn select_profile(config: &RpcConfig, prompt: &str) -> Result<String, MescCliErr
 }
 
 fn select_chain_id(config: &RpcConfig, prompt: &str) -> Result<ChainId, MescCliError> {
-    let mut options: Vec<_> = vec![];
-    for chain_id in config.network_defaults.keys() {
-        options.push(chain_id.as_str())
+    let mut chain_ids: HashSet<ChainId> = HashSet::new();
+    for endpoint in config.endpoints.values() {
+        if let Some(chain_id) = endpoint.chain_id.as_ref() {
+            chain_ids.insert(chain_id.clone());
+        }
     }
-    options.push("Enter a chain_id");
-    options.push("Enter a network name");
-    match inquire::Select::new(prompt, options).prompt()? {
-        "Enter a chain_id" => {
-            let input = inquire::Text::new("Enter a chain_id").prompt()?;
-            Ok(input.try_into_chain_id()?)
-        }
-        "Enter a network name" => {
-            todo!()
-        }
-        input => Ok(input.try_into_chain_id()?),
+    let mut sorted_chain_ids: Vec<ChainId> = chain_ids.into_iter().collect();
+    sorted_chain_ids.sort_by_key(|chain_id| chain_id.to_hex_256().unwrap_or("".to_string()));
+    let options: Vec<String> = sorted_chain_ids
+        .iter()
+        .map(|chain_id| match mesc::directory::get_network_name(chain_id) {
+            Some(name) => format!("{} ({})", chain_id.as_str(), name),
+            None => chain_id.to_string(),
+        })
+        .collect();
+    let input = inquire::Select::new(prompt, options.clone()).prompt()?;
+    match options.iter().position(|x| x == &input) {
+        Some(index) => Ok(sorted_chain_ids.remove(index)),
+        None => Err(MescCliError::Error("invalid input".to_string())),
     }
 }
 

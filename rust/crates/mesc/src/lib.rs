@@ -7,7 +7,8 @@
     attr(deny(warnings, rust_2018_idioms), allow(dead_code, unused_variables))
 ))]
 
-mod directory;
+/// directory matching chain_id's to network names
+pub mod directory;
 mod types;
 mod validate;
 pub use types::*;
