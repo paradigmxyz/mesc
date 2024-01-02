@@ -29,20 +29,42 @@ export function parseMescVariables({
 
 /**
  * parse space-separated items of <profile>.<key>[.<chain_id]=<endpoint>into a mapping
+ * Example: "foundry.default_endpoint=local_goerli foundry.network_defaults.5=alchemy_optimism"
+ * returns {
+ *  foundry: {
+ *    default_endpoint: "local_goerli",
+ *    network_defaults: {
+ *     5: "alchemy_optimism"
+ *   }
+ *  }
+ * }
  */
 export function parseSpaceSeparatedProfiles(input?: string) {
   if (!input) return false
-  return input.split(' ').reduce((accumulator, pair) => {
-    const [_key, value] = pair.split('=') as [string, string]
-    const [profile, key, chain_id] = _key.split('.') as [string, string, string | undefined]
-    return {
-      ...accumulator,
-      [profile]: {
-        ...accumulator[profile],
-        [key]: { ...accumulator[profile]?.[key], [`${chain_id}`]: value },
-      },
+  const parts = input.split(' ')
+  const groups = {} as {
+    [profile: string]: {
+      default_endpoint?: string
+      network_defaults?: Record<string, string>
     }
-  }, {} as Record<string, Record<string, Record<string, string>>>)
+  }
+  for (const part of parts) {
+    if (part.includes('default_endpoint')) {
+      const [profile, key] = part.split('.')
+      if (!profile || !key) raise(`Failed to parse MESC_PROFILES profile: ${part}`)
+      const [key_, value] = key.split('=')
+      if (!key_ || !value) raise(`Failed to parse MESC_PROFILES: ${part}`)
+      groups[profile] = { default_endpoint: value, ...groups[profile] }
+    }
+    if (part.includes('network_defaults')) {
+      const [profile, key, chainIdNetworkName] = part.split('.')
+      if (!profile || !key || !chainIdNetworkName) raise(`Failed to parse MESC_PROFILES: ${part}`)
+      const [chainId, networkName] = chainIdNetworkName.split('=')
+      if (!chainId || !networkName) raise(`Failed to parse MESC_PROFILES: ${part}`)
+      groups[profile] = { ...groups[profile], network_defaults: { [chainId]: networkName } }
+    }
+  }
+  return groups
 }
 
 /**
