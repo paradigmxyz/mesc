@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Endpoint
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct Endpoint {
     /// name
     pub name: String,
@@ -23,7 +23,7 @@ impl Endpoint {
 }
 
 /// Profile
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct Profile {
     /// name
     pub name: String,
@@ -52,7 +52,7 @@ pub enum ConfigMode {
 }
 
 /// RpcConfig
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct RpcConfig {
     /// mesc version
     pub mesc_version: String,
