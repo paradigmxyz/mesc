@@ -40,8 +40,8 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
                     println!("The current MESC config contains improper data");
                     println!();
                     let options = vec!["Fix the data manually", "Create a new config from scratch"];
-                    match inquire::Select::new("How to proceed?", options).prompt()? {
-                        "Fix the data manually" => match config_mode {
+                    match inquire::Select::new("How to proceed?", options).prompt() {
+                        Ok("Fix the data manually") => match config_mode {
                             mesc::ConfigMode::Path => {
                                 let path = mesc::load::get_config_path()?;
                                 edit::edit_file(path)?
@@ -52,7 +52,11 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
                                 println!("Edit MESC_ENV in your terminal config files and then restart your terminal");
                             }
                         },
-                        "Create a new config from scratch" => return setup_new_config().await,
+                        Ok("Create a new config from scratch") => return setup_new_config().await,
+                        Err(InquireError::OperationCanceled) => {
+                            println!("exiting");
+                            std::process::exit(1);
+                        }
                         _ => println!("Improper selection"),
                     };
                     return Ok(());
@@ -73,9 +77,15 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
                         println!("This MESC config file contains improper data");
                         let options =
                             vec!["Fix the data manually", "Create a new config from scratch"];
-                        match inquire::Select::new("How to proceed?", options).prompt()? {
-                            "Fix the data manually" => edit::edit_file(path)?,
-                            "Create a new config from scratch" => return setup_new_config().await,
+                        match inquire::Select::new("How to proceed?", options).prompt() {
+                            Ok("Fix the data manually") => edit::edit_file(path)?,
+                            Ok("Create a new config from scratch") => {
+                                return setup_new_config().await
+                            }
+                            Err(InquireError::OperationCanceled) => {
+                                println!("exiting");
+                                std::process::exit(1);
+                            }
                             _ => {}
                         };
                     }
@@ -182,18 +192,25 @@ async fn modify_existing_config(
     // write file
     if serde_json::to_string(&config)? != serde_json::to_string(&original_config)? {
         if config_write_mode.is_none() {
-            config_write_mode = Some(get_config_write_mode()?);
+            config_write_mode = get_config_write_mode()?;
         };
-        match &config_write_mode {
-            Some(write_mode) => match write_mode {
-                ConfigWriteMode::Path(path) => {
-                    mesc::write::write_config(config, path.clone())?;
-                    println!(" {} {}", "config written to".bold(), path.green());
-                }
-                ConfigWriteMode::Env(_) => todo!("writing environment variables not supported yet"),
-            },
-            None => return Err(MescCliError::Error("could not obtain write mode".to_string())),
-        };
+        if config_write_mode.is_none() {
+            println!(" No write mode selected");
+            println!(" Not writing changes to disk");
+        } else {
+            match &config_write_mode {
+                Some(write_mode) => match write_mode {
+                    ConfigWriteMode::Path(path) => {
+                        mesc::write::write_config(config, path.clone())?;
+                        println!(" {} {}", "config written to".bold(), path.green());
+                    }
+                    ConfigWriteMode::Env(_) => {
+                        todo!("writing environment variables not supported yet")
+                    }
+                },
+                None => return Err(MescCliError::Error("could not obtain write mode".to_string())),
+            };
+        }
     } else {
         println!(" {}", "No updates to save".bold())
     }
@@ -207,7 +224,7 @@ fn setup_environment(
     if mesc::is_mesc_enabled() {
         println!();
         println!(" MESC is already enabled");
-        println!(" using path {}", mesc::load::get_config_path()?.green().bold());
+        println!(" Using path {}", mesc::load::get_config_path()?.green().bold());
         println!();
     } else if let Some(config_write_mode) = config_write_mode {
         match config_write_mode {
@@ -222,16 +239,21 @@ fn setup_environment(
         let options =
             vec!["Store MESC config in a file", "Store MESC config in an environment variable"];
         let prompt = "How do you want to store your MESC config?";
-        match inquire::Select::new(prompt, options).prompt()? {
-            "Store MESC config in a file" => {
+        match inquire::Select::new(prompt, options).prompt() {
+            Ok("Store MESC config in a file") => {
                 let prompt = "Where should mesc.json file be saved? (enter a directory path)";
-                let parent = inquire::Text::new(prompt).prompt()?;
-                let parent = if parent.trim().is_empty() {
-                    ".".to_string()
-                } else {
-                    mesc::load::expand_path(parent)?
+                let parent = match inquire::Text::new(prompt).prompt() {
+                    Ok(parent) => {
+                        let parent = if parent.trim().is_empty() {
+                            ".".to_string()
+                        } else {
+                            mesc::load::expand_path(parent)?
+                        };
+                        std::path::PathBuf::from(parent)
+                    }
+                    Err(InquireError::OperationCanceled) => return Ok(()),
+                    Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
                 };
-                let parent = std::path::Path::new(&parent);
                 let path: String = parent.join("mesc.json").to_string_lossy().to_string();
                 *config_write_mode = Some(ConfigWriteMode::Path(path.to_string()));
                 println!(
@@ -242,9 +264,10 @@ fn setup_environment(
                 println!(" {}{}", "MESC_PATH=".green().bold(), path.green().bold());
                 println!(" Then restart your terminal shell");
             }
-            "Store MESC config in an environment variable" => {
+            Ok("Store MESC config in an environment variable") => {
                 println!(" This is not available in the interactive MESC cli yet");
             }
+            Err(InquireError::OperationCanceled) => {}
             _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
         }
     }
@@ -260,23 +283,37 @@ enum ConfigWriteMode {
     Env(Vec<String>),
 }
 
-fn get_config_write_mode() -> Result<ConfigWriteMode, MescCliError> {
+fn get_config_write_mode() -> Result<Option<ConfigWriteMode>, MescCliError> {
     if let Ok(path) = mesc::load::get_config_path() {
-        return Ok(ConfigWriteMode::Path(path));
+        return Ok(Some(ConfigWriteMode::Path(path)));
     };
 
     let prompt = "How do you want to save the config?";
     let options = ["Save as path file", "Save as an environment variable"].to_vec();
     loop {
-        let write_mode = match inquire::Select::new(prompt, options.clone()).prompt()? {
-            "Save as path file" => {
-                let text = inquire::Text::new("Path?").prompt()?;
-                ConfigWriteMode::Path(text)
+        let write_mode = match inquire::Select::new(prompt, options.clone()).prompt() {
+            Ok("Save as path file") => {
+                let prompt = "Where should mesc.json file be saved? (enter a directory path)";
+                let parent = match inquire::Text::new(prompt).prompt() {
+                    Ok(parent) => {
+                        let parent = if parent.trim().is_empty() {
+                            ".".to_string()
+                        } else {
+                            mesc::load::expand_path(parent)?
+                        };
+                        std::path::PathBuf::from(parent)
+                    }
+                    Err(InquireError::OperationCanceled) => return Ok(None),
+                    Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+                };
+                let path: String = parent.join("mesc.json").to_string_lossy().to_string();
+                Some(ConfigWriteMode::Path(path.to_string()))
             }
-            "Save an environment variable" => {
+            Ok("Save an environment variable") => {
                 println!("not supported yet");
                 continue;
             }
+            Err(InquireError::OperationCanceled) => return Ok(None),
             _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
         };
         return Ok(write_mode);
@@ -286,7 +323,7 @@ fn get_config_write_mode() -> Result<ConfigWriteMode, MescCliError> {
 fn is_ip(url: &str) -> bool {
     use std::net::{Ipv4Addr, Ipv6Addr};
     if url.is_empty() {
-        return false
+        return false;
     }
     let domain = match url.split_once('/') {
         Some((domain, _)) => domain,
@@ -297,84 +334,89 @@ fn is_ip(url: &str) -> bool {
 }
 
 async fn add_endpoint(config: &mut RpcConfig) -> Result<(), MescCliError> {
-    let endpoint = match inquire::Text::new("New endpoint URL?").prompt() {
-        Ok(url) => {
-            // add transport protocol
-            let url = if !url.starts_with("http") & !url.starts_with("ws") & !url.ends_with(".ipc")
-            {
-                if url.starts_with("localhost") | is_ip(&url) {
-                    let url = format!("http://{}", url);
-                    println!(
-                        " Transport protocol not included. Defaulting to http: {}",
-                        url.green().bold()
-                    );
-                    url
-                } else {
-                    let url = format!("https://{}", url);
-                    println!(
-                        " Transport protocol not included. Defaulting to https: {}",
-                        url.green().bold()
-                    );
-                    url
-                }
-            } else {
-                url
-            };
+    let url = match inquire::Text::new("New endpoint URL?").prompt() {
+        Ok(input) => input,
+        Err(InquireError::OperationCanceled) => return Ok(()),
+        Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+    };
 
-            // get chain_id
-            println!(" Querying chain id...");
-            let client =
-                reqwest::Client::builder().timeout(std::time::Duration::from_secs(4)).build()?;
-            let chain_id = crate::rpc::request_chain_id(client, url.clone()).await;
-            let chain_id = match chain_id {
-                Ok(chain_id) => {
-                    println!(" {} {}", "Using chain_id".bold(), chain_id.as_str().green());
-                    Some(chain_id)
-                }
-                _ => {
-                    println!(" {}", "Could not detect chain_id".red());
-                    let prompt = "How to proceed?";
-                    let options = vec![
-                        "Do not use a chain_id for endpoint",
-                        "Enter endpoint chain_id manually",
-                    ];
-                    let mut chain_id: Option<ChainId> = None;
-                    loop {
-                        match inquire::Select::new(prompt, options.clone()).prompt()? {
-                            "Do not use a chain_id for endpoint" => break,
-                            "Enter endpoint chain_id manually" => {
-                                let text = inquire::Text::new("Chain id?").prompt()?;
+    // add transport protocol
+    let url = if !url.starts_with("http") & !url.starts_with("ws") & !url.ends_with(".ipc") {
+        if url.starts_with("localhost") | is_ip(&url) {
+            let url = format!("http://{}", url);
+            println!(
+                " Transport protocol not included. Defaulting to http: {}",
+                url.green().bold()
+            );
+            url
+        } else {
+            let url = format!("https://{}", url);
+            println!(
+                " Transport protocol not included. Defaulting to https: {}",
+                url.green().bold()
+            );
+            url
+        }
+    } else {
+        url
+    };
+
+    // get chain_id
+    println!(" Querying chain id...");
+    let client = reqwest::Client::builder().timeout(std::time::Duration::from_secs(4)).build()?;
+    let chain_id = crate::rpc::request_chain_id(client, url.clone()).await;
+    let chain_id = match chain_id {
+        Ok(chain_id) => {
+            println!(" {} {}", "Using chain_id".bold(), chain_id.as_str().green());
+            Some(chain_id)
+        }
+        _ => {
+            println!(" {}", "Could not detect chain_id".red());
+            let prompt = "How to proceed?";
+            let options =
+                vec!["Do not use a chain_id for endpoint", "Enter endpoint chain_id manually"];
+            let mut chain_id: Option<ChainId> = None;
+            loop {
+                match inquire::Select::new(prompt, options.clone()).prompt() {
+                    Ok("Do not use a chain_id for endpoint") => break,
+                    Ok("Enter endpoint chain_id manually") => {
+                        match inquire::Text::new("Chain id?").prompt() {
+                            Ok(text) => {
                                 chain_id = match text.try_into_chain_id() {
                                     Ok(chain_id) => Some(chain_id),
                                     _ => continue,
                                 };
                                 break;
                             }
+                            Err(InquireError::OperationCanceled) => return Ok(()),
                             _ => {
                                 return Err(MescCliError::InvalidInput("invalid input".to_string()))
                             }
                         }
                     }
-                    chain_id
+                    Err(InquireError::OperationCanceled) => return Ok(()),
+                    _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
                 }
-            };
-
-            // get name
-            let default_name = mesc::overrides::get_default_endpoint_name(&url, chain_id.clone());
-            let mut input = inquire::Text::new("New endpoint name?");
-            if let Some(default_name) = default_name.as_ref() {
-                input = input.with_default(default_name);
             }
-            let name = match input.prompt() {
-                Ok(choice) => choice,
-                Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
-            };
-
-            // create endpoint
-            Endpoint { url, name, chain_id, endpoint_metadata: std::collections::HashMap::new() }
+            chain_id
         }
+    };
+
+    // get name
+    let default_name = mesc::overrides::get_default_endpoint_name(&url, chain_id.clone());
+    let mut input = inquire::Text::new("New endpoint name?");
+    if let Some(default_name) = default_name.as_ref() {
+        input = input.with_default(default_name);
+    }
+    let name = match input.prompt() {
+        Ok(choice) => choice,
+        Err(InquireError::OperationCanceled) => return Ok(()),
         Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
     };
+
+    // create endpoint
+    let endpoint =
+        Endpoint { url, name, chain_id, endpoint_metadata: std::collections::HashMap::new() };
     config.endpoints.insert(endpoint.name.clone(), endpoint);
     println!(" {}", "New endpoint added".bold());
     Ok(())
@@ -384,7 +426,11 @@ fn modify_endpoint(config: &mut RpcConfig) -> Result<(), MescCliError> {
     // select endpoint
     let mut options: Vec<String> = config.endpoints.clone().into_keys().collect();
     options.sort();
-    let endpoint_name = inquire::Select::new("Which endpoint to modify?", options).prompt()?;
+    let endpoint_name = match inquire::Select::new("Which endpoint to modify?", options).prompt() {
+        Ok(name) => name,
+        Err(InquireError::OperationCanceled) => return Ok(()),
+        _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+    };
     let endpoint = match config.endpoints.get(&endpoint_name) {
         Some(endpoint) => endpoint.clone(),
         None => return Err(MescCliError::InvalidInput("endpoint does not exist".to_string())),
@@ -434,21 +480,37 @@ fn query_modify_endpoint(
 
     let message = if first_change { "How to modify endpoint?" } else { "Any other modifications?" };
 
-    let option = inquire::Select::new(message, options.clone()).prompt()?;
+    let option = match inquire::Select::new(message, options.clone()).prompt() {
+        Ok(answer) => answer,
+        Err(InquireError::OperationCanceled) => return Ok("Done".to_string()),
+        _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+    };
 
     match option {
         "Modify endpoint name" => {
-            let new_name = inquire::Text::new("New name?").prompt()?;
+            let new_name = match inquire::Text::new("New name?").prompt() {
+                Ok(answer) => answer,
+                Err(InquireError::OperationCanceled) => return Ok("Done".to_string()),
+                _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+            };
             mesc::write::update_endpoint_name(config, endpoint_name.as_str(), new_name.as_str())?;
         }
         "Modify endpoint url" => {
-            let new_url = inquire::Text::new("New url?").prompt()?;
+            let new_url = match inquire::Text::new("New url?").prompt() {
+                Ok(answer) => answer,
+                Err(InquireError::OperationCanceled) => return Ok("Done".to_string()),
+                _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+            };
             if let Some(endpoint) = config.endpoints.get_mut(&endpoint_name) {
                 endpoint.url = new_url;
             }
         }
         "Modify endpoint chain_id" => {
-            let chain_id = inquire::Text::new("New chain_id?").prompt()?;
+            let chain_id = match inquire::Text::new("New chain_id?").prompt() {
+                Ok(answer) => answer,
+                Err(InquireError::OperationCanceled) => return Ok("Done".to_string()),
+                _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+            };
             mesc::write::update_endpoint_chain_id(
                 config,
                 endpoint_name.as_str(),
@@ -504,25 +566,38 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
     .to_vec();
 
     loop {
-        match inquire::Select::new("What do you want to do?", options.clone()).prompt()? {
-            "Set the default endpoint" => {
+        match inquire::Select::new("What do you want to do?", options.clone()).prompt() {
+            Ok("Set the default endpoint") => {
                 let prompt = "Which endpoint should be the default?";
-                let endpoint_name = select_endpoint(config, prompt)?;
+                let endpoint_name = match select_endpoint(config, prompt)? {
+                    Some(value) => value,
+                    _ => return Ok(()),
+                };
                 config.default_endpoint = Some(endpoint_name.clone());
                 let endpoint = mesc::query::get_endpoint_by_name(config, endpoint_name.as_str())?;
                 if let Some(chain_id) = endpoint.chain_id {
                     config.network_defaults.insert(chain_id, endpoint_name);
                 };
             }
-            "Set the default endpoint for network" => {
+            Ok("Set the default endpoint for network") => {
                 let prompt = "Set the default endpoint for which network?";
-                let chain_id = select_chain_id(config, prompt)?;
+                let chain_id = match select_chain_id(config, prompt)? {
+                    Some(value) => value,
+                    _ => return Ok(()),
+                };
                 let prompt = "What should be the default endpoint for this network?";
-                let endpoint_name = select_endpoint_of_network(config, &chain_id, prompt)?;
+                let endpoint_name = match select_endpoint_of_network(config, &chain_id, prompt)? {
+                    Some(value) => value,
+                    _ => return Ok(()),
+                };
                 config.network_defaults.insert(chain_id, endpoint_name);
             }
-            "Add new profile" => {
-                let name = inquire::Text::new("Name?").prompt()?;
+            Ok("Add new profile") => {
+                let name = match inquire::Text::new("Name?").prompt() {
+                    Ok(answer) => answer,
+                    Err(InquireError::OperationCanceled) => return Ok(()),
+                    _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+                };
                 if config.profiles.contains_key(&name) {
                     println!();
                 } else {
@@ -530,21 +605,30 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
                     println!(" profile added");
                 }
             }
-            "Modify existing profile" => {
+            Ok("Modify existing profile") => {
                 if config.profiles.is_empty() {
                     println!(" no profiles are currently configured");
                     continue;
                 }
 
-                let profile_name = select_profile(config, "Which profile to modify?")?;
+                let profile_name = match select_profile(config, "Which profile to modify?")? {
+                    Some(value) => value,
+                    _ => return Ok(()),
+                };
                 let options = vec![
                     "Set the profile's name",
                     "Set the profile's default endpoint",
                     "Set the profile's default endpoint for a network",
                 ];
-                match inquire::Select::new("What to modify?", options).prompt()? {
-                    "Set the profile's name" => {
-                        let new_name = inquire::Text::new("New name?").prompt()?;
+                match inquire::Select::new("What to modify?", options).prompt() {
+                    Ok("Set the profile's name") => {
+                        let new_name = match inquire::Text::new("New name?").prompt() {
+                            Ok(answer) => answer,
+                            Err(InquireError::OperationCanceled) => return Ok(()),
+                            _ => {
+                                return Err(MescCliError::InvalidInput("invalid input".to_string()))
+                            }
+                        };
                         if config.profiles.contains_key(&new_name) {
                             println!("profile with this name already exists");
                             continue;
@@ -556,9 +640,12 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
                             println!("profile not present");
                         }
                     }
-                    "Set the profile's default endpoint" => {
+                    Ok("Set the profile's default endpoint") => {
                         let prompt = "Which endpoint to use as profile default?";
-                        let default_endpoint = select_endpoint(config, prompt)?;
+                        let default_endpoint = match select_endpoint(config, prompt)? {
+                            Some(value) => value,
+                            _ => return Ok(()),
+                        };
                         let endpoint =
                             mesc::query::get_endpoint_by_name(config, &default_endpoint)?;
                         if let Some(profile) = config.profiles.get_mut(&profile_name) {
@@ -570,44 +657,57 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
                             println!("profile not present");
                         }
                     }
-                    "Set the profile's default endpoint for a network" => {
+                    Ok("Set the profile's default endpoint for a network") => {
                         let prompt = "Set the profile's default endpoint for which network?";
-                        let chain_id = select_chain_id(config, prompt)?;
+                        let chain_id = match select_chain_id(config, prompt)? {
+                            Some(value) => value,
+                            _ => return Ok(()),
+                        };
                         let prompt = "What should be the default endpoint for this network?";
-                        let endpoint_name = select_endpoint_of_network(config, &chain_id, prompt)?;
+                        let endpoint_name =
+                            match select_endpoint_of_network(config, &chain_id, prompt)? {
+                                Some(value) => value,
+                                _ => return Ok(()),
+                            };
                         if let Some(profile) = config.profiles.get_mut(&profile_name) {
                             profile.network_defaults.insert(chain_id, endpoint_name);
                         } else {
                             println!("profile not present");
                         }
                     }
+                    Err(InquireError::OperationCanceled) => return Ok(()),
                     _ => {
                         println!("invalid input");
                     }
                 }
             }
-            "Print current defaults" => {
+            Ok("Print current defaults") => {
                 println!();
                 print_defaults(config)?;
                 println!();
             }
-            "Done modifying defaults" => return Ok(()),
+            Ok("Done modifying defaults") => return Ok(()),
+            Err(InquireError::OperationCanceled) => return Ok(()),
             _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
         }
     }
 }
 
-fn select_endpoint(config: &RpcConfig, prompt: &str) -> Result<String, MescCliError> {
+fn select_endpoint(config: &RpcConfig, prompt: &str) -> Result<Option<String>, MescCliError> {
     let mut options: Vec<String> = config.endpoints.clone().into_keys().collect();
     options.sort();
-    Ok(inquire::Select::new(prompt, options).prompt()?)
+    match inquire::Select::new(prompt, options).prompt() {
+        Ok(answer) => Ok(Some(answer)),
+        Err(InquireError::OperationCanceled) => Ok(None),
+        _ => Err(MescCliError::InvalidInput("invalid input".to_string())),
+    }
 }
 
 fn select_endpoint_of_network(
     config: &RpcConfig,
     chain_id: &ChainId,
     prompt: &str,
-) -> Result<String, MescCliError> {
+) -> Result<Option<String>, MescCliError> {
     let mut options: Vec<String> = config
         .endpoints
         .clone()
@@ -616,16 +716,24 @@ fn select_endpoint_of_network(
         .map(|endpoint| endpoint.name.clone())
         .collect();
     options.sort();
-    Ok(inquire::Select::new(prompt, options).prompt()?)
+    match inquire::Select::new(prompt, options).prompt() {
+        Ok(answer) => Ok(Some(answer)),
+        Err(InquireError::OperationCanceled) => Ok(None),
+        _ => Err(MescCliError::InvalidInput("invalid input".to_string())),
+    }
 }
 
-fn select_profile(config: &RpcConfig, prompt: &str) -> Result<String, MescCliError> {
+fn select_profile(config: &RpcConfig, prompt: &str) -> Result<Option<String>, MescCliError> {
     let mut options: Vec<_> = config.profiles.keys().collect();
     options.sort();
-    Ok(inquire::Select::new(prompt, options).prompt()?.to_string())
+    match inquire::Select::new(prompt, options).prompt() {
+        Ok(answer) => Ok(Some(answer.to_string())),
+        Err(InquireError::OperationCanceled) => Ok(None),
+        _ => Err(MescCliError::InvalidInput("invalid input".to_string())),
+    }
 }
 
-fn select_chain_id(config: &RpcConfig, prompt: &str) -> Result<ChainId, MescCliError> {
+fn select_chain_id(config: &RpcConfig, prompt: &str) -> Result<Option<ChainId>, MescCliError> {
     let mut chain_ids: HashSet<ChainId> = HashSet::new();
     for endpoint in config.endpoints.values() {
         if let Some(chain_id) = endpoint.chain_id.as_ref() {
@@ -641,9 +749,13 @@ fn select_chain_id(config: &RpcConfig, prompt: &str) -> Result<ChainId, MescCliE
             None => chain_id.to_string(),
         })
         .collect();
-    let input = inquire::Select::new(prompt, options.clone()).prompt()?;
+    let input = match inquire::Select::new(prompt, options.clone()).prompt() {
+        Ok(answer) => answer,
+        Err(InquireError::OperationCanceled) => return Ok(None),
+        _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+    };
     match options.iter().position(|x| x == &input) {
-        Some(index) => Ok(sorted_chain_ids.remove(index)),
+        Some(index) => Ok(Some(sorted_chain_ids.remove(index))),
         None => Err(MescCliError::Error("invalid input".to_string())),
     }
 }
