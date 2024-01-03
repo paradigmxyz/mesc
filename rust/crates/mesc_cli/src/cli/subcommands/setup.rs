@@ -1,5 +1,8 @@
 use crate::{print_defaults, MescCliError, SetupArgs};
-use inquire::{InquireError, ui::{Attributes, Color, IndexPrefix, RenderConfig, StyleSheet, Styled}};
+use inquire::{
+    ui::{Attributes, Color, IndexPrefix, RenderConfig, StyleSheet, Styled},
+    InquireError,
+};
 use mesc::{ChainId, Endpoint, RpcConfig, TryIntoChainId};
 use std::collections::{HashMap, HashSet};
 use toolstr::Colorize;
@@ -145,9 +148,7 @@ async fn modify_existing_config(
             .prompt()
         {
             Ok(input) => input,
-            Err(InquireError::OperationCanceled) => {
-                std::process::exit(0)
-            },
+            Err(InquireError::OperationCanceled) => std::process::exit(0),
             Err(e) => return Err(e.into()),
         };
         match input {
@@ -282,9 +283,44 @@ fn get_config_write_mode() -> Result<ConfigWriteMode, MescCliError> {
     }
 }
 
+fn is_ip(url: &str) -> bool {
+    use std::net::{Ipv4Addr, Ipv6Addr};
+    if url.is_empty() {
+        return false
+    }
+    let domain = match url.split_once('/') {
+        Some((domain, _)) => domain,
+        None => url,
+    };
+    let domain = domain.split(':').next().unwrap_or("");
+    domain.parse::<Ipv4Addr>().is_ok() || domain.parse::<Ipv6Addr>().is_ok()
+}
+
 async fn add_endpoint(config: &mut RpcConfig) -> Result<(), MescCliError> {
     let endpoint = match inquire::Text::new("New endpoint URL?").prompt() {
         Ok(url) => {
+            // add transport protocol
+            let url = if !url.starts_with("http") & !url.starts_with("ws") & !url.ends_with(".ipc")
+            {
+                if url.starts_with("localhost") | is_ip(&url) {
+                    let url = format!("http://{}", url);
+                    println!(
+                        " Transport protocol not included. Defaulting to http: {}",
+                        url.green().bold()
+                    );
+                    url
+                } else {
+                    let url = format!("https://{}", url);
+                    println!(
+                        " Transport protocol not included. Defaulting to https: {}",
+                        url.green().bold()
+                    );
+                    url
+                }
+            } else {
+                url
+            };
+
             // get chain_id
             println!(" Querying chain id...");
             let client =
