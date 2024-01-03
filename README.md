@@ -33,7 +33,7 @@ These implementations provide a consistent language-agnostic interface while sti
 ## Quickstart
 
 The interactive [`mesc`](./cli) CLI tool makes it easy to create and manage a MESC configuration.
-1. Install: `cargo install mesc`
+1. Install: `cargo install mesc-cli`
 2. Create config interactively: `mesc setup`
 
 To create a MESC config manually:
