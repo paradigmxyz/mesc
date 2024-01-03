@@ -1,8 +1,7 @@
 use super::rpc;
 use crate::MescCliError;
 use mesc::{ChainId, TryIntoChainId};
-use std::{net::ToSocketAddrs, time::Instant};
-use std::collections::HashMap;
+use std::{collections::HashMap, net::ToSocketAddrs, time::Instant};
 
 pub(crate) struct EndpointNetworkInfo {
     pub(crate) url: String,
@@ -117,7 +116,9 @@ pub(crate) async fn fetch_network_list() -> Result<HashMap<ChainId, String>, Mes
 
         // Iterate through the array of data
         for datum in data {
-            if let (Some(chain_id), Some(name)) = (datum["chainId"].as_u64(), datum["name"].as_str()) {
+            if let (Some(chain_id), Some(name)) =
+                (datum["chainId"].as_u64(), datum["name"].as_str())
+            {
                 // Insert the pair into the HashMap
                 result_map.insert(chain_id.try_into_chain_id()?, name.to_string());
             }
