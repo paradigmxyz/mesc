@@ -161,7 +161,7 @@ async fn modify_existing_config(
             Err(InquireError::OperationCanceled) => {
                 println!(" Exiting without saving");
                 std::process::exit(0)
-            },
+            }
             Err(e) => return Err(e.into()),
         };
         match input {
@@ -428,7 +428,10 @@ async fn select_chain_id(prompt: String) -> Result<Option<ChainId>, MescCliError
                 match select_chain_id_by_name().await {
                     Ok(Some(chain_id)) => return Ok(Some(chain_id)),
                     Ok(None) => return Ok(None),
-                    _ => continue,
+                    _ => {
+                        println!(" Exiting without saving");
+                        std::process::exit(0);
+                    },
                 }
             }
             Err(InquireError::OperationCanceled) => return Ok(None),
@@ -770,7 +773,7 @@ fn select_config_chain_id(
     let options: Vec<String> = sorted_chain_ids
         .iter()
         .map(|chain_id| match mesc::directory::get_network_name(chain_id) {
-            Some(name) => format!("{} ({})", chain_id.as_str(), name),
+            Some(name) => format!("{}) {}", chain_id.as_str(), name),
             None => chain_id.to_string(),
         })
         .collect();
@@ -799,8 +802,13 @@ async fn select_chain_id_by_name() -> Result<Option<ChainId>, MescCliError> {
     });
 
     let options: Vec<_> =
-        pairs.iter().map(|(chain_id, name)| format!("{} ({})", chain_id, name)).collect();
-    match inquire::Select::new("Which network?", options.clone()).prompt() {
+        pairs.iter().map(|(chain_id, name)| format!("{}) {}", chain_id, name)).collect();
+    let mut render_config = get_render_config();
+    render_config.option_index_prefix = IndexPrefix::None;
+    match inquire::Select::new("Which network?", options.clone())
+        .with_render_config(render_config)
+        .prompt()
+    {
         Ok(answer) => match options.iter().position(|option| option == &answer) {
             Some(index) => match pairs.get(index) {
                 Some((chain_id, _)) => Ok(Some(chain_id.clone())),
@@ -809,7 +817,7 @@ async fn select_chain_id_by_name() -> Result<Option<ChainId>, MescCliError> {
             None => Err(MescCliError::InvalidInput("bad input".to_string())),
         },
         Err(InquireError::OperationCanceled) => Ok(None),
-        _ => Ok(None),
+        _ => Err(MescCliError::Error("invalid input".to_string())),
     }
 }
 
