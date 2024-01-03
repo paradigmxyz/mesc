@@ -96,7 +96,7 @@ impl TryIntoChainId for ChainId {
 
 impl TryIntoChainId for String {
     fn try_into_chain_id(self) -> Result<ChainId, MescError> {
-        if self.chars().all(|c| c.is_ascii_digit()) {
+        if !self.is_empty() && self.chars().all(|c| c.is_ascii_digit()) {
             Ok(ChainId(self))
         } else {
             Err(MescError::InvalidChainId(self))
