@@ -158,13 +158,16 @@ async fn modify_existing_config(
             .prompt()
         {
             Ok(input) => input,
-            Err(InquireError::OperationCanceled) => std::process::exit(0),
+            Err(InquireError::OperationCanceled) => {
+                println!(" Exiting without saving");
+                std::process::exit(0)
+            },
             Err(e) => return Err(e.into()),
         };
         match input {
             "Setup environment" => setup_environment(&mut config, &mut config_write_mode)?,
             "Add new endpoint" => add_endpoint(&mut config).await?,
-            "Modify endpoint" => modify_endpoint(&mut config)?,
+            "Modify endpoint" => modify_endpoint(&mut config).await?,
             "Modify defaults" => modify_defaults(&mut config)?,
             "Modify global metadata" => modify_global_metadata(&mut config)?,
             "Print config as JSON" => {
@@ -371,34 +374,8 @@ async fn add_endpoint(config: &mut RpcConfig) -> Result<(), MescCliError> {
             Some(chain_id)
         }
         _ => {
-            println!(" {}", "Could not detect chain_id".red());
-            let prompt = "How to proceed?";
-            let options =
-                vec!["Do not use a chain_id for endpoint", "Enter endpoint chain_id manually"];
-            let mut chain_id: Option<ChainId> = None;
-            loop {
-                match inquire::Select::new(prompt, options.clone()).prompt() {
-                    Ok("Do not use a chain_id for endpoint") => break,
-                    Ok("Enter endpoint chain_id manually") => {
-                        match inquire::Text::new("Chain id?").prompt() {
-                            Ok(text) => {
-                                chain_id = match text.try_into_chain_id() {
-                                    Ok(chain_id) => Some(chain_id),
-                                    _ => continue,
-                                };
-                                break;
-                            }
-                            Err(InquireError::OperationCanceled) => return Ok(()),
-                            _ => {
-                                return Err(MescCliError::InvalidInput("invalid input".to_string()))
-                            }
-                        }
-                    }
-                    Err(InquireError::OperationCanceled) => return Ok(()),
-                    _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
-                }
-            }
-            chain_id
+            println!(" {}", "Could not detect chain id".red());
+            select_chain_id("How to proceed?".to_string()).await?
         }
     };
 
@@ -422,7 +399,45 @@ async fn add_endpoint(config: &mut RpcConfig) -> Result<(), MescCliError> {
     Ok(())
 }
 
-fn modify_endpoint(config: &mut RpcConfig) -> Result<(), MescCliError> {
+async fn select_chain_id(prompt: String) -> Result<Option<ChainId>, MescCliError> {
+    let options = vec![
+        "Search known network names",
+        "Enter endpoint chain id manually",
+        "Do not use a chain id for this endpoint",
+    ];
+    loop {
+        match inquire::Select::new(prompt.as_str(), options.clone()).prompt() {
+            Ok("Do not use a chain id for this endpoint") => return Ok(None),
+            Ok("Enter endpoint chain id manually") => {
+                match inquire::Text::new("Chain id?").prompt() {
+                    Ok(text) => {
+                        match text.try_into_chain_id() {
+                            Ok(chain_id) => return Ok(Some(chain_id)),
+                            _ => continue,
+                        };
+                    }
+                    Err(InquireError::OperationCanceled) => return Ok(None),
+                    _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+                }
+            }
+            Ok("Search known network names") => {
+                println!(
+                    " Fetching network names from {}...",
+                    "https://chainid.network".green().bold()
+                );
+                match select_chain_id_by_name().await {
+                    Ok(Some(chain_id)) => return Ok(Some(chain_id)),
+                    Ok(None) => return Ok(None),
+                    _ => continue,
+                }
+            }
+            Err(InquireError::OperationCanceled) => return Ok(None),
+            _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
+        }
+    }
+}
+
+async fn modify_endpoint(config: &mut RpcConfig) -> Result<(), MescCliError> {
     // select endpoint
     let mut options: Vec<String> = config.endpoints.clone().into_keys().collect();
     options.sort();
@@ -435,35 +450,43 @@ fn modify_endpoint(config: &mut RpcConfig) -> Result<(), MescCliError> {
         Some(endpoint) => endpoint.clone(),
         None => return Err(MescCliError::InvalidInput("endpoint does not exist".to_string())),
     };
-    println!(
-        " {}: {}",
-        "Current endpoint data".bold(),
-        colored_json::to_colored_json_auto(&serde_json::to_value(&endpoint)?)?
-    );
+    println!(" {}", "Current endpoint data:".bold(),);
+    println!();
+    let colored = colored_json::to_colored_json_auto(&serde_json::to_value(&endpoint)?)?;
+    for line in colored.split('\n') {
+        println!("    {}", line);
+    }
+    println!();
 
     // gather modifications
     let halt_options: HashSet<&str> = vec!["Delete endpoint", "Done"].into_iter().collect();
-    let mut option = query_modify_endpoint(endpoint_name.clone(), config, true)?;
+    let mut option = query_modify_endpoint(endpoint_name.clone(), config, true).await?;
     loop {
         if halt_options.contains(option.as_str()) {
             break;
         }
-        option = query_modify_endpoint(endpoint_name.clone(), config, false)?;
+        option = query_modify_endpoint(endpoint_name.clone(), config, false).await?;
     }
 
     // commit modifications
     if option != "Delete endpoint" {
-        println!(
-            " {}: {}",
-            "New endpoint data".bold(),
-            colored_json::to_colored_json_auto(&serde_json::to_value(&endpoint)?)?
-        );
+        let endpoint = match config.endpoints.get(&endpoint_name) {
+            Some(endpoint) => endpoint.clone(),
+            None => return Err(MescCliError::InvalidInput("endpoint does not exist".to_string())),
+        };
+        println!(" {}", "New endpoint data:".bold(),);
+        println!();
+        let colored = colored_json::to_colored_json_auto(&serde_json::to_value(endpoint)?)?;
+        for line in colored.split('\n') {
+            println!("    {}", line);
+        }
+        println!();
     }
 
     Ok(())
 }
 
-fn query_modify_endpoint(
+async fn query_modify_endpoint(
     endpoint_name: String,
     config: &mut RpcConfig,
     first_change: bool,
@@ -506,16 +529,15 @@ fn query_modify_endpoint(
             }
         }
         "Modify endpoint chain_id" => {
-            let chain_id = match inquire::Text::new("New chain_id?").prompt() {
-                Ok(answer) => answer,
-                Err(InquireError::OperationCanceled) => return Ok("Done".to_string()),
+            match select_chain_id("New chain_id?".to_string()).await {
+                Ok(Some(chain_id)) => mesc::write::update_endpoint_chain_id(
+                    config,
+                    endpoint_name.as_str(),
+                    chain_id.clone(),
+                )?,
+                Ok(None) => return Ok("Done".to_string()),
                 _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
             };
-            mesc::write::update_endpoint_chain_id(
-                config,
-                endpoint_name.as_str(),
-                chain_id.clone(),
-            )?;
         }
         "Modify endpoint metadata" => {
             if let Some(endpoint) = config.endpoints.get_mut(&endpoint_name) {
@@ -581,7 +603,7 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
             }
             Ok("Set the default endpoint for network") => {
                 let prompt = "Set the default endpoint for which network?";
-                let chain_id = match select_chain_id(config, prompt)? {
+                let chain_id = match select_config_chain_id(config, prompt)? {
                     Some(value) => value,
                     _ => return Ok(()),
                 };
@@ -659,7 +681,7 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
                     }
                     Ok("Set the profile's default endpoint for a network") => {
                         let prompt = "Set the profile's default endpoint for which network?";
-                        let chain_id = match select_chain_id(config, prompt)? {
+                        let chain_id = match select_config_chain_id(config, prompt)? {
                             Some(value) => value,
                             _ => return Ok(()),
                         };
@@ -733,7 +755,10 @@ fn select_profile(config: &RpcConfig, prompt: &str) -> Result<Option<String>, Me
     }
 }
 
-fn select_chain_id(config: &RpcConfig, prompt: &str) -> Result<Option<ChainId>, MescCliError> {
+fn select_config_chain_id(
+    config: &RpcConfig,
+    prompt: &str,
+) -> Result<Option<ChainId>, MescCliError> {
     let mut chain_ids: HashSet<ChainId> = HashSet::new();
     for endpoint in config.endpoints.values() {
         if let Some(chain_id) = endpoint.chain_id.as_ref() {
@@ -757,6 +782,34 @@ fn select_chain_id(config: &RpcConfig, prompt: &str) -> Result<Option<ChainId>, 
     match options.iter().position(|x| x == &input) {
         Some(index) => Ok(Some(sorted_chain_ids.remove(index))),
         None => Err(MescCliError::Error("invalid input".to_string())),
+    }
+}
+
+async fn select_chain_id_by_name() -> Result<Option<ChainId>, MescCliError> {
+    let network_list = match crate::network::fetch_network_list().await {
+        Ok(mapping) => mapping,
+        Err(_) => {
+            println!(" could not retrieve network list");
+            return Ok(None);
+        }
+    };
+    let mut pairs: Vec<(ChainId, String)> = network_list.into_iter().collect();
+    pairs.sort_by_key(|(chain_id, _)| {
+        chain_id.to_hex_256().unwrap_or(chain_id.as_str().to_string())
+    });
+
+    let options: Vec<_> =
+        pairs.iter().map(|(chain_id, name)| format!("{} ({})", chain_id, name)).collect();
+    match inquire::Select::new("Which network?", options.clone()).prompt() {
+        Ok(answer) => match options.iter().position(|option| option == &answer) {
+            Some(index) => match pairs.get(index) {
+                Some((chain_id, _)) => Ok(Some(chain_id.clone())),
+                None => Ok(None),
+            },
+            None => Err(MescCliError::InvalidInput("bad input".to_string())),
+        },
+        Err(InquireError::OperationCanceled) => Ok(None),
+        _ => Ok(None),
     }
 }
 
