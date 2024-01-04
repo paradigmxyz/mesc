@@ -97,7 +97,7 @@ def is_chain_id(chain_id: str) -> bool:
         try:
             int(chain_id, 16)
             return True
-        except:
+        except ValueError:
             pass
     return False
 
