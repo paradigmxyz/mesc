@@ -35,7 +35,7 @@ Ensure that your cargo install path is on your cli path
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # install mesc
-git clone https://github.io/paradigmxyz/msec
+git clone https://github.io/paradigmxyz/mesc
 cd mesc
 cargo install --path rust/crates/cli
 ```
