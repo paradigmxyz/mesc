@@ -4,5 +4,6 @@ TODO.md
 INTEGRATION.md
 PITCH.md
 *.json
+!schema.json
 __pycache__
 python/dist
