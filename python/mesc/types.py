@@ -3,16 +3,16 @@ from typing import Any, MutableMapping, TypedDict, Literal, Sequence
 
 
 mesc_env_vars = [
-    "MESC_MODE",
-    "MESC_PATH",
-    "MESC_ENV",
-    "MESC_ENDPOINT_METADATA",
-    "MESC_GLOBAL_METADATA",
-    "MESC_ENDPOINTS",
-    "MESC_NETWORK_NAMES",
-    "MESC_DEFAULT_ENDPOINT",
-    "MESC_NETWORK_DEFAULTS",
-    "MESC_PROFILES",
+    'MESC_MODE',
+    'MESC_PATH',
+    'MESC_ENV',
+    'MESC_ENDPOINT_METADATA',
+    'MESC_GLOBAL_METADATA',
+    'MESC_ENDPOINTS',
+    'MESC_NETWORK_NAMES',
+    'MESC_DEFAULT_ENDPOINT',
+    'MESC_NETWORK_DEFAULTS',
+    'MESC_PROFILES',
 ]
 
 
@@ -39,6 +39,29 @@ class RpcConfig(TypedDict):
     global_metadata: MutableMapping[str, Any]
 
 
+endpoint_types: dict[str, type | tuple[type, ...]] = {
+    'name': str,
+    'url': str,
+    'chain_id': (str, type(None)),
+    'endpoint_metadata': dict,
+}
+
+profile_types: dict[str, type | tuple[type, ...]] = {
+    'name': str,
+    'default_endpoint': (str, type(None)),
+    'network_defaults': dict,
+}
+
+rpc_config_types: dict[str, type | tuple[type, ...]] = {
+    'mesc_version': str,
+    'default_endpoint': (str, type(None)),
+    'endpoints': dict,
+    'network_defaults': dict,
+    'network_names': dict,
+    'profiles': dict,
+    'global_metadata': dict,
+}
+
 #
 # # query types
 #
@@ -46,10 +69,10 @@ class RpcConfig(TypedDict):
 
 class EndpointQuery(TypedDict):
     query_type: Literal[
-        "default_endpoint",
-        "endpoint_by_name",
-        "endpoint_by_network",
-        "user_input",
+        'default_endpoint',
+        'endpoint_by_name',
+        'endpoint_by_network',
+        'user_input',
     ]
     fields: (
         DefaultEndpointQuery | EndpointNameQuery | EndpointNetworkQuery | UserInputQuery
@@ -86,12 +109,12 @@ class GlobalMetadataQuery(TypedDict, total=False):
 
 class MescQuery(TypedDict):
     query_type: Literal[
-        "default_endpoint",
-        "endpoint_by_name",
-        "endpoint_by_network",
-        "user_input",
-        "multi_endpoint",
-        "global_metadata",
+        'default_endpoint',
+        'endpoint_by_name',
+        'endpoint_by_network',
+        'user_input',
+        'multi_endpoint',
+        'global_metadata',
     ]
     fields: (
         DefaultEndpointQuery
