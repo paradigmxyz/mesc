@@ -190,8 +190,8 @@ These overrides use a simple syntax that is intended to be easily written by hum
 | --- | --- | --- |
 | `MESC_DEFAULT_ENDPOINT`  | url, endpoint name, or network name                               | `localhost:9999` |
 | `MESC_NETWORK_DEFAULTS`  | space-separated pairs of `<chain_id>=<endpoint>`                  | `5=alchemy_optimism 1=local_mainnet` |
-| `MESC_NETWORK_NAMES`     | space-separated pairs of `<name>=<chain_id>`                      | `zora=7777777` |
-| `MESC_ENDPOINTS`         | space-separated items of `[<name>[:<chain_id>]=]<url>`            | `alchemy_optimism=https://alchemy.com/fjsj local_goerli:5=localhost:8545` |
+| `MESC_NETWORK_NAMES`     | space-separated pairs of `<network_name>=<chain_id>`                      | `zora=7777777` |
+| `MESC_ENDPOINTS`         | space-separated items of `[<endpoint_name>[:<chain_id>]=]<url>`            | `alchemy_optimism=https://alchemy.com/fjsj local_goerli:5=localhost:8545` |
 | `MESC_PROFILES`          | space-separated pairs of `<profile>.<key>[.<chain_id]=<endpoint>` | `foundry.default_endpoint=local_goerli foundry.network_defaults.5=alchemy_optimism` |
 | `MESC_GLOBAL_METADATA`   | JSON formatted global metadata                                    | `{}` |
 | `MESC_ENDPOINT_METADATA` | JSON mapping of `{"endpoint_name": {<ENDPOINT_METADATA>}}`        | `{}` |
