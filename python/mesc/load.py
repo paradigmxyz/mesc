@@ -65,6 +65,7 @@ def read_env_config(*, validate: bool = True) -> RpcConfig | Any:
     except json.JSONDecodeError:
         raise exceptions.InvalidConfig('MESC_ENV is not formatted as valid JSON')
 
+    # validate config
     if validate:
         validation.validate(config)
         return cast(RpcConfig, config)
@@ -110,8 +111,15 @@ def read_file_config(
 
     # parse raw data as json
     try:
-        return json.loads(content)
+        config = json.loads(content)
     except json.JSONDecodeError:
         raise exceptions.InvalidConfig(
             'file at MESC_PATH is not formatted as valid JSON'
         )
+
+    # validate config
+    if validate:
+        validation.validate(config)
+        return cast(RpcConfig, config)
+    else:
+        return config

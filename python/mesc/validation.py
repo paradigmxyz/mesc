@@ -82,7 +82,7 @@ def validate(config: Any) -> None:
             )
     for name, profile in config['profiles'].items():
         endpoint = profile['default_endpoint']
-        if endpoint is not None and endpoint not in profile['endpoints']:
+        if endpoint is not None and endpoint not in config['endpoints']:
             raise InvalidConfig(
                 'In profile '
                 + name
@@ -98,6 +98,7 @@ def validate(config: Any) -> None:
                     + str(endpoint)
                 )
 
+
     # default endpoints of each network actually use that specified network
     for chain_id, endpoint_name in config['network_defaults'].items():
         if chain_id != config['endpoints'][endpoint_name]['chain_id']:
@@ -105,7 +106,7 @@ def validate(config: Any) -> None:
                 'Endpoint is set as the default endpoint of network '
                 + chain_id
                 + ", but the endpoint's chain_id is different "
-                + endpoint['chain_id']
+                + config['endpoints'][endpoint_name]['chain_id']
             )
     for profile_name, profile in config['profiles'].items():
         for chain_id, endpoint_name in profile['network_defaults'].items():
@@ -116,7 +117,7 @@ def validate(config: Any) -> None:
                     + ' in profile '
                     + profile_name
                     + ", but the endpoint's chain_id is different "
-                    + endpoint['chain_id']
+                    + config['endpoints'][endpoint_name]['chain_id']
                 )
 
     # endpoint map keys match endpoint name fields
