@@ -9,12 +9,15 @@ readme = "README.md"
 requires-python = ">=3.7"
 dynamic = ["version", "description"]
 license = {text = "MIT OR Apache-2.0"}
-dependencies = []
+dependencies = [
+    "typing-extensions = '^4.9.0"
+]
 
 [tool.mypy]
 python_version = "3.9"
 strict = true
 implicit_reexport = true
+files = ["mesc", "generate_network_names.py"]
 
 [tool.pytest.ini_options]
 testpaths = [

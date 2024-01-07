@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 import os
-import typing
+from typing_extensions import cast, overload, Literal, Any
 
 from .types import RpcConfig
 from . import exceptions
@@ -37,20 +37,20 @@ def read_config_data() -> RpcConfig:
 
     # validate
     validation.validate(config)
-    return typing.cast(RpcConfig, config)
+    return cast(RpcConfig, config)
 
 
-@typing.overload
-def read_env_config(*, validate: typing.Literal[False]) -> typing.Any:
+@overload
+def read_env_config(*, validate: Literal[False]) -> Any:
     ...
 
 
-@typing.overload
-def read_env_config(*, validate: typing.Literal[True]) -> RpcConfig:
+@overload
+def read_env_config(*, validate: Literal[True]) -> RpcConfig:
     ...
 
 
-def read_env_config(*, validate: bool = True) -> RpcConfig | typing.Any:
+def read_env_config(*, validate: bool = True) -> RpcConfig | Any:
     """read config from MESC_ENV environment variable"""
     # obtain raw config data from env
     value = os.environ.get('MESC_ENV')
@@ -67,28 +67,24 @@ def read_env_config(*, validate: bool = True) -> RpcConfig | typing.Any:
 
     if validate:
         validation.validate(config)
-        return typing.cast(RpcConfig, config)
+        return cast(RpcConfig, config)
     else:
         return config
 
 
-@typing.overload
-def read_file_config(
-    *, path: str | None = None, validate: typing.Literal[False]
-) -> typing.Any:
+@overload
+def read_file_config(*, path: str | None = None, validate: Literal[False]) -> Any:
     ...
 
 
-@typing.overload
-def read_file_config(
-    *, path: str | None = None, validate: typing.Literal[True]
-) -> RpcConfig:
+@overload
+def read_file_config(*, path: str | None = None, validate: Literal[True]) -> RpcConfig:
     ...
 
 
 def read_file_config(
     *, path: str | None = None, validate: bool = True
-) -> RpcConfig | typing.Any:
+) -> RpcConfig | Any:
     """read config from MESC config file"""
     # obtain config file path
     if path is None:

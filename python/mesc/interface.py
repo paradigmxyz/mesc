@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import os
-from typing import Any, Mapping, Sequence
+from typing_extensions import Any, Mapping, Sequence
+
 from .types import mesc_env_vars, Endpoint, RpcConfig
 from . import network_utils
 from . import exceptions

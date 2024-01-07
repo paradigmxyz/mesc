@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
+from typing_extensions import Any
+
 from .exceptions import InvalidConfig
 from .types import rpc_config_types, endpoint_types, profile_types
 from . import network_utils

@@ -1,5 +1,6 @@
 from __future__ import annotations
-from mesc.types import RpcConfig
+
+from .types import RpcConfig
 from . import network_names
 
 

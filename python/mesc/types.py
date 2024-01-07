@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import Any, MutableMapping, TypedDict, Literal, Sequence
+
+from typing_extensions import Any, MutableMapping, TypedDict, Literal, Sequence
 
 
 mesc_env_vars = [
