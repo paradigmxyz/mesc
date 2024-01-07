@@ -1,6 +1,7 @@
 use super::subcommands::*;
 use crate::MescCliError;
 use clap::{Parser, Subcommand};
+use toolstr::Colorize;
 
 pub(crate) async fn run_cli() -> Result<(), MescCliError> {
     match Cli::parse().command {
@@ -12,12 +13,27 @@ pub(crate) async fn run_cli() -> Result<(), MescCliError> {
         Commands::Endpoint(args) => endpoint_command(args),
         Commands::Metadata(args) => metadata_command(args),
         Commands::Url(args) => url_command(args),
+        Commands::Help(args) => help_command(args),
     }
+}
+
+fn get_after_str() -> String {
+    let example = format!(
+        "{} {}{}",
+        "(print these with".italic().truecolor(100, 100, 100),
+        "mesc help <TOPIC>".bold(),
+        ")".italic().truecolor(100, 100, 100),
+    );
+    let mut output = format!("{} {}", "Help topics:".to_string().bold().underline(), example);
+    for (topic, description) in get_help_topics().iter() {
+        output = format!("{}\n  {:<9} {}", output, topic.bold(), description);
+    }
+    output
 }
 
 /// Utility for creating and managing MESC RPC configurations
 #[derive(Parser)]
-#[clap(author, version, about, long_about = None)]
+#[clap(author, version, about, long_about = None, disable_help_subcommand = true, after_help=&get_after_str())]
 pub(crate) struct Cli {
     #[clap(subcommand)]
     pub(crate) command: Commands,
@@ -42,6 +58,8 @@ pub(crate) enum Commands {
     Metadata(MetadataArgs),
     /// Print endpoint URL
     Url(UrlArgs),
+    /// Print help
+    Help(HelpArgs),
 }
 
 /// Arguments for the `setup` subcommand
@@ -183,4 +201,12 @@ pub(crate) struct UrlArgs {
     /// profile
     #[clap(short, long)]
     pub(crate) profile: Option<String>,
+}
+
+/// Arguments for the `help` subcommand
+#[derive(Parser)]
+pub(crate) struct HelpArgs {
+    /// topic
+    #[clap()]
+    pub(crate) topic: Option<String>,
 }

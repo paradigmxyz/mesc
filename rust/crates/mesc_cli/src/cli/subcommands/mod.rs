@@ -1,5 +1,6 @@
 mod defaults;
 mod endpoint;
+mod help;
 mod ls;
 mod metadata;
 mod ping;
@@ -9,6 +10,7 @@ mod url;
 
 pub(crate) use defaults::*;
 pub(crate) use endpoint::*;
+pub(crate) use help::*;
 pub(crate) use ls::*;
 pub(crate) use metadata::*;
 pub(crate) use ping::*;
