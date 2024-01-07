@@ -17,6 +17,7 @@ from typing import Mapping, MutableMapping
 
 # specialcase the standard name for certain chains
 special_cases: Mapping[str, str] = {
+    "OP Mainnet": "optimism",
     "Genesis Coin": "genesis_coin",
     "X1 Network": "x1_network",
     "ThaiChain 2.0 ThaiFi": "thaifi",
