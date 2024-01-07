@@ -39,6 +39,11 @@ class RpcConfig(TypedDict):
     global_metadata: MutableMapping[str, Any]
 
 
+#
+# # query types
+#
+
+
 class EndpointQuery(TypedDict):
     query_type: Literal[
         "default_endpoint",
