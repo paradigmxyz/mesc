@@ -21,3 +21,5 @@ testpaths = [
     "tests",
 ]
 
+[tool.ruff.format]
+quote-style = "single"
