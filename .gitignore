@@ -4,5 +4,8 @@ TODO.md
 INTEGRATION.md
 PITCH.md
 *.json
+!package.json
+!tsconfig.json
 __pycache__
 python/dist
+_
