@@ -80,11 +80,10 @@ fn print_env_help() {
     ];
 
     println!("MESC environment variables:");
-    println!();
     for (name, value, example) in messages.iter() {
+        println!();
         println!("{:>22}  {}", name.bold(), value);
         println!("{:>32} {}", "example:".truecolor(100, 100, 100), example.green().bold());
-        println!();
     }
 }
 
