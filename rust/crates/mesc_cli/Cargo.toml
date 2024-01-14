@@ -19,7 +19,7 @@ edit = "0.1.4"
 futures = "0.3.29"
 inquire = "0.6.2"
 ipgeolocate = "0.3.6"
-mesc = { version = "0.1.0", path = "../mesc" }
+mesc = { version = "0.1.4", path = "../mesc" }
 reqwest = { version = "0.11.22", features = ["json"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
