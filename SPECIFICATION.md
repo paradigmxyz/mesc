@@ -108,6 +108,7 @@ MESC is built using three key-value data schemas:
 | `name`              | `str`                    | name of profile
 | `default_endpoint`  | `str \| None`            | chain_id of default network
 | `network_defaults`  | `Mapping[ChainId, str]`  | map of chain_id's to endpoint names
+| `use_mesc`          | `bool`                   | whether to disable MESC when this profile is selected
 
 Requirements:
 - All keys of `RpcConfig` and `Endpoint` are required. No additional keys should be present, except within `global_metadata` and `endpoint_metadata`.
@@ -190,8 +191,8 @@ These overrides use a simple syntax that is intended to be easily written by hum
 | --- | --- | --- |
 | `MESC_DEFAULT_ENDPOINT`  | url, endpoint name, or network name                               | `localhost:9999` |
 | `MESC_NETWORK_DEFAULTS`  | space-separated pairs of `<chain_id>=<endpoint>`                  | `5=alchemy_optimism 1=local_mainnet` |
-| `MESC_NETWORK_NAMES`     | space-separated pairs of `<network_name>=<chain_id>`                      | `zora=7777777` |
-| `MESC_ENDPOINTS`         | space-separated items of `[<endpoint_name>[:<chain_id>]=]<url>`            | `alchemy_optimism=https://alchemy.com/fjsj local_goerli:5=localhost:8545` |
+| `MESC_NETWORK_NAMES`     | space-separated pairs of `<network_name>=<chain_id>`              | `zora=7777777` |
+| `MESC_ENDPOINTS`         | space-separated items of `[<endpoint_name>[:<chain_id>]=]<url>`   | `alchemy_optimism=https://alchemy.com/fjsj local_goerli:5=localhost:8545` |
 | `MESC_PROFILES`          | space-separated pairs of `<profile>.<key>[.<chain_id]=<endpoint>` | `foundry.default_endpoint=local_goerli foundry.network_defaults.5=alchemy_optimism` |
 | `MESC_GLOBAL_METADATA`   | JSON formatted global metadata                                    | `{}` |
 | `MESC_ENDPOINT_METADATA` | JSON mapping of `{"endpoint_name": {<ENDPOINT_METADATA>}}`        | `{}` |
@@ -201,7 +202,7 @@ These overrides use a simple syntax that is intended to be easily written by hum
 - Setting an override variable to an empty value will disable that override from being used.
 - Setting an override variable to an invalid value should result in an error upon loading the config.
 - Metadata overrides (`MESC_GLOBAL_METADATA` and `MESC_ENDPOINT_METADATA`) merge into the underlying config values instead of replacing them.
-- Using `MESC_MODE=DISABLED` is a simple way to completely disable MESC.
+- Using `MESC_MODE=DISABLED` is a simple way to completely disable MESC. Using `MESC_PROFILES=profile.use_mesc=false` will disable MESC for a particular profile.
 
 #### Querying Data
 

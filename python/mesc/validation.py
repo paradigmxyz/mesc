@@ -98,7 +98,6 @@ def validate(config: Any) -> None:
                     + str(endpoint)
                 )
 
-
     # default endpoints of each network actually use that specified network
     for chain_id, endpoint_name in config['network_defaults'].items():
         if chain_id != config['endpoints'][endpoint_name]['chain_id']:
@@ -156,7 +155,8 @@ def validate(config: Any) -> None:
                     + str(chain_id)
                 )
     for endpoint in config['endpoints'].values():
-        if not network_utils.is_chain_id(endpoint['chain_id']):
+        chain_id = endpoint['chain_id']
+        if chain_id is not None and not network_utils.is_chain_id(chain_id):
             raise Exception(
                 'Invalid chain_id used in endpoint '
                 + endpoint['name']

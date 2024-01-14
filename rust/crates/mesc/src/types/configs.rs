@@ -31,12 +31,19 @@ pub struct Profile {
     pub default_endpoint: Option<String>,
     /// network_defaults
     pub network_defaults: HashMap<ChainId, String>,
+    /// use mesc
+    pub use_mesc: bool,
 }
 
 impl Profile {
     /// create new profile
     pub fn new<T: Into<String>>(name: T) -> Profile {
-        Profile { name: name.into(), default_endpoint: None, network_defaults: HashMap::new() }
+        Profile {
+            name: name.into(),
+            default_endpoint: None,
+            network_defaults: HashMap::new(),
+            use_mesc: true,
+        }
     }
 }
 

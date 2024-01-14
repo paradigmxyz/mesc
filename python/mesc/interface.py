@@ -31,6 +31,8 @@ def get_default_endpoint(
 
     # get endpoint name
     if profile is not None and profile in config['profiles']:
+        if not config['profiles'][profile]['use_mesc']:
+            return None
         endpoint = config['profiles'][profile].get(
             'default_endpoint', config['default_endpoint']
         )
@@ -73,6 +75,8 @@ def get_endpoint_by_network(
 
     # get profile default for network
     if profile and profile in config['profiles']:
+        if not config['profiles'][profile]['use_mesc']:
+            return None
         name = config['profiles'][profile]['network_defaults'].get(
             chain_id, default_name
         )
@@ -101,14 +105,14 @@ def get_endpoint_by_query(
     """
     if config is None:
         config = load.read_config_data()
+    if (
+        profile is not None
+        and profile in config['profiles']
+        and not config['profiles'][profile]['use_mesc']
+    ):
+        return None
     if user_input in config['endpoints']:
         return config['endpoints'][user_input]
-    elif user_input.isdecimal():
-        try:
-            get_endpoint_by_network(int(user_input), profile=profile)
-        except Exception:
-            pass
-
     if network_utils.is_chain_id(user_input):
         chain_id: str | None = user_input
     else:

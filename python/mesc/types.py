@@ -28,6 +28,7 @@ class Profile(TypedDict):
     name: str
     default_endpoint: str | None
     network_defaults: MutableMapping[str, str]
+    use_mesc: bool
 
 
 class RpcConfig(TypedDict):
@@ -51,6 +52,7 @@ profile_types: dict[str, type | tuple[type, ...]] = {
     'name': str,
     'default_endpoint': (str, type(None)),
     'network_defaults': dict,
+    'use_mesc': bool,
 }
 
 rpc_config_types: dict[str, type | tuple[type, ...]] = {

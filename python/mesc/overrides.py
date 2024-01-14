@@ -4,7 +4,7 @@ import copy
 import json
 import os
 import re
-from typing_extensions import cast, Any, Mapping, MutableMapping
+from typing_extensions import Any, Mapping, MutableMapping
 
 from . import interface, network_utils, exceptions
 from .types import RpcConfig, Endpoint, Profile
@@ -248,7 +248,12 @@ def env_profiles() -> Mapping[str, Profile]:
         subkeys = key.split('.')
         profiles.setdefault(
             subkeys[0],
-            {'name': subkeys[0], 'default_endpoint': None, 'network_defaults': {}},
+            {
+                'name': subkeys[0],
+                'default_endpoint': None,
+                'network_defaults': {},
+                'use_mesc': True,
+            },
         )
         if len(subkeys) == 2 and subkeys[1] == 'default_endpoint':
             profiles[subkeys[0]]['default_endpoint'] = value
