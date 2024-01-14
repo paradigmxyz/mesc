@@ -6,6 +6,7 @@ use toolstr::Colorize;
 pub(crate) async fn run_cli() -> Result<(), MescCliError> {
     match Cli::parse().command {
         Commands::Setup(args) => setup_command(args).await,
+        Commands::Import(args) => import_command(args).await,
         Commands::Status(args) => status_command(args),
         Commands::Ls(args) => ls_command(args),
         Commands::Defaults(args) => defaults_command(args),
@@ -42,8 +43,10 @@ pub(crate) struct Cli {
 /// Define your subcommands as an enum
 #[derive(Subcommand)]
 pub(crate) enum Commands {
-    /// Create new configuration or modify existing configuration
+    /// Create new config or modify existing config
     Setup(SetupArgs),
+    /// Import a config from file or external source
+    Import(ImportArgs),
     /// Print status of configuration
     Status(StatusArgs),
     /// Print list of endpoints
@@ -72,6 +75,34 @@ pub(crate) struct SetupArgs {
     /// edit data in editor
     #[clap(short, long)]
     pub(crate) editor: bool,
+}
+
+/// Arguments for the `import` subcommand
+#[derive(Parser)]
+pub(crate) struct ImportArgs {
+    /// source for important
+    #[clap()]
+    pub(crate) source: Option<String>,
+
+    /// interactively decide how to perform import
+    #[clap(short, long)]
+    pub(crate) interactive: bool,
+
+    /// specify source name
+    #[clap(long)]
+    pub(crate) source_name: Option<String>,
+
+    /// only import endpoints from this network
+    #[clap(long)]
+    pub(crate) network: Option<String>,
+
+    /// only endpoint with this name
+    #[clap(long)]
+    pub(crate) name: Option<String>,
+
+    /// output filepath (default = MESC_PATH)
+    #[clap(short, long)]
+    pub(crate) output_path: Option<String>,
 }
 
 /// Arguments for the `status` subcommand
