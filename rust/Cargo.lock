@@ -1401,6 +1401,7 @@ version = "0.1.2"
 dependencies = [
  "serde",
  "serde_json",
+ "thiserror",
 ]
 
 [[package]]
@@ -1418,6 +1419,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "thiserror",
  "tokio",
  "toolstr",
  "url",
@@ -2892,11 +2894,12 @@ dependencies = [
 
 [[package]]
 name = "toolstr"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "chrono",
  "polars",
  "regex",
+ "thiserror",
  "toolstr_colored",
  "unicode-truncate",
 ]

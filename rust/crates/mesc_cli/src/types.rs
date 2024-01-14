@@ -1,52 +1,38 @@
 use mesc::MescError;
+use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub(crate) enum MescCliError {
-    MescError(MescError),
-    NetworkError(reqwest::Error),
-    InquireError(inquire::InquireError),
-    SerdeError(serde_json::Error),
-    IOError(std::io::Error),
+    #[error("MESC error: {0}")]
+    MescError(#[from] MescError),
+
+    #[error("Network error: {0}")]
+    NetworkError(#[from] reqwest::Error),
+
+    #[error("Inquire error: {0}")]
+    InquireError(#[from] inquire::InquireError),
+
+    #[error("Serialization/deserialization error: {0}")]
+    SerdeError(#[from] serde_json::Error),
+
+    #[error("I/O error: {0}")]
+    IOError(#[from] std::io::Error),
+
+    #[error("Invalid network response")]
     InvalidNetworkResponse,
-    JoinError(tokio::task::JoinError),
+
+    #[error("Join error: {0}")]
+    JoinError(#[from] tokio::task::JoinError),
+
+    #[error("Invalid input: {0}")]
     InvalidInput(String),
-    FormatError(toolstr::FormatError),
+
+    #[error("Format error: {0}")]
+    FormatError(#[from] toolstr::FormatError),
+
+    #[error("Error: {0}")]
     Error(String),
+
+    #[error("URL error: {0}")]
     UrlError(String),
-}
-
-impl From<mesc::MescError> for MescCliError {
-    fn from(value: mesc::MescError) -> Self {
-        MescCliError::MescError(value)
-    }
-}
-
-impl From<std::io::Error> for MescCliError {
-    fn from(value: std::io::Error) -> Self {
-        MescCliError::IOError(value)
-    }
-}
-
-impl From<reqwest::Error> for MescCliError {
-    fn from(value: reqwest::Error) -> Self {
-        MescCliError::NetworkError(value)
-    }
-}
-
-impl From<inquire::InquireError> for MescCliError {
-    fn from(value: inquire::InquireError) -> Self {
-        MescCliError::InquireError(value)
-    }
-}
-
-impl From<serde_json::Error> for MescCliError {
-    fn from(value: serde_json::Error) -> MescCliError {
-        MescCliError::SerdeError(value)
-    }
-}
-
-impl From<toolstr::FormatError> for MescCliError {
-    fn from(value: toolstr::FormatError) -> MescCliError {
-        MescCliError::FormatError(value)
-    }
 }
