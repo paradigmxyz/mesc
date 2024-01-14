@@ -252,6 +252,7 @@ def env_profiles() -> Mapping[str, Profile]:
                 'name': subkeys[0],
                 'default_endpoint': None,
                 'network_defaults': {},
+                'profile_metadata': {},
                 'use_mesc': True,
             },
         )

@@ -28,6 +28,7 @@ class Profile(TypedDict):
     name: str
     default_endpoint: str | None
     network_defaults: MutableMapping[str, str]
+    profile_metadata: MutableMapping[str, Any]
     use_mesc: bool
 
 
@@ -52,6 +53,7 @@ profile_types: dict[str, type | tuple[type, ...]] = {
     'name': str,
     'default_endpoint': (str, type(None)),
     'network_defaults': dict,
+    'profile_metadata': dict,
     'use_mesc': bool,
 }
 

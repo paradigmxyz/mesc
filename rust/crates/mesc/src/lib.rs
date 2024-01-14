@@ -15,6 +15,8 @@ pub use types::*;
 mod interface;
 /// load module
 pub mod load;
+/// metadata
+pub mod metadata;
 pub mod network_names;
 pub use interface::*;
 /// overrides module

@@ -32,6 +32,7 @@ blank_profile: Profile = {
     "name": "name",
     "default_endpoint": None,
     "network_defaults": {},
+    "profile_metadata": {},
     "use_mesc": True,
 }
 
@@ -83,6 +84,7 @@ full_config: RpcConfig = {
             "name": "abc",
             "default_endpoint": None,
             "network_defaults": {},
+            "profile_metadata": {},
             "use_mesc": True,
         },
         "xyz": {
@@ -92,6 +94,7 @@ full_config: RpcConfig = {
                 "1": "llamanodes_ethereum",
                 "10": "llamanodes_optimism",
             },
+            "profile_metadata": {},
             "use_mesc": True,
         },
     },

@@ -31,6 +31,8 @@ pub struct Profile {
     pub default_endpoint: Option<String>,
     /// network_defaults
     pub network_defaults: HashMap<ChainId, String>,
+    /// profile metadata
+    pub profile_metadata: HashMap<String, serde_json::Value>,
     /// use mesc
     pub use_mesc: bool,
 }
@@ -42,6 +44,7 @@ impl Profile {
             name: name.into(),
             default_endpoint: None,
             network_defaults: HashMap::new(),
+            profile_metadata: HashMap::new(),
             use_mesc: true,
         }
     }

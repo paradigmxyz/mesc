@@ -98,7 +98,7 @@ MESC is built using three key-value data schemas:
 | ---                 | ---                 | --- |
 | `name`              | `str`               | name of endpoint
 | `url`               | `str`               | url of endpoint, including transport
-| `chain_id`          | `ChainId \| None`    | chain id of network
+| `chain_id`          | `ChainId \| None`   | chain id of network
 | `endpoint_metadata` | `Mapping[str, Any]` | endpoint metadata entries
 
 ##### `Profile` schema:
@@ -108,10 +108,11 @@ MESC is built using three key-value data schemas:
 | `name`              | `str`                    | name of profile
 | `default_endpoint`  | `str \| None`            | chain_id of default network
 | `network_defaults`  | `Mapping[ChainId, str]`  | map of chain_id's to endpoint names
+| `profile_metadata`  | `Mapping[str, Any]`      | profile metadata entries
 | `use_mesc`          | `bool`                   | whether to disable MESC when this profile is selected
 
 Requirements:
-- All keys of `RpcConfig` and `Endpoint` are required. No additional keys should be present, except within `global_metadata` and `endpoint_metadata`.
+- All keys of `RpcConfig` and `Endpoint` are required. No additional keys should be present, except within `global_metadata`, `profile_metadata`, and `endpoint_metadata`.
 - Every endpoint name specified in `RpcConfig.default_endpoint` and in `RpcConfig.network_defaults` must exist in `RpcConfig.endpoints`.
 - These key-value structures can be easily represented in JSON and in most common programming languages.
 - Each `chain_id` should be represented using either a decimal string or a hex string. Strings are used because chain id's can be 256 bits and most languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
@@ -119,7 +120,7 @@ Requirements:
 
 ##### Metadata
 
-The `global_metadata` and `endpoint_metadata` fields allow for optional or idiosyncratic RPC metadata to be stored alongside the core RPC data. Tools using MESC can choose to ignore these fields. Examples of common metadata:
+The `global_metadata`, `profile_metadata`, and `endpoint_metadata` fields allow for optional or idiosyncratic RPC metadata to be stored alongside the core RPC data. Tools using MESC can choose to ignore these fields. Examples of common metadata:
 
 **Endpoint metadata**
 | key | value type | description | examples |
@@ -138,7 +139,7 @@ The `global_metadata` and `endpoint_metadata` fields allow for optional or idios
 | `cloud_region`          | `str`                        | cloud provider region                                   | `aws-us-east-1a` |
 | `labels`                | `Sequence[str]`              | tags                                                    | `private_mempool`, `cache`, `archive`, `consensus_layer`, `execution_layer`, `validator`, `ephemeral` |
 
-**Global Metadata**
+**Global Metadata** and **Profile Metadata**
 | key                  | value type                    | description                                                               | examples |
 | ---                  | ---                           | ---                                                                       | ---      |
 | `last_modified_by`   | `str`                         | versioned tool used to create configuration                               | `mesc__1.0` |
@@ -147,8 +148,6 @@ The `global_metadata` and `endpoint_metadata` fields allow for optional or idios
 | `api_keys`           | `Mapping[str, str]`           | API keys to RPC-related services                                          | `{"etherscan": "abc123"}` |
 | `groups`             | `Mapping[str, Sequence[str]]` | groupings of endpoints, mapping of group name to list of endpoint names   | `{"load_balancer": ["alchemy_optimism", "quicknode_optimism"]}` |
 | `conceal`            | `bool`                        | whether tool should avoid casually revealing private RPC url's unprompted | `true` |
-
-Other metadata keys that are specific to a tool should be prefixed by that tool's name (e.g. tool `xyz` should prefix its metadata keys with `"xyz__"`).
 
 #### Environment
 
@@ -193,7 +192,7 @@ These overrides use a simple syntax that is intended to be easily written by hum
 | `MESC_NETWORK_DEFAULTS`  | space-separated pairs of `<chain_id>=<endpoint>`                  | `5=alchemy_optimism 1=local_mainnet` |
 | `MESC_NETWORK_NAMES`     | space-separated pairs of `<network_name>=<chain_id>`              | `zora=7777777` |
 | `MESC_ENDPOINTS`         | space-separated items of `[<endpoint_name>[:<chain_id>]=]<url>`   | `alchemy_optimism=https://alchemy.com/fjsj local_goerli:5=localhost:8545` |
-| `MESC_PROFILES`          | space-separated pairs of `<profile>.<key>[.<chain_id]=<endpoint>` | `foundry.default_endpoint=local_goerli foundry.network_defaults.5=alchemy_optimism` |
+| `MESC_PROFILES`          | space-separated pairs of `<profile>.<key>[.<subkey]=<endpoint>`   | `foundry.default_endpoint=local_goerli foundry.network_defaults.5=alchemy_optimism` |
 | `MESC_GLOBAL_METADATA`   | JSON formatted global metadata                                    | `{}` |
 | `MESC_ENDPOINT_METADATA` | JSON mapping of `{"endpoint_name": {<ENDPOINT_METADATA>}}`        | `{}` |
 
@@ -255,11 +254,14 @@ This is a basic configuration of 5 endpoints across 3 networks. It also contains
     },
     "profiles": {
         "xyz": {
+            "name": "xyz",
             "default_endpoint": "llamanodes_polygon",
             "network_defaults": {
                 "1": "llamanodes_ethereum",
                 "137": "llamanodes_polygon"
-            }
+            },
+            "profile_metadata": {},
+            "use_mesc": true
         }
     },
     "global_metadata": {}
@@ -286,7 +288,7 @@ Want to satisfy all of these constraints:
 - minimize complexity
 
 Other notes:
-- `global_metadata` and `endpoint_metadata` allow extra information to be stored in the config without breaking the standard. This includes api keys, rate limits, and organizational labels. This information might be specific to each application.
+- `global_metadata`, `profile_metadata`, and `endpoint_metadata` allow extra information to be stored in the config without breaking the standard. This includes api keys, rate limits, and organizational labels. This information might be specific to each application.
 - `Profile`s allow different defaults to be assigned to each tool or each mode of operation.
 - Allowing RPC information to be configured using either a file or an environment variable allows optimal deployment patterns across a wide range of computing environments. Each also has their own advantages, e.g. file can be used with version control whereas environment variables can be changed more dynamically.
 

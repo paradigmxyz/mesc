@@ -14,7 +14,7 @@ pub(crate) async fn import_command(args: ImportArgs) -> Result<(), MescCliError>
     };
 
     // gather existing import sources
-    let custom_sources = if !mesc::is_mesc_enabled() {
+    if !mesc::is_mesc_enabled() {
         println!("MESC is not enabled, but importing anyway...")
     };
 
