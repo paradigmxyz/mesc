@@ -835,10 +835,13 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
                     _ => return Ok(()),
                 };
                 config.default_endpoint = Some(endpoint_name.clone());
-                let endpoint = mesc::query::get_endpoint_by_name(config, endpoint_name.as_str())?;
-                if let Some(chain_id) = endpoint.chain_id {
-                    config.network_defaults.insert(chain_id, endpoint_name);
-                };
+                if let Some(endpoint) =
+                    mesc::query::get_endpoint_by_name(config, endpoint_name.as_str())?
+                {
+                    if let Some(chain_id) = endpoint.chain_id {
+                        config.network_defaults.insert(chain_id, endpoint_name);
+                    };
+                }
             }
             Ok("Set the default endpoint for network") => {
                 let prompt = "Set the default endpoint for which network?";
@@ -907,15 +910,17 @@ fn modify_defaults(config: &mut RpcConfig) -> Result<(), MescCliError> {
                             Some(value) => value,
                             _ => return Ok(()),
                         };
-                        let endpoint =
-                            mesc::query::get_endpoint_by_name(config, &default_endpoint)?;
-                        if let Some(profile) = config.profiles.get_mut(&profile_name) {
-                            profile.default_endpoint = Some(default_endpoint.clone());
-                            if let Some(chain_id) = endpoint.chain_id.clone() {
-                                profile.network_defaults.insert(chain_id, default_endpoint);
+                        if let Some(endpoint) =
+                            mesc::query::get_endpoint_by_name(config, &default_endpoint)?
+                        {
+                            if let Some(profile) = config.profiles.get_mut(&profile_name) {
+                                profile.default_endpoint = Some(default_endpoint.clone());
+                                if let Some(chain_id) = endpoint.chain_id.clone() {
+                                    profile.network_defaults.insert(chain_id, default_endpoint);
+                                }
+                            } else {
+                                println!("profile not present");
                             }
-                        } else {
-                            println!("profile not present");
                         }
                     }
                     Ok("Set the profile's default endpoint for a network") => {

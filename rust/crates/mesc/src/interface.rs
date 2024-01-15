@@ -26,7 +26,7 @@ pub fn get_endpoint_by_network<T: TryIntoChainId>(
 }
 
 /// get endpoint by name
-pub fn get_endpoint_by_name(name: &str) -> Result<Endpoint, MescError> {
+pub fn get_endpoint_by_name(name: &str) -> Result<Option<Endpoint>, MescError> {
     query::get_endpoint_by_name(&load_config_data()?, name)
 }
 

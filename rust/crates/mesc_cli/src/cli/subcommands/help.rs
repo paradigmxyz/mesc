@@ -107,27 +107,30 @@ fn print_code(content: String, filetype: &str) {
 fn print_python_interface() {
     let interface = r#"import mesc
 
+# check whether mesc is enabled
+enabled: bool = mesc.is_mesc_enabled()
+
 # get the default endpoint
-endpoint = mesc.get_default_endpoint()
+endpoint: Endpoint | None = mesc.get_default_endpoint()
 
 # get the default endpoint of a network
-endpoint = mesc.get_endpoint_by_network(5)
+endpoint: Endpoint | None = mesc.get_endpoint_by_network(5)
 
 # get the default endpoint for a particular tool
-endpoint = mesc.get_default_endpoint(profile='xyz_tool')
+endpoint: Endpoint | None = mesc.get_default_endpoint(profile='xyz_tool')
 
 # get the default endpoint of a network for a particular tool
-endpoint = mesc.get_endpoint_by_network(5, profile='xyz_tool')
+endpoint: Endpoint | None = mesc.get_endpoint_by_network(5, profile='xyz_tool')
 
 # get an endpoint by name
-endpoint = mesc.get_endpoint_by_name('local_goerli')
+endpoint: Endpoint | None = mesc.get_endpoint_by_name('local_goerli')
 
 # parse a user-provided string into a matching endpoint
 # (try 1. endpoint name, then 2. chain id, then 3. network name)
-endpoint = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
+endpoint: Endpoint | None = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
 
 # find all endpoints matching given criteria
-endpoints = mesc.find_endpoints(chain_id=5)"#;
+endpoints: list[Endpoint] = mesc.find_endpoints(chain_id=5)"#;
 
     print_code(interface.to_string(), "py")
 }
@@ -138,7 +141,6 @@ use mesc::MescError;
 
 type OptionalResult = Result<Option<Endpoint>, MescError>;
 type MultiResult = Result<Vec<Endpoint>, MescError>;
-type Result = Result<Option<Endpoint>, MescError>;
 
 // get the default endpoint
 let endpoint: OptionalResult = mesc::get_default_endpoint(None);
@@ -153,7 +155,7 @@ let chain_id: OptionalResult = mesc::get_default_endpoint("xyz_tool");
 let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, "xyz_tool");
 
 // get an endpoint by name
-let endpoint: Result = mesc::get_endpoint_by_name("local_query");
+let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_query");
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)

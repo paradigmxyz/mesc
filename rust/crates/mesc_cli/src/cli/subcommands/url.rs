@@ -3,7 +3,7 @@ use crate::{MescCliError, UrlArgs};
 pub(crate) fn url_command(args: UrlArgs) -> Result<(), MescCliError> {
     // get endpoint
     let endpoint = match (args.name, args.network, args.query) {
-        (Some(name), _, _) => mesc::get_endpoint_by_name(name.as_str()).map(Some),
+        (Some(name), _, _) => mesc::get_endpoint_by_name(name.as_str()),
         (None, Some(_), Some(_)) => {
             return Err(MescCliError::InvalidInput("specify either query or --network".to_string()))
         }

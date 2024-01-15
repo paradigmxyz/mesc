@@ -59,7 +59,9 @@ use mesc::MescError;
 
 type OptionalResult = Result<Option<Endpoint>, MescError>;
 type MultiResult = Result<Vec<Endpoint>, MescError>;
-type Result = Result<Option<Endpoint>, MescError>;
+
+// check whether mesc is enabled
+let enabled: bool = mesc::is_mesc_enabled();
 
 // get the default endpoint
 let endpoint: OptionalResult = mesc::get_default_endpoint(None);
@@ -74,7 +76,7 @@ let chain_id: OptionalResult = mesc::get_default_endpoint("xyz_tool");
 let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, "xyz_tool");
 
 // get an endpoint by name
-let endpoint: Result = mesc::get_endpoint_by_name("local_query");
+let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_query");
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)

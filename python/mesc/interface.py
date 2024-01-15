@@ -5,7 +5,6 @@ from typing_extensions import Any, Mapping, Sequence
 
 from .types import mesc_env_vars, Endpoint, RpcConfig
 from . import network_utils
-from . import exceptions
 from . import load
 
 
@@ -46,14 +45,13 @@ def get_default_endpoint(
         return get_endpoint_by_name(endpoint, config=config)
 
 
-def get_endpoint_by_name(name: str, *, config: RpcConfig | None = None) -> Endpoint:
+def get_endpoint_by_name(
+    name: str, *, config: RpcConfig | None = None
+) -> Endpoint | None:
     """get MESC endpoint by name"""
     if config is None:
         config = load.read_config_data()
-    try:
-        return config['endpoints'][name]
-    except KeyError:
-        raise exceptions.MissingEndpoint('missing endpoint: ' + str(name))
+    return config['endpoints'].get(name)
 
 
 def get_endpoint_by_network(
