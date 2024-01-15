@@ -9,6 +9,14 @@ import (
 	model "github.com/paradigmxyz/mesc/go/pkg/mesc/model"
 )
 
+// FindEndpoints will find all endpoint metadata matching the given criteria.
+// If no criteria is provided, then all endpoints will be returned.
+// If no endpoints are found, then an empty slice of EndpointMetadata will be returned.
+func FindEndpoints(ctx context.Context, findCriteria []criteria.FindEndpointsCriteria, options ...resolution.EndpointResolutionOption) ([]*model.EndpointMetadata, error) {
+	// TODO: implement
+	return nil, errors.New("not implemented")
+}
+
 // GetDefaultEndpoint resolves the endpoint metadata, if available, for the default endpoint.
 // This will return nil if no endpoint metadata can be resolved.
 func GetDefaultEndpoint(ctx context.Context, options ...resolution.EndpointResolutionOption) (*model.EndpointMetadata, error) {
@@ -37,10 +45,8 @@ func GetEndpointsByQuery(ctx context.Context, query string, options ...resolutio
 	return nil, errors.New("not yet implemented")
 }
 
-// FindEndpoints will find all endpoint metadata matching the given criteria.
-// If no criteria is provided, then all endpoints will be returned.
-// If no endpoints are found, then an empty slice of EndpointMetadata will be returned.
-func FindEndpoints(ctx context.Context, findCriteria []criteria.FindEndpointsCriteria, options ...resolution.EndpointResolutionOption) ([]*model.EndpointMetadata, error) {
+// IsMESCEnabled determines if MESC is enabled.
+func IsMESCEnabled(ctx context.Context) (bool, error) {
 	// TODO: implement
-	return nil, errors.New("not implemented")
+	return false, errors.New("not yet implemented")
 }
