@@ -9,9 +9,32 @@ readme = "README.md"
 requires-python = ">=3.7"
 dynamic = ["version", "description"]
 license = {text = "MIT OR Apache-2.0"}
-dependencies = [
-    "typing-extensions = '^4.9.0"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
 ]
+dependencies = [
+    "typing-extensions >=4.9.0",
+]
+
+[project.urls]
+Documentation = "https://github.com/paradigmxyz/mesc"
+Source = "https://github.com/paradigmxyz/mesc"
 
 [tool.mypy]
 python_version = "3.9"
