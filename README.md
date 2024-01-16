@@ -1,9 +1,7 @@
 
 # Multiple Endpoint Shared Configuration (MESC) Standard
 
-MESC is a standard for how crypto tools configure their RPC endpoints.
-
-By following this specification, a user creates a single RPC configuration that can be shared by all crypto tools on their system.
+MESC is a standard for how crypto tools configure their RPC endpoints. By following this specification, a user creates a single RPC configuration that can be shared by all crypto tools on their system.
 
 MESC has two main design goals:
 1. make it easy to share RPC configuration data across tools, languages, and environments
