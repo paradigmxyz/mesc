@@ -24,13 +24,13 @@
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "valibot": "^0.24.1"
+    "valibot": "^0.26.0"
   },
   "devDependencies": {
     "@total-typescript/ts-reset": "^0.5.1",
-    "@types/bun": "^1.0.0",
-    "@types/node": "^20.10.5",
-    "bun": "^1.0.20",
+    "@types/bun": "^1.0.2",
+    "@types/node": "^20.11.4",
+    "bun": "^1.0.23",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
