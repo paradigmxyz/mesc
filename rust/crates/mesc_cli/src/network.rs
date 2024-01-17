@@ -1,6 +1,7 @@
 use super::rpc;
 use crate::MescCliError;
-use std::{net::ToSocketAddrs, time::Instant};
+use mesc::{ChainId, TryIntoChainId};
+use std::{collections::HashMap, net::ToSocketAddrs, time::Instant};
 
 pub(crate) struct EndpointNetworkInfo {
     pub(crate) url: String,
@@ -100,4 +101,31 @@ fn is_using_trace_namespace() -> Result<bool, MescCliError> {
 
 fn is_using_debug_namespace() -> Result<bool, MescCliError> {
     todo!()
+}
+
+pub(crate) async fn fetch_network_list() -> Result<HashMap<ChainId, String>, MescCliError> {
+    let url = "https://chainid.network/chains.json";
+    let response = reqwest::get(url).await?;
+
+    // Check if the response is success and parse the JSON body
+    if response.status().is_success() {
+        let data: Vec<serde_json::Value> = response.json().await?;
+
+        // Create a HashMap to store the chainId and name pairs
+        let mut result_map: HashMap<ChainId, String> = HashMap::new();
+
+        // Iterate through the array of data
+        for datum in data {
+            if let (Some(chain_id), Some(name)) =
+                (datum["chainId"].as_u64(), datum["name"].as_str())
+            {
+                // Insert the pair into the HashMap
+                result_map.insert(chain_id.try_into_chain_id()?, name.to_string());
+            }
+        }
+
+        Ok(result_map)
+    } else {
+        Err(MescCliError::InvalidNetworkResponse)
+    }
 }

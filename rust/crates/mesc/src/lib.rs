@@ -7,13 +7,17 @@
     attr(deny(warnings, rust_2018_idioms), allow(dead_code, unused_variables))
 ))]
 
-mod directory;
+/// directory matching chain_id's to network names
+pub mod directory;
 mod types;
 mod validate;
 pub use types::*;
 mod interface;
 /// load module
 pub mod load;
+/// metadata
+pub mod metadata;
+pub mod network_names;
 pub use interface::*;
 /// overrides module
 pub mod overrides;

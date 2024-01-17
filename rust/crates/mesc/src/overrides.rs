@@ -220,11 +220,9 @@ fn get_profiles_override() -> Result<Option<HashMap<String, Profile>>, MescError
                 }
             };
 
-        let profile = profiles.entry(profile_name.to_string()).or_insert_with(|| Profile {
-            name: profile_name.to_string(),
-            default_endpoint: None,
-            network_defaults: HashMap::new(),
-        });
+        let profile = profiles
+            .entry(profile_name.to_string())
+            .or_insert_with(|| Profile::new(profile_name.to_string()));
 
         match key {
             "default_endpoint" => profile.default_endpoint = Some(endpoint.to_string()),

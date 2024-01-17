@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Endpoint
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct Endpoint {
     /// name
     pub name: String,
@@ -23,7 +23,7 @@ impl Endpoint {
 }
 
 /// Profile
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct Profile {
     /// name
     pub name: String,
@@ -31,12 +31,22 @@ pub struct Profile {
     pub default_endpoint: Option<String>,
     /// network_defaults
     pub network_defaults: HashMap<ChainId, String>,
+    /// profile metadata
+    pub profile_metadata: HashMap<String, serde_json::Value>,
+    /// use mesc
+    pub use_mesc: bool,
 }
 
 impl Profile {
     /// create new profile
     pub fn new<T: Into<String>>(name: T) -> Profile {
-        Profile { name: name.into(), default_endpoint: None, network_defaults: HashMap::new() }
+        Profile {
+            name: name.into(),
+            default_endpoint: None,
+            network_defaults: HashMap::new(),
+            profile_metadata: HashMap::new(),
+            use_mesc: true,
+        }
     }
 }
 
@@ -52,7 +62,7 @@ pub enum ConfigMode {
 }
 
 /// RpcConfig
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct RpcConfig {
     /// mesc version
     pub mesc_version: String,

@@ -1,46 +1,53 @@
-/// MescError
-#[derive(Debug)]
+use thiserror::Error;
+
+/// Errors related to MESC operations.
+#[derive(Error, Debug)]
 pub enum MescError {
-    /// MescNotEnabled
+    /// Error indicating that MESC is not enabled.
+    #[error("Mesc is not enabled")]
     MescNotEnabled,
-    /// InvalidConfigMode
+
+    /// Error for invalid configuration modes.
+    #[error("Invalid configuration mode")]
     InvalidConfigMode,
-    /// InvalidChainId
+
+    /// Error for invalid chain ID, with the invalid ID provided.
+    #[error("Invalid chain ID: {0}")]
     InvalidChainId(String),
-    /// IntegrityError
+
+    /// Error representing an integrity issue, with a description.
+    #[error("Integrity error: {0}")]
     IntegrityError(String),
-    /// MissingEndpoint
+
+    /// Error for missing endpoint, specifying which endpoint is missing.
+    #[error("Missing endpoint: {0}")]
     MissingEndpoint(String),
-    /// IOError
-    IOError(std::io::Error),
-    /// InvalidJson
+
+    /// Error wrapper for standard IO errors.
+    #[error(transparent)]
+    IOError(#[from] std::io::Error),
+
+    /// Error indicating an issue with JSON formatting.
+    #[error("Invalid JSON format")]
     InvalidJson,
-    /// EnvReadError
-    EnvReadError(std::env::VarError),
-    /// NotImplemented
+
+    /// Error wrapper for environment variable read errors.
+    #[error(transparent)]
+    EnvReadError(#[from] std::env::VarError),
+
+    /// Error indicating a feature or function is not implemented, with a description.
+    #[error("Not implemented: {0}")]
     NotImplemented(String),
-    /// SerdeError
-    SerdeError(serde_json::Error),
-    /// InvalidInput
+
+    /// Error wrapper for errors from the `serde_json` crate.
+    #[error(transparent)]
+    SerdeError(#[from] serde_json::Error),
+
+    /// General error for invalid input.
+    #[error("Invalid input")]
     InvalidInput,
-    /// OverrideError
+
+    /// Error for override conflicts, with a description of the conflict.
+    #[error("Override error: {0}")]
     OverrideError(String),
-}
-
-impl From<std::io::Error> for MescError {
-    fn from(value: std::io::Error) -> MescError {
-        MescError::IOError(value)
-    }
-}
-
-impl From<serde_json::Error> for MescError {
-    fn from(value: serde_json::Error) -> MescError {
-        MescError::SerdeError(value)
-    }
-}
-
-impl From<std::env::VarError> for MescError {
-    fn from(value: std::env::VarError) -> MescError {
-        MescError::EnvReadError(value)
-    }
 }

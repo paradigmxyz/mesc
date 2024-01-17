@@ -1,9 +1,7 @@
 
 # Multiple Endpoint Shared Configuration (MESC) Standard
 
-MESC is a standard for how crypto tools configure their RPC endpoints.
-
-By following this specification, a user creates a single RPC configuration that can be shared by all crypto tools on their system.
+MESC is a standard for how crypto tools configure their RPC endpoints. By following this specification, a user creates a single RPC configuration that can be shared by all crypto tools on their system.
 
 MESC has two main design goals:
 1. make it easy to share RPC configuration data across tools, languages, and environments
@@ -33,7 +31,7 @@ These implementations provide a consistent language-agnostic interface while sti
 ## Quickstart
 
 The interactive [`mesc`](./cli) CLI tool makes it easy to create and manage a MESC configuration.
-1. Install: `cargo install mesc`
+1. Install: `cargo install mesc_cli`
 2. Create config interactively: `mesc setup`
 
 To create a MESC config manually:
@@ -67,27 +65,30 @@ Here is a comparison between the python interface and the rust interface:
 ```python
 import mesc
 
+# check whether mesc is enabled
+enabled: bool = mesc.is_mesc_enabled()
+
 # get the default endpoint
-endpoint = mesc.get_default_endpoint()
+endpoint: Endpoint | None = mesc.get_default_endpoint()
 
 # get the default endpoint of a network
-endpoint = mesc.get_endpoint_by_network(5)
+endpoint: Endpoint | None = mesc.get_endpoint_by_network(5)
 
 # get the default endpoint for a particular tool
-endpoint = mesc.get_default_endpoint(profile='xyz_tool')
+endpoint: Endpoint | None = mesc.get_default_endpoint(profile='xyz_tool')
 
 # get the default endpoint of a network for a particular tool
-endpoint = mesc.get_endpoint_by_network(5, profile='xyz_tool')
+endpoint: Endpoint | None = mesc.get_endpoint_by_network(5, profile='xyz_tool')
 
 # get an endpoint by name
-endpoint = mesc.get_endpoint_by_name('local_goerli')
+endpoint: Endpoint | None = mesc.get_endpoint_by_name('local_goerli')
 
 # parse a user-provided string into a matching endpoint
 # (first try 1. endpoint name, then 2. chain id, then 3. network name)
-endpoint = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
+endpoint: Endpoint | None = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
 
 # find all endpoints matching given criteria
-endpoints = mesc.find_endpoints(chain_id=5)
+endpoints: list[Endpoint] = mesc.find_endpoints(chain_id=5)
 ```
 
 ###### rust
@@ -95,28 +96,31 @@ endpoints = mesc.find_endpoints(chain_id=5)
 use mesc;
 use mesc::MescError;
 
+type OptionalResult = Result<Option<Endpoint>, MescError>;
+type MultiResult = Result<Vec<Endpoint>, MescError>;
+
 // get the default endpoint
-let endpoint: Result<Endpoint, MescError> = mesc::get_default_endpoint(None);
+let endpoint: OptionalResult = mesc::get_default_endpoint(None);
 
 // get the default endpoint of a network
-let endpoint: Result<Endpoint, MescError> = mesc::get_endpoint_by_network(5, None);
+let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, None);
 
 // get the default network for a particular tool
-let chain_id: Result<Endpoint, MescError> = mesc::get_default_endpoint("xyz_tool");
+let chain_id: OptionalResult = mesc::get_default_endpoint("xyz_tool");
 
 // get the default endpoint of a network for a particular tool
-let endpoint: Result<Endpoint, MescError> = mesc::get_endpoint_by_network(5, "xyz_tool");
+let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, "xyz_tool");
 
 // get an endpoint by name
-let endpoint: Result<Endpoint, MescError> = mesc::get_endpoint_by_name("local_query");
+let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_query");
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)
-let endpoint: Result<Option<Endpoint>, MescError> = mesc::get_endpoint_by_query(user_str, "xyz_tool");
+let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, "xyz_tool");
 
 // find all endpoints matching given criteria
 let query = mesc::MultiEndpointQuery::new().chain_id(5);
-let endpoints: Result<Vec<Endpoint>, MescError> = mesc::find_endpoints(query);
+let endpoints: MultiResult = mesc::find_endpoints(query);
 ```
 
 ### Typical Usage

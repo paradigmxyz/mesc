@@ -70,16 +70,6 @@ pub(crate) fn validate_config(config: &RpcConfig) -> Result<(), MescError> {
         }
     }
 
-    // // urls are unique
-    // let urls: std::collections::HashSet<_> = config
-    //     .endpoints
-    //     .values()
-    //     .map(|endpoint| endpoint.url.clone())
-    //     .collect();
-    // if urls.len() != config.endpoints.len() {
-    //     return Err(MescError::IntegrityError("urls are not unique".to_string()));
-    // }
-
     // chain_id's are valid
     for network in config.network_defaults.keys() {
         network.to_hex()?;

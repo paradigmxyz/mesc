@@ -14,12 +14,12 @@ pub fn get_default_endpoint(
     if let Some(profile) = profile {
         let name = config.profiles.get(profile).and_then(|p| p.default_endpoint.clone());
         if let Some(name) = name {
-            return get_endpoint_by_name(config, name.as_str()).map(Some);
+            return get_endpoint_by_name(config, name.as_str())
         }
     };
 
     match &config.default_endpoint {
-        Some(name) => get_endpoint_by_name(config, name.as_str()).map(Some),
+        Some(name) => get_endpoint_by_name(config, name.as_str()),
         None => Ok(None),
     }
 }
@@ -36,21 +36,21 @@ pub fn get_endpoint_by_network<T: TryIntoChainId>(
     if let Some(profile) = profile {
         let name = config.profiles.get(profile).and_then(|p| p.network_defaults.get(&chain_id));
         if let Some(name) = name {
-            return get_endpoint_by_name(config, name).map(Some);
+            return get_endpoint_by_name(config, name)
         }
     };
 
     // check if base configuration has a default endpoint for that chain_id
     match config.network_defaults.get(&chain_id) {
-        Some(name) => get_endpoint_by_name(config, name).map(Some),
+        Some(name) => get_endpoint_by_name(config, name),
         None => Ok(None),
     }
 }
 
 /// get endpoint by name
-pub fn get_endpoint_by_name(config: &RpcConfig, name: &str) -> Result<Endpoint, MescError> {
+pub fn get_endpoint_by_name(config: &RpcConfig, name: &str) -> Result<Option<Endpoint>, MescError> {
     if let Some(endpoint) = config.endpoints.get(name) {
-        Ok(endpoint.clone())
+        Ok(Some(endpoint.clone()))
     } else {
         Err(MescError::MissingEndpoint(name.to_string()))
     }

@@ -20,6 +20,19 @@ impl ChainId {
         }
     }
 
+    /// convert to hex representation, zero-padded to 256 bits
+    pub fn to_hex_256(&self) -> Result<String, MescError> {
+        let ChainId(chain_id) = self;
+        if chain_id.starts_with("0x") {
+            Ok(chain_id.clone())
+        } else {
+            match chain_id.parse::<u64>() {
+                Ok(number) => Ok(format!("0x{:016x}", number)),
+                Err(_) => Err(MescError::IntegrityError("bad chain_id".to_string())),
+            }
+        }
+    }
+
     /// return chain_id as &str
     pub fn as_str(&self) -> &str {
         let ChainId(chain_id) = self;
@@ -83,7 +96,7 @@ impl TryIntoChainId for ChainId {
 
 impl TryIntoChainId for String {
     fn try_into_chain_id(self) -> Result<ChainId, MescError> {
-        if self.chars().all(|c| c.is_ascii_digit()) {
+        if !self.is_empty() && self.chars().all(|c| c.is_ascii_digit()) {
             Ok(ChainId(self))
         } else {
             Err(MescError::InvalidChainId(self))
