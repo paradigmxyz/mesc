@@ -50,7 +50,7 @@ func (e EndpointMetadata) GetLocation() (string, bool) {
 
 // GetMethodRateLimit gets the rate limit, if present, of requests per second for the given RPC method name.
 func (e EndpointMetadata) GetMethodRateLimit(methodName string) (float64, bool) {
-	rateLimitPerMethodAny, hasRateLimits := getMetdataAny(rateLimitPerMethodKey, e.EndpointMetadata)
+	rateLimitPerMethodAny, hasRateLimits := getMetadataAny(rateLimitPerMethodKey, e.EndpointMetadata)
 	if !hasRateLimits {
 		return 0.0, false
 	}
