@@ -133,7 +133,7 @@ The `global_metadata`, `profile_metadata`, and `endpoint_metadata` fields allow 
 | `host`                  | `str`                        | name of provider host                                   | `"llamanodes"`, `"alchemy"`, `"quicknode"`, `"localhost"`
 | `ecosystem`             | `str`                        | ecosystem of chain, (e.g. relates mainnets to testnets) | `"ethereum"`, `"polygon"` |
 | `node_client`           | `str`                        | versioned node client                                   | `erigon/2.48.1/linux-amd64/go1.20.5` `reth/v0.1.0-alpha.10-7b781eb60/x86_64-unknown-linux-gnu` |
-| `namespaces`            | `Sequence[str]`              | RPC name spaces enabled for endpoint                    | `["eth", "trace, "debug"]`
+| `namespaces`            | `Sequence[str]`              | RPC name spaces enabled for endpoint                    | `["eth", "trace", "debug"]`
 | `explorer`              | `str`                        | block explorer url                                      | `https://etherscan.io`
 | `location`              | `str`                        | geographic region                                       | `Paris, France` |
 | `cloud_region`          | `str`                        | cloud provider region                                   | `aws-us-east-1a` |
