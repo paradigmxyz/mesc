@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // Profile describes a profile to contextualize resolved endpoint metadata
 type Profile struct {
@@ -64,15 +67,25 @@ func (p Profile) GetEndpointNamesForGrouping(grouping string) ([]string, bool) {
 
 	groupedEndpointsAny, hasGroup := groupsMap[grouping]
 	if !hasGroup {
+		fmt.Println("does not have grouping")
 		return nil, false
 	}
 
-	groupedEndpointsSlice, isSlice := groupedEndpointsAny.([]string)
+	groupedEndpointsAnySlice, isSlice := groupedEndpointsAny.([]any)
 	if !isSlice {
 		return nil, false
 	}
 
-	return groupedEndpointsSlice, true
+	stringSlice := make([]string, len(groupedEndpointsAnySlice))
+	for anyIndex, anyEndpoint := range groupedEndpointsAnySlice {
+		endpointString, isString := anyEndpoint.(string)
+		if !isString {
+			return nil, false
+		}
+		stringSlice[anyIndex] = endpointString
+	}
+
+	return stringSlice, true
 }
 
 // GetCreationTime gets from the metadata the date and time at which the profile was created, present.

@@ -3,6 +3,7 @@ package serialization_test
 import (
 	"bytes"
 	_ "embed"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -26,6 +27,7 @@ var _ = Describe("JSON Deserialization", func() {
 		Expect(*rpcConfig.DefaultEndpoint).To(Equal("local_ethereum"), "the default endpoint should be correct")
 		Expect(rpcConfig.NetworkDefaults).To(HaveKeyWithValue(model.ChainID("1"), "local_ethereum"), "the network defaults should be deserialized")
 		Expect(rpcConfig.NetworkNames).To(HaveKeyWithValue("local_ethereum", model.ChainID("1")), "the network names should be deserialized")
+		Expect(rpcConfig.GlobalMetadata).To(And(HaveLen(1), HaveKeyWithValue("example_global_metadatum", "example-global-value")), "the global metadata should have been read in")
 
 		// verify endpoints
 		Expect(rpcConfig.Endpoints).To(And(HaveLen(1), HaveKey("local_ethereum")), "the local_ethereum endpoint should be deserialized")
@@ -54,7 +56,22 @@ var _ = Describe("JSON Deserialization", func() {
 		expectMatches("labels", ethereumEndpoint.GetLabels, ConsistOf([]string{"archive", "cache", "private_mempool"}))
 
 		// verify profiles
-		// TODO: implement
+		Expect(rpcConfig.Profiles).To(And(HaveLen(1), HaveKey("xyz")), "the xyz profile should be read in")
+		xyzProfile := rpcConfig.Profiles["xyz"]
+		Expect(xyzProfile.Name).To(Equal("xyz"), "the profile name should be correct")
+		Expect(xyzProfile.DefaultEndpoint).ToNot(BeNil(), "the profile should have a default endpoint")
+		Expect(*xyzProfile.DefaultEndpoint).To(Equal("local_ethereum"), "the profile should have the correct default endpoint")
+		Expect(xyzProfile.NetworkDefaults).To(And(HaveLen(1), HaveKeyWithValue(model.ChainID("1"), "local_ethereum")), "the profile should have the correct network defaults")
+		Expect(xyzProfile.UseMESC).To(BeTrue(), "the profile should have MESC enabled")
+		expectMatches("last modified by", xyzProfile.GetLastModifiedBy, Equal("mesc__1.0"))
+		expectMatches("last modified time", xyzProfile.GetLastModifiedTime, BeTemporally("==", time.Unix(1705870535, 0)))
+		expectMatches("creation time", xyzProfile.GetCreationTime, BeTemporally("==", time.Unix(1700200462, 0)))
+		expectMatches("API keys", xyzProfile.GetAPIKeys, And(HaveLen(1), HaveKeyWithValue("etherscan", "abc123")))
+		expectMatches("load balancer groups", func() ([]string, bool) {
+			loadBalancerGroups, hasGroup := xyzProfile.GetEndpointNamesForGrouping("load_balancer")
+			return loadBalancerGroups, hasGroup
+		}, ConsistOf([]string{"alchemy_optimism", "quicknode_optimism"}))
+		expectMatches("conceal", xyzProfile.Conceal, BeTrue())
 	})
 })
 
