@@ -10,6 +10,3 @@ type RPCConfig struct {
 	Profiles        map[string]Profile          // Profiles maps profiles by their profile names
 	GlobalMetadata  map[string]any              // GlobalMetadata contains metadata relevant across all profiles
 }
-
-// TODO: implement helper methods resolving global metadata, per the specification here:
-// https://github.com/paradigmxyz/mesc/blob/main/SPECIFICATION.md#metadata
