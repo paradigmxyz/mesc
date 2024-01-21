@@ -13,7 +13,7 @@ import (
 	"github.com/paradigmxyz/mesc/go/pkg/mesc/model"
 )
 
-//go:embed example.json
+//go:embed example.test_json
 var exampleJSON string
 
 var _ = Describe("JSON Deserialization", func() {

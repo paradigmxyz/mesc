@@ -1,0 +1,62 @@
+{
+    "mesc_version": "MESC 1.0",
+    "default_endpoint": "local_ethereum",
+    "network_defaults": {
+        "1": "local_ethereum"
+    },
+    "network_names": {
+        "local_ethereum": "1"
+    },
+    "endpoints": {
+        "local_ethereum": {
+            "name": "local_ethereum",
+            "url": "http://localhost:8545",
+            "chain_id": "1",
+            "endpoint_metadata": {
+                "rate_limit_rps": 250,
+                "rate_limit_cups": 1000,
+                "rate_limit_per_method": {
+                    "trace_block": 200
+                },
+                "api_key": "a2798f237a2398rf7",
+                "jwt_secret": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.dyt0CoTl4WoVjAHI9Q_CwSKhl6d_9rhM3NrXuJttkao",
+                "host": "local",
+                "ecosystem": "ethereum",
+                "node_client": "reth/v0.1.0-alpha.10-7b781eb60/x86_64-unknown-linux-gnu",
+                "namespaces": ["eth", "trace", "debug"],
+                "explorer": "https://etherscan.io",
+                "location": "Paris, France",
+                "cloud_region": "aws-us-east-1a",
+                "labels": ["private_mempool", "cache", "archive"]
+            }
+        }
+    },
+    "profiles": {
+        "xyz": {
+            "name": "xyz",
+            "default_endpoint": "local_ethereum",
+            "network_defaults": {
+                "1": "local_ethereum"
+            },
+            "profile_metadata": {
+                "last_modified_by": "mesc__1.0",
+                "last_modified_time": 1705870535,
+                "creation_time": 1700200462,
+                "api_keys": {
+                    "etherscan": "abc123"
+                },
+                "groups": {
+                    "load_balancer": [
+                        "alchemy_optimism",
+                        "quicknode_optimism"
+                    ]
+                },
+                "conceal": true
+            },
+            "use_mesc": true
+        }
+    },
+    "global_metadata": {
+        "example_global_metadatum": "example-global-value"
+    }
+}
