@@ -11,16 +11,8 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
     } else {
         let mode = get_write_mode()?;
         let config = load_config_data(&mode)?;
-        let endpoint_word = if config.endpoints.len() == 1 {
-            "endpoint"
-        } else {
-            "endpoints"
-        };
-        let profile_word = if config.profiles.len() == 1 {
-            "profile"
-        } else {
-            "profiles"
-        };
+        let endpoint_word = if config.endpoints.len() == 1 { "endpoint" } else { "endpoints" };
+        let profile_word = if config.profiles.len() == 1 { "profile" } else { "profiles" };
         println!(
             " Current config has {} {} and {} {}",
             config.endpoints.len().to_string().green(),

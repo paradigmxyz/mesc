@@ -137,7 +137,7 @@ pub(crate) async fn modify_global_metadata(config: &mut RpcConfig) -> Result<(),
                         Ok(value) => {
                             config.global_metadata = value;
                             println!(" {}", "Global metadata updated".bold());
-                        },
+                        }
                         Err(_) => {
                             println!(" {}", "Invalid JSON, ignoring".red().bold())
                         }
@@ -154,13 +154,15 @@ pub(crate) async fn modify_global_metadata(config: &mut RpcConfig) -> Result<(),
                         if old_metadata == new_metadata {
                             println!(" {}", "Profile metadata unchanged".bold());
                         } else {
-                            let value: Result<HashMap<String, serde_json::Value>, serde_json::Error> =
-                                serde_json::from_str(&new_metadata);
+                            let value: Result<
+                                HashMap<String, serde_json::Value>,
+                                serde_json::Error,
+                            > = serde_json::from_str(&new_metadata);
                             match value {
                                 Ok(value) => {
                                     config.global_metadata = value;
                                     println!(" {}", "Profile metadata updated".bold());
-                                },
+                                }
                                 Err(_) => {
                                     println!(" {}", "Invalid JSON, ignoring".red().bold())
                                 }
@@ -170,7 +172,7 @@ pub(crate) async fn modify_global_metadata(config: &mut RpcConfig) -> Result<(),
                 } else {
                     return Ok(())
                 }
-            },
+            }
             Ok("Modify endpoint metadata") => {
                 if config.endpoints.is_empty() {
                     println!(" No endpoints in config");
@@ -179,12 +181,12 @@ pub(crate) async fn modify_global_metadata(config: &mut RpcConfig) -> Result<(),
                 } else {
                     return Ok(())
                 }
-            },
+            }
             Ok("Print global metadata") => {
                 println!();
                 println!("{}", colored_json::to_colored_json_auto(&config.global_metadata)?);
                 println!();
-            },
+            }
             Ok("Print profiles metadata") => {
                 if config.profiles.is_empty() {
                     println!(" No profiles in config");
@@ -192,11 +194,14 @@ pub(crate) async fn modify_global_metadata(config: &mut RpcConfig) -> Result<(),
                     println!();
                     for (profile_name, profile) in config.profiles.iter() {
                         println!("profile: {}:", profile_name.bold().white());
-                        println!("{}", colored_json::to_colored_json_auto(&profile.profile_metadata)?);
+                        println!(
+                            "{}",
+                            colored_json::to_colored_json_auto(&profile.profile_metadata)?
+                        );
                         println!();
                     }
                 }
-            },
+            }
             Ok("Back to main menu") => return Ok(()),
             Err(InquireError::OperationCanceled) => return Ok(()),
             _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
