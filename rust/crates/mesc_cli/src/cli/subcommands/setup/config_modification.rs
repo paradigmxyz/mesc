@@ -2,9 +2,8 @@ use crate::MescCliError;
 use inquire::InquireError;
 use mesc::RpcConfig;
 
-use super::{defaults::*, endpoints::*, metadata::*, writing::*};
+use super::{defaults::*, endpoints::*, metadata::*, network_names::*, writing::*};
 use toolstr::Colorize;
-use super::network_names::*;
 
 pub(crate) async fn modify_existing_config(
     config: RpcConfig,
