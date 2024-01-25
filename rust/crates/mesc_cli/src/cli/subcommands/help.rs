@@ -57,7 +57,7 @@ pub(crate) fn print_interactive_help() -> Result<(), MescCliError> {
                 println!();
                 print_help_topic(topic)?;
                 println!()
-            },
+            }
             Err(inquire::InquireError::OperationCanceled) => return Ok(()),
             Err(e) => return Err(e.into()),
         }

@@ -61,6 +61,7 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
             None
         }
         Ok(config) => {
+            keys.push("config found");
             values.push(format!("{}", "true".to_string().green()));
             Some(config)
         }
@@ -94,7 +95,7 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
         include_header_row: false,
         indent: 4,
         column_formats: Some(column_formats),
-        column_delimiter: "   ".to_string(),
+        column_delimiter: "  ".to_string(),
         ..format
     };
     let mut table = toolstr::Table::default();
@@ -131,6 +132,15 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
             println!("[no config]");
         }
     };
+
+    if !args.verbose {
+        println!();
+        println!(
+            "use {} or {} to print additional information",
+            "-v".bold().white(),
+            "--verbose".bold().white()
+        )
+    }
 
     Ok(())
 }
