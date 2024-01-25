@@ -99,6 +99,9 @@ pub(crate) fn select_endpoint(
     prompt: &str,
 ) -> Result<Option<String>, MescCliError> {
     let mut options: Vec<String> = config.endpoints.clone().into_keys().collect();
+    if options.is_empty() {
+        return Ok(None)
+    }
     options.sort();
     match inquire::Select::new(prompt, options).prompt() {
         Ok(answer) => Ok(Some(answer)),
@@ -119,6 +122,9 @@ pub(crate) fn select_endpoint_of_network(
         .filter(|endpoint| endpoint.chain_id.as_ref() == Some(chain_id))
         .map(|endpoint| endpoint.name.clone())
         .collect();
+    if options.is_empty() {
+        return Ok(None)
+    }
     options.sort();
     match inquire::Select::new(prompt, options).prompt() {
         Ok(answer) => Ok(Some(answer)),
@@ -132,6 +138,9 @@ pub(crate) fn select_profile(
     prompt: &str,
 ) -> Result<Option<String>, MescCliError> {
     let mut options: Vec<_> = config.profiles.keys().collect();
+    if options.is_empty() {
+        return Ok(None)
+    }
     options.sort();
     match inquire::Select::new(prompt, options).prompt() {
         Ok(answer) => Ok(Some(answer.to_string())),

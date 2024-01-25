@@ -4,7 +4,7 @@ use mesc::RpcConfig;
 use std::collections::HashMap;
 use toolstr::Colorize;
 
-use super::network_names::*;
+use super::selectors::*;
 
 pub(crate) fn modify_endpoint_metadata(
     endpoint_name: &str,
@@ -20,7 +20,7 @@ pub(crate) fn modify_endpoint_metadata(
         "Add label",
         "Remove label",
         "Set ratelimit",
-        "Set api key",
+        "Set API key",
         "Edit raw JSON",
         "Done editing metadata",
     ];
@@ -93,8 +93,8 @@ pub(crate) fn modify_endpoint_metadata(
                 .endpoint_metadata
                 .insert("rate_limit_rps".to_string(), serde_json::json!(value));
         }
-        Ok("Set api key") => {
-            let api_key = match inquire::Text::new("What is the api key?").prompt() {
+        Ok("Set API key") => {
+            let api_key = match inquire::Text::new("What is the API key?").prompt() {
                 Ok(api_key) => api_key,
                 Err(InquireError::OperationCanceled) => return Ok(()),
                 _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
@@ -115,25 +115,91 @@ pub(crate) fn modify_endpoint_metadata(
 }
 
 pub(crate) async fn modify_global_metadata(config: &mut RpcConfig) -> Result<(), MescCliError> {
-    let options =
-        vec!["Modify raw global metadata JSON", "Edit custom network names", "Back to main menu"];
-    match inquire::Select::new("What do you want to do?", options).prompt() {
-        Ok("Modify raw global metadata JSON") => {
-            let old_metadata = serde_json::to_string(&config.global_metadata)?;
-            let new_metadata = edit::edit(&old_metadata)?;
-            if old_metadata == new_metadata {
-                println!(" {}", "Global metadata unchanged".bold());
-            } else {
-                let value: Result<HashMap<String, serde_json::Value>, serde_json::Error> =
-                    serde_json::from_str(&new_metadata);
-                config.global_metadata = value?;
-                println!(" {}", "Global metadata updated".bold());
+    loop {
+        let options = vec![
+            "Modify global metadata as JSON",
+            "Modify profile metadata as JSON",
+            "Modify endpoint metadata",
+            "Print global metadata",
+            "Print profiles metadata",
+            "Back to main menu",
+        ];
+        match inquire::Select::new("What do you want to do?", options).prompt() {
+            Ok("Modify global metadata as JSON") => {
+                let old_metadata = serde_json::to_string(&config.global_metadata)?;
+                let new_metadata = edit::edit(&old_metadata)?;
+                if old_metadata == new_metadata {
+                    println!(" {}", "Global metadata unchanged".bold());
+                } else {
+                    let value: Result<HashMap<String, serde_json::Value>, serde_json::Error> =
+                        serde_json::from_str(&new_metadata);
+                    match value {
+                        Ok(value) => {
+                            config.global_metadata = value;
+                            println!(" {}", "Global metadata updated".bold());
+                        },
+                        Err(_) => {
+                            println!(" {}", "Invalid JSON, ignoring".red().bold())
+                        }
+                    }
+                }
             }
-            Ok(())
+            Ok("Modify profile metadata as JSON") => {
+                if config.profiles.is_empty() {
+                    println!(" No profiles in config");
+                } else if let Some(profile_name) = select_profile(config, "Which profile?")? {
+                    if let Some(profile) = config.profiles.get(&profile_name) {
+                        let old_metadata = serde_json::to_string(&profile.profile_metadata)?;
+                        let new_metadata = edit::edit(&old_metadata)?;
+                        if old_metadata == new_metadata {
+                            println!(" {}", "Profile metadata unchanged".bold());
+                        } else {
+                            let value: Result<HashMap<String, serde_json::Value>, serde_json::Error> =
+                                serde_json::from_str(&new_metadata);
+                            match value {
+                                Ok(value) => {
+                                    config.global_metadata = value;
+                                    println!(" {}", "Profile metadata updated".bold());
+                                },
+                                Err(_) => {
+                                    println!(" {}", "Invalid JSON, ignoring".red().bold())
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    return Ok(())
+                }
+            },
+            Ok("Modify endpoint metadata") => {
+                if config.endpoints.is_empty() {
+                    println!(" No endpoints in config");
+                } else if let Some(endpoint) = select_endpoint(config, "Which endpoint?")? {
+                    modify_endpoint_metadata(endpoint.as_str(), config)?;
+                } else {
+                    return Ok(())
+                }
+            },
+            Ok("Print global metadata") => {
+                println!();
+                println!("{}", colored_json::to_colored_json_auto(&config.global_metadata)?);
+                println!();
+            },
+            Ok("Print profiles metadata") => {
+                if config.profiles.is_empty() {
+                    println!(" No profiles in config");
+                } else {
+                    println!();
+                    for (profile_name, profile) in config.profiles.iter() {
+                        println!("profile: {}:", profile_name.bold().white());
+                        println!("{}", colored_json::to_colored_json_auto(&profile.profile_metadata)?);
+                        println!();
+                    }
+                }
+            },
+            Ok("Back to main menu") => return Ok(()),
+            Err(InquireError::OperationCanceled) => return Ok(()),
+            _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
         }
-        Ok("Edit custom network names") => modify_custom_network_names(config).await,
-        Ok("Back to main menu") => Ok(()),
-        Err(InquireError::OperationCanceled) => Ok(()),
-        _ => Err(MescCliError::InvalidInput("invalid input".to_string())),
     }
 }

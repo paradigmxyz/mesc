@@ -4,6 +4,7 @@ use mesc::RpcConfig;
 
 use super::{defaults::*, endpoints::*, metadata::*, writing::*};
 use toolstr::Colorize;
+use super::network_names::*;
 
 pub(crate) async fn modify_existing_config(
     config: RpcConfig,
@@ -13,7 +14,8 @@ pub(crate) async fn modify_existing_config(
         "Add new endpoint",
         "Modify endpoint",
         "Modify defaults",
-        "Modify global metadata",
+        "Modify metadata",
+        "Modify network names",
         "Print config as JSON",
         "Exit and save changes",
         "Exit without saving",
@@ -31,7 +33,8 @@ pub(crate) async fn modify_existing_config(
             Ok("Add new endpoint") => add_endpoint(&mut config).await?,
             Ok("Modify endpoint") => modify_endpoint(&mut config).await?,
             Ok("Modify defaults") => modify_defaults(&mut config)?,
-            Ok("Modify global metadata") => modify_global_metadata(&mut config).await?,
+            Ok("Modify metadata") => modify_global_metadata(&mut config).await?,
+            Ok("Modify network names") => modify_custom_network_names(&mut config).await?,
             Ok("Print config as JSON") => {
                 println!();
                 println!("{}", colored_json::to_colored_json_auto(&config)?);
