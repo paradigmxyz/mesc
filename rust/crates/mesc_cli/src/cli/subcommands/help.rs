@@ -9,6 +9,7 @@ pub(crate) fn help_command(args: HelpArgs) -> Result<(), MescCliError> {
             "python" => print_python_interface(),
             "rust" => print_rust_interface(),
             "schema" => print_schema()?,
+            "setup" => print_setup_help(),
             _ => println!("Unknown help topic: {}", topic),
         },
         None => Cli::command().print_help().map_err(|e| {
@@ -19,13 +20,48 @@ pub(crate) fn help_command(args: HelpArgs) -> Result<(), MescCliError> {
     Ok(())
 }
 
+fn print_help_topic(topic: &str) -> Result<(), MescCliError> {
+    match topic {
+        "env" => print_env_help(),
+        "python" => print_python_interface(),
+        "rust" => print_rust_interface(),
+        "schema" => print_schema()?,
+        "setup" => print_setup_help(),
+        _ => println!("Unknown help topic: {}", topic),
+    }
+    Ok(())
+}
+
 pub(crate) fn get_help_topics() -> Vec<(String, String)> {
     vec![
-        ("env".to_string(), "Description of environmental variables".to_string()),
-        ("python".to_string(), "Print python interface".to_string()),
-        ("rust".to_string(), "Print rust interface".to_string()),
+        ("env".to_string(), "Environmental variables".to_string()),
+        ("python".to_string(), "Python interface".to_string()),
+        ("rust".to_string(), "Rust interface".to_string()),
         ("schema".to_string(), "Schemas of configs, endpoints, and profiles".to_string()),
+        ("setup".to_string(), "How to set up MESC".to_string()),
     ]
+}
+
+pub(crate) fn print_interactive_help() -> Result<(), MescCliError> {
+    println!();
+    print_setup_help();
+    println!();
+    let topics = get_help_topics();
+    let mut options: Vec<_> = topics.iter().map(|(t, _)| t.as_str()).collect();
+    options.push("Return to main menu");
+    loop {
+        let prompt = "Print help about other MESC topics?";
+        match inquire::Select::new(prompt, options.clone()).prompt() {
+            Ok("Return to main menu") => return Ok(()),
+            Ok(topic) => {
+                println!();
+                print_help_topic(topic)?;
+                println!()
+            },
+            Err(inquire::InquireError::OperationCanceled) => return Ok(()),
+            Err(e) => return Err(e.into()),
+        }
+    }
 }
 
 fn print_env_help() {
@@ -297,4 +333,20 @@ fn print_schema() -> Result<(), MescCliError> {
     format.print(table)?;
 
     Ok(())
+}
+
+fn print_setup_help() {
+    println!(
+        r#"A basic MESC setup requires two steps:
+1. create a {} configuration file
+2. set the {} environment variable to the path of this file
+
+The {} command can interactively perform both steps
+
+{} can also be used to create and modify configuration data"#,
+        "mesc.json".white().bold(),
+        "MESC_PATH".white().bold(),
+        "mesc setup".white().bold(),
+        "mesc setup".white().bold()
+    )
 }

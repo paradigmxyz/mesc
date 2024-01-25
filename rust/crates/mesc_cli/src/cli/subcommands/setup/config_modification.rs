@@ -3,6 +3,7 @@ use inquire::InquireError;
 use mesc::RpcConfig;
 
 use super::{defaults::*, endpoints::*, metadata::*, network_names::*, writing::*};
+use crate::cli::subcommands::help::print_interactive_help;
 use toolstr::Colorize;
 
 pub(crate) async fn modify_existing_config(
@@ -16,6 +17,7 @@ pub(crate) async fn modify_existing_config(
         "Modify metadata",
         "Modify network names",
         "Print config as JSON",
+        "Print help information",
         "Exit and save changes",
         "Exit without saving",
     ]
@@ -39,6 +41,7 @@ pub(crate) async fn modify_existing_config(
                 println!("{}", colored_json::to_colored_json_auto(&config)?);
                 println!();
             }
+            Ok("Print help information") => print_interactive_help()?,
             Ok("Exit and save changes") => break,
             Ok("Exit without saving") => return Ok(()),
             Err(InquireError::OperationCanceled) => {
