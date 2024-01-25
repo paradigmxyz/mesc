@@ -1,15 +1,17 @@
 use crate::{MescError, RpcConfig, TryIntoChainId};
-use std::fs::File;
+use std::{fs::File, path::Path};
 
 /// write config to file
-pub fn write_config(config: RpcConfig, path: String) -> Result<(), MescError> {
-    if let Some(parent) = std::path::Path::new(&path).parent() {
+pub fn write_config<P: AsRef<Path>>(config: RpcConfig, path: P) -> Result<(), MescError> {
+    let path_ref = path.as_ref();
+
+    if let Some(parent) = path_ref.parent() {
         if !parent.exists() {
-            std::fs::create_dir_all(&path)?
+            std::fs::create_dir_all(parent)?
         };
     }
 
-    let file = File::create(path)?;
+    let file = File::create(path_ref)?;
     Ok(serde_json::to_writer_pretty(file, &config)?)
 }
 
