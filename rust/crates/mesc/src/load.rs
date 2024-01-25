@@ -4,7 +4,7 @@ use std::{env, fs};
 /// check whether mesc is enabled
 pub fn is_mesc_enabled() -> bool {
     if let Ok("DISABLED") = std::env::var("MESC_MODE").as_deref() {
-        return false
+        return false;
     };
     let env_vars = [
         "MESC_MODE",
@@ -79,6 +79,9 @@ pub fn load_file_config(path: Option<String>) -> Result<RpcConfig, MescError> {
         Some(path) => path,
         None => get_config_path()?,
     };
+    if !std::path::Path::new(path.as_str()).exists() {
+        return Err(MescError::MissingConfigFile(path));
+    };
     let config_str = fs::read_to_string(path).map_err(MescError::IOError)?;
     serde_json::from_str(&config_str).map_err(|_| MescError::InvalidJson)
 }
@@ -91,10 +94,13 @@ pub fn get_config_path() -> Result<String, MescError> {
 }
 
 /// expand tilde's in path
-pub fn expand_path(path: String) -> Result<String, MescError> {
-    if let Some(subpath) = path.strip_prefix("~/") {
+pub fn expand_path<P: AsRef<std::path::Path>>(path: P) -> Result<String, MescError> {
+    let path_str =
+        path.as_ref().to_str().ok_or(MescError::InvalidPath("Invalid path".to_string()))?;
+
+    if let Some(subpath) = path_str.strip_prefix("~/") {
         Ok(format!("{}/{}", env::var("HOME")?, subpath))
     } else {
-        Ok(path)
+        Ok(path_str.to_string())
     }
 }
