@@ -1,6 +1,20 @@
 use crate::{ChainId, Endpoint, MescError, Profile, RpcConfig, TryIntoChainId};
 use std::collections::HashMap;
 
+/// get active overrides
+pub fn get_active_overrides() -> Vec<String> {
+    let overrides = [
+        "MESC_NETWORK_NAMES",
+        "MESC_NETWORK_DEFAULTS",
+        "MESC_ENDPOINTS",
+        "MESC_DEFAULT_ENDPOINT",
+        "MESC_GLOBAL_METADATA",
+        "MESC_ENDPOINT_METADATA",
+        "MESC_PROFILES",
+    ];
+    overrides.iter().filter_map(|v| std::env::var(v).ok()).collect()
+}
+
 /// apply overrides to config
 pub fn apply_overrides(config: &mut RpcConfig) -> Result<(), MescError> {
     if let Some(default_endpoint) = get_default_endpoint_override() {

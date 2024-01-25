@@ -73,6 +73,19 @@ pub(crate) async fn get_node_network_info(
     })
 }
 
+pub(crate) fn is_ip(url: &str) -> bool {
+    use std::net::{Ipv4Addr, Ipv6Addr};
+    if url.is_empty() {
+        return false;
+    }
+    let domain = match url.split_once('/') {
+        Some((domain, _)) => domain,
+        None => url,
+    };
+    let domain = domain.split(':').next().unwrap_or("");
+    domain.parse::<Ipv4Addr>().is_ok() || domain.parse::<Ipv6Addr>().is_ok()
+}
+
 fn get_ip_address(url: &str) -> Result<String, MescCliError> {
     let parsed_url = url::Url::parse(url)
         .map_err(|_| MescCliError::UrlError("could not parse url".to_string()))?;
