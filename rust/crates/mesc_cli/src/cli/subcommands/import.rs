@@ -1,7 +1,12 @@
 use crate::{ImportArgs, MescCliError};
 use mesc::RpcConfig;
 
+#[allow(unreachable_code)]
+#[allow(unused_variables)]
 pub(crate) async fn import_command(args: ImportArgs) -> Result<(), MescCliError> {
+    println!("import command under construction, try again later");
+    return Ok(());
+
     // get output path
     let output_path = match (args.output_path, std::env::var("MESC_PATH")) {
         (Some(path), _) => path,

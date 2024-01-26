@@ -7,6 +7,7 @@ pub(crate) async fn run_cli() -> Result<(), MescCliError> {
     match Cli::parse().command {
         Commands::Setup(args) => setup_command(args).await,
         Commands::Import(args) => import_command(args).await,
+        Commands::Set(args) => set_command(args).await,
         Commands::Status(args) => status_command(args),
         Commands::Ls(args) => ls_command(args),
         Commands::Defaults(args) => defaults_command(args),
@@ -43,26 +44,30 @@ pub(crate) struct Cli {
 /// Define your subcommands as an enum
 #[derive(Subcommand)]
 pub(crate) enum Commands {
-    /// Create new config or modify existing config
+    /// Create or modify config interactively
     Setup(SetupArgs),
-    /// Import a config from file or external source
+    /// Modify config by importing from file or other source
     Import(ImportArgs),
-    /// Print status of configuration
-    Status(StatusArgs),
-    /// Print list of endpoints
-    Ls(LsArgs),
-    /// Print list of defaults
-    Defaults(DefaultsArgs),
+    /// Modify config by setting specific values
+    ///
+    /// This command is idempotent
+    Set(SetArgs),
     /// Ping endpoints and fetch metadata
     Ping(PingArgs),
+    /// Print list of defaults
+    Defaults(DefaultsArgs),
     /// Print endpoint
     Endpoint(EndpointArgs),
-    /// Print metadata
-    Metadata(MetadataArgs),
-    /// Print endpoint URL
-    Url(UrlArgs),
     /// Print help
     Help(HelpArgs),
+    /// Print list of endpoints
+    Ls(LsArgs),
+    /// Print metadata
+    Metadata(MetadataArgs),
+    /// Print status of configuration
+    Status(StatusArgs),
+    /// Print endpoint URL
+    Url(UrlArgs),
 }
 
 /// Arguments for the `setup` subcommand
@@ -103,6 +108,34 @@ pub(crate) struct ImportArgs {
     /// output filepath (default = MESC_PATH)
     #[clap(short, long)]
     pub(crate) output_path: Option<String>,
+}
+
+/// Arguments for the `set` subcommand
+#[derive(Parser)]
+pub(crate) struct SetArgs {
+    /// key to set
+    #[clap()]
+    pub(crate) key: Option<String>,
+
+    /// value to set
+    #[clap()]
+    pub(crate) value: Option<String>,
+
+    /// space-separated list of keys
+    #[clap(long)]
+    pub(crate) keys: Option<Vec<String>>,
+
+    /// space-separated list of values (must match --keys)
+    #[clap(long)]
+    pub(crate) values: Option<Vec<String>>,
+
+    /// delete specified key(s) instead of setting them
+    #[clap(long)]
+    pub(crate) delete: bool,
+
+    /// config path to use [default: MESC_PATH]
+    #[clap(long)]
+    pub(crate) path: Option<String>,
 }
 
 /// Arguments for the `status` subcommand
