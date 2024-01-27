@@ -1,18 +1,15 @@
 from __future__ import annotations
-
 from _pytest.config.argparsing import Parser
-from _pytest.fixtures import FixtureRequest
-import pytest
+from _pytest.python import Metafunc
+
+default_adapters = ["adapters/python", "adapters/cli"]
 
 
 def pytest_addoption(parser: Parser) -> None:
-    parser.addoption("--adapter", action="append")
+    parser.addoption("--adapters", action="store", nargs="+", default=default_adapters)
 
 
-@pytest.fixture
-def adapter(request: FixtureRequest) -> str:
-    adapter = request.config.getoption("adapter")
-    if isinstance(adapter, str):
-        return adapter
-    else:
-        raise Exception("must use str adapter")
+def pytest_generate_tests(metafunc: Metafunc) -> None:
+    if "adapter" in metafunc.fixturenames:
+        adapters = metafunc.config.getoption("adapters")
+        metafunc.parametrize("adapter", adapters, scope="function")

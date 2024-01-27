@@ -10,15 +10,16 @@ These tests are language-agnostic, allowing the same tests to be run against eac
 1. Install `pytest` (and `pytest-xdist` for parallel testing):
 `pip install pytest pytest-xdist`
 
+2. Go into the `mesc/tests` directory
 
-2. Then run one of the following commands:
+3. Then run one of these commands:
 
 |description | command |
 | --- | --- |
-| run tests | `pytest test.py` |
-| run test in parallel (much faster) | `pytest test.py -n auto` |
-| run tests in debug mode (helpful for debugging) | `pytest test.py --pdb` |
-| run tests for just one adapter | `pytest test.py --adapters adapters/python` |
+| run tests | `pytest` |
+| run test in parallel (much faster) | `pytest -n auto` |
+| run tests in debug mode (helpful for debugging) | `pytest --pdb` |
+| run tests using specific adapters only | `pytest --adapters adapters/python` |
 
 
 ## Adapters
@@ -37,5 +38,5 @@ The adapter should never crash upon failure, just print the word `FAIL`
 - `adapters/` contains a test adapter for each MESC implementation
 - `conftest.py` configuration file for pytest
 - `generate.py` generates all of the MESC test cases
-- `test.py` packages MESC tests into form usable by pypi
+- `test_mesc.py` packages MESC tests into form usable by pypi
 
