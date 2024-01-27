@@ -51,6 +51,8 @@ def get_endpoint_by_name(
     """get MESC endpoint by name"""
     if config is None:
         config = load.read_config_data()
+    if not isinstance(name, str):
+        raise Exception('invalid type for name query, it must be a str')
     return config['endpoints'].get(name)
 
 

@@ -9,7 +9,7 @@ import time
 from typing import Any, TypeVar, Sequence
 
 from mesc import RpcConfig, Profile, Endpoint
-from mesc.types import EndpointQuery, MultiEndpointQuery, GlobalMetadataQuery, MescQuery
+from mesc.types import MescQuery
 
 blank_config: RpcConfig = {
     "mesc_version": "MESC 1.0",
