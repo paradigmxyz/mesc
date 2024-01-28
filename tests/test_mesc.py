@@ -14,11 +14,12 @@ from typing import (
     Generator,
     Mapping,
     cast,
+    Union,
 )
 import pytest
 
 import generate
-from mesc.types import EndpointQuery, MultiEndpointQuery, RpcConfig
+from mesc.types import RpcConfig, MescQuery
 
 
 # tests are in form [test_name, env, config, query, result, should_succeed]
@@ -26,7 +27,7 @@ Test = tuple[
     str,
     dict[str, str],
     RpcConfig,
-    None | EndpointQuery | MultiEndpointQuery,
+    Union[None, MescQuery],
     Any,
     bool,
 ]
