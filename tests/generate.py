@@ -122,14 +122,15 @@ known_networks = {
 }
 
 # tests are in form [test_name, env, config, query, result, should_succeed]
-Test = tuple[
-    str,
-    dict[str, str],
-    RpcConfig,
-    Union[None, MescQuery],
-    Any,
-    bool,
-]
+if typing.TYPE_CHECKING:
+    Test = tuple[
+        str,
+        dict[str, str],
+        RpcConfig,
+        Union[None, MescQuery],
+        Any,
+        bool,
+    ]
 
 
 def generate_tests() -> list[Test]:
