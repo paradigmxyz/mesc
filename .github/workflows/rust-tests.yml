@@ -1,0 +1,36 @@
+name: Rust Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+
+    - name: Build and Install Rust Project
+      run: |
+        cd rust
+        cargo install --path crates/mesc_cli
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'  # Specify your required Python version
+
+    - name: Install Python dependencies for testing
+      run: |
+        pip install pytest pytest-xdist
+
+    - name: Run Rust tests
+      run: |
+        cd tests
+        pytest --adapters adapters/cli

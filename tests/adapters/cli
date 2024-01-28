@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
 import subprocess
+import typing
 from typing import cast
-from mesc.types import MescQuery
+
+if typing.TYPE_CHECKING:
+    from mesc.types import MescQuery
 
 
 def run_query(query: MescQuery) -> str:

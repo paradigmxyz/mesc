@@ -14,22 +14,26 @@ from typing import (
     Generator,
     Mapping,
     cast,
+    Union,
 )
 import pytest
 
 import generate
-from mesc.types import EndpointQuery, MultiEndpointQuery, RpcConfig
 
+import typing
 
-# tests are in form [test_name, env, config, query, result, should_succeed]
-Test = tuple[
-    str,
-    dict[str, str],
-    RpcConfig,
-    None | EndpointQuery | MultiEndpointQuery,
-    Any,
-    bool,
-]
+if typing.TYPE_CHECKING:
+    from mesc.types import RpcConfig, MescQuery
+
+    # tests are in form [test_name, env, config, query, result, should_succeed]
+    Test = tuple[
+        str,
+        dict[str, str],
+        RpcConfig,
+        Union[None, MescQuery],
+        Any,
+        bool,
+    ]
 
 
 class AdapterFailure(Exception):
