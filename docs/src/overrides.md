@@ -19,7 +19,7 @@ Sometimes it might be useful tweak a MESC config for a shell script. This can be
 
 export MESC_DEFAULT_ENDPOINT=local_goerli
 
-# ...rest of scriptt that does RPC things
+# ...rest of script that does RPC things
 ```
 
 #### Prepending syntax
