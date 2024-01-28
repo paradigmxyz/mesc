@@ -21,15 +21,16 @@ jobs:
         cd rust
         cargo install --path crates/mesc_cli
 
-    - name: Install Python dependencies for testing
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x'
+        python-version: '3.9'  # Specify your required Python version
+
+    - name: Install Python dependencies for testing
       run: |
         pip install pytest pytest-xdist
 
     - name: Run Rust tests
       run: |
-        cd ../tests
-        pytest --adapters adapters/rust
-
+        cd tests
+        pytest
