@@ -25,16 +25,15 @@ import typing
 if typing.TYPE_CHECKING:
     from mesc.types import RpcConfig, MescQuery
 
-
-# tests are in form [test_name, env, config, query, result, should_succeed]
-Test = tuple[
-    str,
-    dict[str, str],
-    RpcConfig,
-    Union[None, MescQuery],
-    Any,
-    bool,
-]
+    # tests are in form [test_name, env, config, query, result, should_succeed]
+    Test = tuple[
+        str,
+        dict[str, str],
+        RpcConfig,
+        Union[None, MescQuery],
+        Any,
+        bool,
+    ]
 
 
 class AdapterFailure(Exception):
