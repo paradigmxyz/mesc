@@ -811,6 +811,18 @@ def create_invalid_config_tests() -> list[Test]:
             False,
         )
     )
+    config = copy.deepcopy(full_config)
+    config['profiles']['abc']["default_endpoint"] = "random_unknown"
+    tests.append(
+        (
+            "unknown default endpoint",
+            {},
+            config,
+            None,
+            None,
+            False,
+        )
+    )
 
     # unknown network defaults
     config = copy.deepcopy(full_config)
@@ -818,6 +830,75 @@ def create_invalid_config_tests() -> list[Test]:
     tests.append(
         (
             "unknown network defaults",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+    config = copy.deepcopy(full_config)
+    config['profiles']['abc']["network_defaults"]["10"] = "random_unknown"
+    tests.append(
+        (
+            "unknown network defaults",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # endpoint name doesn't match
+    config = copy.deepcopy(blank_config)
+    config['endpoints'] = {'other_name': blank_endpoint}
+    tests.append(
+        (
+            "unknown network defaults",
+            {},
+            # dict(blank_config, endpoints={'other_name': blank_endpoint}),
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # profile name doesn't match
+    config = copy.deepcopy(blank_config)
+    config['profiles'] = {'other_name': blank_profile}
+    tests.append(
+        (
+            "unknown network defaults",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # global default endpoint of network doesn't actually use that network
+    config = copy.deepcopy(full_config)
+    config['endpoints']['local_ethereum']['chain_id'] = '4'
+    tests.append(
+        (
+            "global default endpoint of network doesn't actually use that network",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # profile default endpoint of network doesn't actually use that network
+    config = copy.deepcopy(full_config)
+    config['endpoints']['llamanodes_ethereum']['chain_id'] = '4'
+    tests.append(
+        (
+            "global default endpoint of network doesn't actually use that network",
             {},
             config,
             None,
@@ -990,6 +1071,38 @@ def create_invalid_config_tests() -> list[Test]:
                 copy.deepcopy(full_config),
                 ["profiles", "xyz", "network_defaults", "some_profile"],
                 None,
+            ),
+        ),
+        (
+            "profile profile_metadata is null",
+            set_path_value(
+                copy.deepcopy(full_config),
+                ["profiles", "xyz", "profile_metadata"],
+                None,
+            ),
+        ),
+        (
+            "profile profile_metadata is int",
+            set_path_value(
+                copy.deepcopy(full_config),
+                ["profiles", "xyz", "profile_metadata"],
+                1,
+            ),
+        ),
+        (
+            "profile use_mesc is null",
+            set_path_value(
+                copy.deepcopy(full_config),
+                ["profiles", "xyz", "use_mesc"],
+                None,
+            ),
+        ),
+        (
+            "profile use_mesc is int",
+            set_path_value(
+                copy.deepcopy(full_config),
+                ["profiles", "xyz", "use_mesc"],
+                1,
             ),
         ),
         (

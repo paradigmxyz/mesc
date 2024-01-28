@@ -2895,6 +2895,8 @@ dependencies = [
 [[package]]
 name = "toolstr"
 version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af0deafe22b11f8422063fc8bf7aeeaeaf291fc644fc2926917774e9c5eea394"
 dependencies = [
  "chrono",
  "polars",
@@ -2907,6 +2909,8 @@ dependencies = [
 [[package]]
 name = "toolstr_colored"
 version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d335176ed9b133b9d9e226656f2f486f84ebac50250c598246ac6d6d512ac05"
 dependencies = [
  "lazy_static",
  "windows-sys 0.48.0",
