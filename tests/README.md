@@ -1,25 +1,24 @@
 
 # MESC Tests
 
-These tests measure the degree to which a MESC implementation is compliant with the MESC specification.
+A standard set of tests is used to check whether each MESC implementation is compliant with the MESC specification.
 
-These tests are language-agnostic, allowing the same tests to be run against each MESC implementation.
+These tests are language-agnostic and can be run against each MESC implementation.
 
 ## Usage
 
-1. Install `pytest` (and `pytest-xdist` for parallel testing):
-`pip install pytest pytest-xdist`
+1. Install `pytest` with `pytest-xdist`: `pip install pytest pytest-xdist`
 
-2. Go into the `mesc/tests` directory
+2. Go to the tests directory: `cd $MESC_REPO/mesc/tests`
 
-3. Then run one of these commands:
+3. Run one of these commands:
 
 |description | command |
 | --- | --- |
 | run tests | `pytest` |
-| run test in parallel (much faster) | `pytest -n auto` |
+| run test in parallel mode (much faster) | `pytest -n auto` |
 | run tests in debug mode (helpful for debugging) | `pytest --pdb` |
-| run tests using specific adapters only | `pytest --adapters adapters/python` |
+| run tests for specific adapters only | `pytest --adapters adapters/python adapters/cli` |
 
 
 ## Adapters

@@ -4,7 +4,11 @@ The quickest way to use MESC is
 1) create a `mesc.json` config file
 2) set the `MESC_PATH` environment variable to the path of this file
 
-You can create a `mesc.json` either 1) by using the interactive [MESC cli tool](https://github.com/paradigmxyz/mesc/tree/main/cli) (install using `cargo install mesc_cli`) or 2) by modifying the template below:
+## Creating a config file
+
+You can create a `mesc.json` by one of two ways:
+1) use the interactive [MESC cli tool](https://github.com/paradigmxyz/mesc/tree/main/cli) (install using `cargo install mesc_cli` and run `mesc setup`)
+2) modify the template below:
 
 ```json
 {
@@ -37,4 +41,15 @@ You can create a `mesc.json` either 1) by using the interactive [MESC cli tool](
 }
 ```
 
-Configuration should follow the MESC [specification](https://github.com/paradigmxyz/mesc/blob/main/SPECIFICATION.md).
+The structure of the config must follow the MESC [specification](https://github.com/paradigmxyz/mesc/blob/main/SPECIFICATION.md).
+
+## Setting environment variables
+
+The typical way to set environment variables is in your shell configuration files: `~/.bashrc`, `~.profile`, and/or `~/.bash_profile`. Including this line in those files will enable MESC:
+
+```bash
+export MESC_PATH=/path/to/your/mesc.json
+```
+
+You can avoid editing these files yourself by running the MESC setup tool (`mesc setup`) as specified above. It will give you the option to automatically edit your shell files.
+

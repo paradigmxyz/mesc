@@ -1,26 +1,21 @@
 # MESC User Guide
 
 - [MESC Overview](./mesc_overview.md)
-
-<!-- # Basic MESC Usage -->
-
-- [Basic MESC Usage]()
     - [Quickstart](./quickstart.md)
-    - [Creating a config](./creating_a_config.md)
-    - [Environment variables](./environment_variables.md)
+    - [What is MESC?](./what_is_mesc.md)
+    - [Why MESC?](./why_mesc.md)
+    - [Roadmap](./roadmap.md)
+- [Using MESC](./using_mesc.md)
+    - [Setting up MESC](./setup.md)
     - [Profiles](./profiles.md)
     - [Metadata](./metadata.md)
     - [Overrides](./overrides.md)
-
-<!-- # Developer Resources -->
-
-- [Developer Resources]()
+    - [Queries](./queries.md)
+- [Developer Resources](./developer_resources.md)
     - [Integrating MESC](./integrating_mesc.md)
     - [Implementing MESC](./implementing_mesc.md)
-
-<!-- # MESC Libraries -->
-
-- [MESC Libraries]()
+    - [MESC Tests](./mesc_tests.md)
+- [MESC Libraries](./libraries.md)
     - [CLI](./cli.md)
     - [Go](./go.md)
     - [Python](./python.md)

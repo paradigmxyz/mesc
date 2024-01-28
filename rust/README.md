@@ -46,6 +46,8 @@ pub struct Profile {
     pub name: String,
     pub default_endpoint: Option<String>,
     pub network_defaults: HashMap<ChainId, String>,
+    pub profile_metadata: HashMap<String, serde_json::Value>,
+    pub use_mesc: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]

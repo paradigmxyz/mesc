@@ -1,1 +1,1 @@
-# CLI
+{{#include ../../cli/README.md}}

@@ -1,1 +1,1 @@
-# Go
+{{#include ../../go/README.md}}

@@ -1,1 +1,1 @@
-# Typescript
+{{#include ../../typescript/README.md}}

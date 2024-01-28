@@ -1,1 +1,1 @@
-# Rust
+{{#include ../../rust/README.md}}
