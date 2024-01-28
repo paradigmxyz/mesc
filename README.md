@@ -1,6 +1,10 @@
 
 # Multiple Endpoint Shared Configuration (MESC) Standard
 
+![Specification](https://img.shields.io/badge/Spec-blueviolet)
+![Documentation](https://img.shields.io/badge/Docs-green)
+
+
 MESC is a standard for how crypto tools configure their RPC endpoints. By following this specification, a user creates a single RPC configuration that can be shared by all crypto tools on their system.
 
 MESC has two main design goals:
