@@ -385,7 +385,7 @@ export MESC_DEFAULT_ENDPOINT=local_goerli
 <tr><td><code>MESC_ENDPOINT_METADATA</code></td><td>JSON mapping of <code>{&quot;endpoint_name&quot;: {&lt;ENDPOINT_METADATA&gt;}}</code></td><td><code>{}</code></td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="querying-mesc-data"><a class="header" href="#querying-mesc-data">Querying MESC data</a></h1>
-<p>Each MESC implementation provides the same set of 6 functions for querying MESC data.</p>
+<p>Each MESC implementation provides the same set of 7 functions for querying MESC data.</p>
 <p>The behavior of these functions is the same across languages.</p>
 <div class="table-wrapper"><table><thead><tr><th>function</th><th>output type</th><th>description</th><th>example call</th></tr></thead><tbody>
 <tr><td><code>is_mesc_enabled()</code></td><td><code>bool</code></td><td>return whether MESC is enabled</td><td><code>is_mesc_enabled()</code></td></tr>
@@ -393,7 +393,8 @@ export MESC_DEFAULT_ENDPOINT=local_goerli
 <tr><td><code>get_endpoint_by_network()</code></td><td><code>Endpoint</code> or <code>None</code></td><td>get default endpoint for network</td><td><code>get_endpoint_by_network(5, profile='xyz')</code></td></tr>
 <tr><td><code>get_endpoint_by_name()</code></td><td><code>Endpoint</code> or <code>None</code></td><td>get endpoint by name</td><td><code>get_endpoint_by_name('local_goerli')</code></td></tr>
 <tr><td><code>get_endpoint_by_query()</code></td><td><code>Endpoint</code> or <code>None</code></td><td>get endpoint for user input query</td><td><code>get_endpoint_by_query(user_str, profile='xyz')</code></td></tr>
-<tr><td><code>find_endpoints()</code></td><td><code>list[Endpoint]</code></td><td>find endpoint that match input criteria</td><td><code>find_endpoints(chain_id=5)</code></td></tr>
+<tr><td><code>find_endpoints()</code></td><td><code>Sequence[Endpoint]</code></td><td>find endpoint that match input criteria</td><td><code>find_endpoints(chain_id=5)</code></td></tr>
+<tr><td><code>get_global_metadata()</code></td><td><code>Mapping[str, Any]</code></td><td>get non-endpoint metadata</td><td><code>get_global_metadata(profile='xyz')</code></td></tr>
 </tbody></table>
 </div>
 <p>The <code>profile</code> argument is optional for each function (it allows users to customize the settings for each tool, see <a href="./profiles.html">Profiles</a> for details).</p>
@@ -626,7 +627,8 @@ cd mesc
 pip install ./
 </code></pre>
 <h2 id="example-usage-2"><a class="header" href="#example-usage-2">Example Usage</a></h2>
-<pre><code class="language-python">import mesc
+<pre><code class="language-python">from typing import Any, Mapping, Sequence
+import mesc
 
 # check whether mesc is enabled
 enabled: bool = mesc.is_mesc_enabled()
@@ -651,7 +653,10 @@ endpoint: Endpoint | None = mesc.get_endpoint_by_name('local_goerli')
 endpoint: Endpoint | None = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
 
 # find all endpoints matching given criteria
-endpoints: list[Endpoint] = mesc.find_endpoints(chain_id=5)
+endpoints: Sequence[Endpoint] = mesc.find_endpoints(chain_id=5)
+
+# get non-endpoint metadata
+metadata: Mapping[str, Any] = mesc.get_global_metadata(profile='xyz_tool')
 </code></pre>
 <h2 id="reference-1"><a class="header" href="#reference-1">Reference</a></h2>
 <pre><code class="language-python">from typing import Any, MutableMapping, TypedDict, Literal, Sequence
@@ -732,6 +737,7 @@ use mesc::MescError;
 
 type OptionalResult = Result&lt;Option&lt;Endpoint&gt;, MescError&gt;;
 type MultiResult = Result&lt;Vec&lt;Endpoint&gt;, MescError&gt;;
+type MetadataResult = Result&lt;HashMap&lt;String, serde_json::Value&gt;, MescError&gt;
 
 // check whether mesc is enabled
 let enabled: bool = mesc::is_mesc_enabled();
@@ -758,6 +764,9 @@ let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some(&quot;
 // find all endpoints matching given criteria
 let query = mesc::MultiEndpointQuery::new().chain_id(5);
 let endpoints: MultiResult = mesc::find_endpoints(query);
+
+// get non-endpoint metadata
+let metadata: MetadataResult  = mesc::get_global_metadata(Some(&quot;xyz_tool&quot;));
 <span class="boring">}</span></code></pre></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="typescript-mesc-implementation"><a class="header" href="#typescript-mesc-implementation">Typescript MESC Implementation</a></h1>
 <p>[WIP]</p>

@@ -229,6 +229,7 @@ use mesc::MescError;
 
 type OptionalResult = Result&lt;Option&lt;Endpoint&gt;, MescError&gt;;
 type MultiResult = Result&lt;Vec&lt;Endpoint&gt;, MescError&gt;;
+type MetadataResult = Result&lt;HashMap&lt;String, serde_json::Value&gt;, MescError&gt;
 
 // check whether mesc is enabled
 let enabled: bool = mesc::is_mesc_enabled();
@@ -255,6 +256,9 @@ let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some(&quot;
 // find all endpoints matching given criteria
 let query = mesc::MultiEndpointQuery::new().chain_id(5);
 let endpoints: MultiResult = mesc::find_endpoints(query);
+
+// get non-endpoint metadata
+let metadata: MetadataResult  = mesc::get_global_metadata(Some(&quot;xyz_tool&quot;));
 <span class="boring">}</span></code></pre></pre>
 
                     </main>
