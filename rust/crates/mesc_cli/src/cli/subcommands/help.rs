@@ -141,7 +141,8 @@ fn print_code(content: String, filetype: &str) {
 }
 
 fn print_python_interface() {
-    let interface = r#"import mesc
+    let interface = r#"from typing import Any, Mapping, Sequence
+import mesc
 
 # check whether mesc is enabled
 enabled: bool = mesc.is_mesc_enabled()
@@ -166,7 +167,10 @@ endpoint: Endpoint | None = mesc.get_endpoint_by_name('local_goerli')
 endpoint: Endpoint | None = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
 
 # find all endpoints matching given criteria
-endpoints: list[Endpoint] = mesc.find_endpoints(chain_id=5)"#;
+endpoints: Sequence[Endpoint] = mesc.find_endpoints(chain_id=5)
+
+# get non-endpoint metadata
+metadata: Mapping[str, Any] = mesc.get_global_metadata(profile='xyz_tool')"#;
 
     print_code(interface.to_string(), "py")
 }
@@ -177,6 +181,7 @@ use mesc::MescError;
 
 type OptionalResult = Result<Option<Endpoint>, MescError>;
 type MultiResult = Result<Vec<Endpoint>, MescError>;
+type MetadataResult = Result<HashMap<String, serde_json::Value>, MescError>
 
 // get the default endpoint
 let endpoint: OptionalResult = mesc::get_default_endpoint(None);
@@ -199,7 +204,10 @@ let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some("xyz_t
 
 // find all endpoints matching given criteria
 let query = mesc::MultiEndpointQuery::new().chain_id(5);
-let endpoints: MultiResult = mesc::find_endpoints(query);"#;
+let endpoints: MultiResult = mesc::find_endpoints(query);
+
+// get non-endpoint metadata
+let metadata: MetadataResult  = mesc::get_global_metadata(Some("xyz_tool"));"#;
 
     print_code(interface.to_string(), "rs")
 }

@@ -112,10 +112,10 @@ MESC is built using three key-value data schemas:
 | `use_mesc`          | `bool`                   | whether to disable MESC when this profile is selected
 
 Requirements:
-- All keys of `RpcConfig` and `Endpoint` are required. No additional keys should be present, except within `global_metadata`, `profile_metadata`, and `endpoint_metadata`.
+- All keys of `RpcConfig` and `Endpoint` are required. No additional keys must be present, except within `global_metadata`, `profile_metadata`, and `endpoint_metadata`.
 - Every endpoint name specified in `RpcConfig.default_endpoint` and in `RpcConfig.network_defaults` must exist in `RpcConfig.endpoints`.
 - These key-value structures can be easily represented in JSON and in most common programming languages.
-- Each `chain_id` should be represented using either a decimal string or a hex string. Strings are used because chain id's can be 256 bits and most languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
+- EVM `chain_id`'s must be represented using either a decimal string or a hex string. Strings are used because chain id's can be 256 bits and most programming languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
 - Names of endpoints, networks, and profiles should be composed of characters that are either alphanumeric, dashes, underscores, or periods. Names should be at least 1 character long.
 
 ##### Metadata
@@ -207,7 +207,7 @@ These overrides use a simple syntax that is intended to be easily written by hum
 
 When a user specifies an endpoint, as in `-r <ENDPOINT>`, a MESC library must resolve this input into an endpoint URL. It is generally preferable to allow this user query to be a URL, an endpoint name, a network name, or a chain_id. 
 
-MESC data should be searched in the following order:
+MESC data must be searched in the following order:
 1. endpoint names
 2. chain_id
 3. network name
@@ -358,7 +358,10 @@ endpoint: Endpoint | None = mesc.get_endpoint_by_name('local_goerli')
 endpoint: Endpoint | None = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
 
 # find all endpoints matching given criteria
-endpoints: list[Endpoint] = mesc.find_endpoints(chain_id=5)
+endpoints: Sequence[Endpoint] = mesc.find_endpoints(chain_id=5)
+
+# get non-endpoint metadata
+metadata: Mapping[str, Any] = mesc.get_global_metadata(profile='xyz_tool')
 ```
 
 A reference implementation is provided in the supplemental files of this repository.

@@ -24,6 +24,7 @@ pip install ./
 ## Example Usage
 
 ```python
+from typing import Any, Mapping, Sequence
 import mesc
 
 # check whether mesc is enabled
@@ -49,7 +50,10 @@ endpoint: Endpoint | None = mesc.get_endpoint_by_name('local_goerli')
 endpoint: Endpoint | None = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
 
 # find all endpoints matching given criteria
-endpoints: list[Endpoint] = mesc.find_endpoints(chain_id=5)
+endpoints: Sequence[Endpoint] = mesc.find_endpoints(chain_id=5)
+
+# get non-endpoint metadata
+metadata: Mapping[str, Any] = mesc.get_global_metadata(profile='xyz_tool')
 ```
 
 ## Reference
