@@ -6,4 +6,4 @@ PITCH.md
 *.json
 __pycache__
 python/dist
-book/book
+docs/book

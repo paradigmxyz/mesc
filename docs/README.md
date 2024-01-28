@@ -1,7 +1,7 @@
 
 # MESC User Guide
 
-This is the user guide for MESC. See table of contents in [Summary](SUMMARY.md).
+This is the user guide for MESC. See table of contents in [Summary](src/SUMMARY.md).
 
 ## Usage
 
