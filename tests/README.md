@@ -1,9 +1,7 @@
 
 # MESC Tests
 
-A standard set of tests is used to check whether each MESC implementation is compliant with the MESC specification.
-
-These tests are language-agnostic and can be run against each MESC implementation.
+A language-agnostic set of tests is used to check whether each MESC implementation is compliant with the MESC specification.
 
 ## Usage
 
@@ -18,7 +16,10 @@ These tests are language-agnostic and can be run against each MESC implementatio
 | run tests | `pytest` |
 | run test in parallel mode (much faster) | `pytest -n auto` |
 | run tests in debug mode (helpful for debugging) | `pytest --pdb` |
+| run tests only tests that previously failed | `pytest --lf` |
 | run tests for specific adapters only | `pytest --adapters adapters/python adapters/cli` |
+
+By default, tests will run for all MESC implementations. If you do not have all of these implementations installed, you will need to use `--adapters` to select only the subset that that you have installed.
 
 
 ## Adapters

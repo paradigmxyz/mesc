@@ -30,7 +30,7 @@ pub(crate) fn get_theme_font_style(id: &str) -> Result<FontStyle, MescCliError> 
 }
 
 fn get_cli_theme() -> Result<HashMap<String, FontStyle>, MescCliError> {
-    let global_metadata = mesc::get_global_metadata()?;
+    let global_metadata = mesc::get_global_metadata(Some("mesc_cli"))?;
     let path: Vec<&str> = vec![];
     let cli_theme: HashMap<String, String> = match global_metadata.get("cli_theme") {
         Some(value) => get_value_at(value, &path)?,

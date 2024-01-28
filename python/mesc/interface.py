@@ -68,7 +68,7 @@ def get_endpoint_by_network(
 
     # get global default for network
     if chain_id is None:
-        raise ValueError('chain_id must be a str')
+        raise ValueError('chain_id must be a str or int')
     chain_id = str(chain_id)
     network_defaults = config['network_defaults']
     default_name = network_defaults.get(chain_id)
@@ -162,6 +162,19 @@ def find_endpoints(
     return endpoints
 
 
-def get_global_metadata() -> Mapping[str, Any]:
+def get_global_metadata(
+    *, profile: str | None = None, config: RpcConfig | None = None
+) -> Mapping[str, Any]:
     """return MESC global metadata"""
-    return load.read_config_data()['global_metadata']
+
+    if config is None:
+        config = load.read_config_data()
+
+    if profile is not None:
+        profile_data = config['profiles'].get(profile)
+        if profile_data is not None:
+            if not profile_data['use_mesc']:
+                return {}
+            return dict(config['global_metadata'], **profile_data['profile_metadata'])
+
+    return config['global_metadata']

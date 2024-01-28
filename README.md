@@ -115,7 +115,7 @@ let chain_id: OptionalResult = mesc::get_default_endpoint("xyz_tool");
 let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, "xyz_tool");
 
 // get an endpoint by name
-let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_query");
+let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_goerli");
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)

@@ -44,6 +44,8 @@ pub fn find_endpoints(query: MultiEndpointQuery) -> Result<Vec<Endpoint>, MescEr
 }
 
 /// get global metadata
-pub fn get_global_metadata() -> Result<HashMap<String, serde_json::Value>, MescError> {
-    query::get_global_metadata(&load_config_data()?)
+pub fn get_global_metadata(
+    profile: Option<&str>,
+) -> Result<HashMap<String, serde_json::Value>, MescError> {
+    query::get_global_metadata(&load_config_data()?, profile)
 }

@@ -25,7 +25,7 @@ def run_query(query: EndpointQuery) -> Endpoint | Sequence[Endpoint] | None:
         multi_endpoint_fields = cast(mesc.types.MultiEndpointQuery, query['fields'])
         return mesc.find_endpoints(**multi_endpoint_fields)
     elif query["query_type"] == "global_metadata":
-        return mesc.get_global_metadata()
+        return mesc.get_global_metadata(**query['fields'])
     else:
         raise Exception("invalid query type: " + str(query["query_type"]))
 

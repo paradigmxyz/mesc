@@ -12,9 +12,13 @@ pub fn get_default_endpoint(
 ) -> Result<Option<Endpoint>, MescError> {
     // if using a profile, check if that profile has a default endpoint for chain_id
     if let Some(profile) = profile {
-        let name = config.profiles.get(profile).and_then(|p| p.default_endpoint.clone());
-        if let Some(name) = name {
-            return get_endpoint_by_name(config, name.as_str())
+        if let Some(profile_data) = config.profiles.get(profile) {
+            if !profile_data.use_mesc {
+                return Ok(None)
+            }
+            if let Some(endpoint_name) = profile_data.default_endpoint.as_deref() {
+                return get_endpoint_by_name(config, endpoint_name)
+            }
         }
     };
 
@@ -34,9 +38,13 @@ pub fn get_endpoint_by_network<T: TryIntoChainId>(
 
     // if using a profile, check if that profile has a default endpoint for chain_id
     if let Some(profile) = profile {
-        let name = config.profiles.get(profile).and_then(|p| p.network_defaults.get(&chain_id));
-        if let Some(name) = name {
-            return get_endpoint_by_name(config, name)
+        if let Some(profile_data) = config.profiles.get(profile) {
+            if !profile_data.use_mesc {
+                return Ok(None)
+            }
+            if let Some(endpoint_name) = profile_data.network_defaults.get(&chain_id) {
+                return get_endpoint_by_name(config, endpoint_name)
+            }
         }
     };
 
@@ -62,6 +70,14 @@ pub fn get_endpoint_by_query(
     query: &str,
     profile: Option<&str>,
 ) -> Result<Option<Endpoint>, MescError> {
+    if let Some(profile) = profile {
+        if let Some(profile_data) = config.profiles.get(profile) {
+            if !profile_data.use_mesc {
+                return Ok(None)
+            }
+        }
+    }
+
     // by endpoint name
     if let Some(endpoint) = config.endpoints.get(query) {
         return Ok(Some(endpoint.clone()));
@@ -109,6 +125,19 @@ pub fn find_endpoints(
 /// get global metadata
 pub fn get_global_metadata(
     config: &RpcConfig,
+    profile: Option<&str>,
 ) -> Result<HashMap<String, serde_json::Value>, MescError> {
-    Ok(config.global_metadata.clone())
+    let mut metadata = config.global_metadata.clone();
+
+    // load profile metadata
+    if let Some(profile) = profile {
+        if let Some(profile_data) = config.profiles.get(profile) {
+            if !profile_data.use_mesc {
+                return Ok(HashMap::new())
+            }
+            metadata.extend(profile_data.profile_metadata.clone())
+        }
+    }
+
+    Ok(metadata)
 }
