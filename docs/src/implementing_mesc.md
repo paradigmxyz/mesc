@@ -10,7 +10,7 @@ If you are creating a new MESC implementation, you may find the following useful
 
 3. A MESC implementation's compliance to the specification can be checked using the language-agnostic MESC test suite. Passing the test suite means that an implementation is complete. More details on the test suite can be found [here](https://github.com/paradigmxyz/mesc/tree/main/tests).
 
-4. It is desirable to use the same names, types, and behaviors across each MESC implementation. This increases interoperability and makes MESC easier to learn and use. However it is also desirable to obey the common convetions of each programming language. Each MESC implementation must find a balance between language-agnostic conventions vs language-specific conventions.
+4. It is desirable to use the same names, types, and behaviors across each MESC implementation. This increases interoperability and makes MESC easier to learn and use. However it is also desirable to obey the common conventions of each programming language. Each MESC implementation must find a balance between language-agnostic conventions vs language-specific conventions.
 
 5. If parts of the MESC specification are confusing or difficult to implement, it may be helpful to look at existing implementations. These currently exist for [python](https://github.com/paradigmxyz/mesc/tree/main/python) and [rust](https://github.com/paradigmxyz/mesc/tree/main/rust).
 
