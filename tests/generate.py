@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Any, TypeVar, Sequence
+from typing import Any, TypeVar, Sequence, Union
 
 from mesc import RpcConfig, Profile, Endpoint
 from mesc.types import MescQuery
@@ -124,7 +124,7 @@ Test = tuple[
     str,
     dict[str, str],
     RpcConfig,
-    None | MescQuery,
+    Union[None, MescQuery],
     Any,
     bool,
 ]
