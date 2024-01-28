@@ -15,7 +15,9 @@ def run_query(query: MescQuery) -> str:
         name = cast(str, query["fields"]["name"])  # type: ignore
         cmd = ["mesc", "endpoint", "--json", "--name", name]
     elif query["query_type"] == "endpoint_by_network":
-        chain_id = cast(str, query["fields"]["chain_id"])  # type: ignore
+        chain_id = query["fields"]["chain_id"]
+        if isinstance(chain_id, int):
+            chain_id = str(chain_id)
         cmd = ["mesc", "endpoint", "--json", "--network", chain_id]
     elif query["query_type"] == "user_input":
         user_input = query["fields"]["user_input"]  # type: ignore
@@ -30,7 +32,10 @@ def run_query(query: MescQuery) -> str:
             cmd.append(query['fields']['url_contains'])
         if query["fields"].get('chain_id') is not None:
             cmd.append('--network')
-            cmd.append(query['fields']['chain_id'])
+            chain_id = query["fields"]["chain_id"]
+            if isinstance(chain_id, int):
+                chain_id = str(chain_id)
+            cmd.append(chain_id)
     elif query['query_type'] == 'global_metadata':
         cmd = ["mesc", "metadata"]
     else:

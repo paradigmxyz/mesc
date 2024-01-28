@@ -245,7 +245,19 @@ pub(crate) struct EndpointArgs {
 
 /// Arguments for the `metadata` subcommand
 #[derive(Parser)]
-pub(crate) struct MetadataArgs {}
+pub(crate) struct MetadataArgs {
+    /// print metadata of endpoint
+    #[clap(long)]
+    pub(crate) endpoint: Option<String>,
+
+    /// print metadata of profile merged with global metadata
+    #[clap(long)]
+    pub(crate) profile: Option<String>,
+
+    /// print metadata of profile not merged with global metadata
+    #[clap(long)]
+    pub(crate) profile_only: Option<String>,
+}
 
 /// Arguments for the `url` subcommand
 #[derive(Parser)]

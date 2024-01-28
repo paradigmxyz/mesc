@@ -150,15 +150,15 @@ def test_mesc_output(
             else:
                 # failure case: incorrect query output
                 print_error_summary(**error_data)
-                raise OutputDoesNotMatch(
-                    "output does not match", adapter, setup_name, test_name
+                raise QueryShouldHaveFailed(
+                    "success when expecting failure", adapter, setup_name, test_name
                 )
         else:
             if should_succeed:
                 # failure case: query should have failed
                 print_error_summary(**error_data)
-                raise QueryShouldHaveFailed(
-                    "success when expecting failure", adapter, setup_name, test_name
+                raise OutputDoesNotMatch(
+                    "output does not match", adapter, setup_name, test_name
                 )
             else:
                 # working properly
