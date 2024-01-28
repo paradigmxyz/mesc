@@ -33,4 +33,4 @@ jobs:
     - name: Run Rust tests
       run: |
         cd tests
-        pytest
+        pytest --adapters adapters/cli
