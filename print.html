@@ -468,8 +468,7 @@ url = get_endpoint_url(user_input)
 </li>
 </ol>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mesc-tests"><a class="header" href="#mesc-tests">MESC Tests</a></h1>
-<p>A standard set of tests is used to check whether each MESC implementation is compliant with the MESC specification.</p>
-<p>These tests are language-agnostic and can be run against each MESC implementation.</p>
+<p>A language-agnostic set of tests is used to check whether each MESC implementation is compliant with the MESC specification.</p>
 <h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
 <ol>
 <li>
@@ -486,9 +485,11 @@ url = get_endpoint_url(user_input)
 <tr><td>run tests</td><td><code>pytest</code></td></tr>
 <tr><td>run test in parallel mode (much faster)</td><td><code>pytest -n auto</code></td></tr>
 <tr><td>run tests in debug mode (helpful for debugging)</td><td><code>pytest --pdb</code></td></tr>
+<tr><td>run tests only tests that previously failed</td><td><code>pytest --lf</code></td></tr>
 <tr><td>run tests for specific adapters only</td><td><code>pytest --adapters adapters/python adapters/cli</code></td></tr>
 </tbody></table>
 </div>
+<p>By default, tests will run for all MESC implementations. If you do not have all of these implementations installed, you will need to use <code>--adapters</code> to select only the subset that that you have installed.</p>
 <h2 id="adapters"><a class="header" href="#adapters">Adapters</a></h2>
 <p>Each MESC implementation has an adapter that receives a test as input and prints the result as output. Adapters are located in the <a href="https://github.com/paradigmxyz/mesc/tree/main/tests/adapters">adapters</a> directory.</p>
 <p>To make a custom adapter:</p>
@@ -742,17 +743,17 @@ let endpoint: OptionalResult = mesc::get_default_endpoint(None);
 let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, None);
 
 // get the default network for a particular tool
-let chain_id: OptionalResult = mesc::get_default_endpoint(&quot;xyz_tool&quot;);
+let chain_id: OptionalResult = mesc::get_default_endpoint(Some(&quot;xyz_tool&quot;));
 
 // get the default endpoint of a network for a particular tool
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, &quot;xyz_tool&quot;);
+let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, Some(&quot;xyz_tool&quot;));
 
 // get an endpoint by name
-let endpoint: OptionalResult = mesc::get_endpoint_by_name(&quot;local_query&quot;);
+let endpoint: OptionalResult = mesc::get_endpoint_by_name(&quot;local_goerli&quot;);
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)
-let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, &quot;xyz_tool&quot;);
+let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some(&quot;xyz_tool&quot;));
 
 // find all endpoints matching given criteria
 let query = mesc::MultiEndpointQuery::new().chain_id(5);

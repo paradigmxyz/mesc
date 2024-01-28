@@ -240,17 +240,17 @@ let endpoint: OptionalResult = mesc::get_default_endpoint(None);
 let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, None);
 
 // get the default network for a particular tool
-let chain_id: OptionalResult = mesc::get_default_endpoint(&quot;xyz_tool&quot;);
+let chain_id: OptionalResult = mesc::get_default_endpoint(Some(&quot;xyz_tool&quot;));
 
 // get the default endpoint of a network for a particular tool
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, &quot;xyz_tool&quot;);
+let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, Some(&quot;xyz_tool&quot;));
 
 // get an endpoint by name
-let endpoint: OptionalResult = mesc::get_endpoint_by_name(&quot;local_query&quot;);
+let endpoint: OptionalResult = mesc::get_endpoint_by_name(&quot;local_goerli&quot;);
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)
-let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, &quot;xyz_tool&quot;);
+let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some(&quot;xyz_tool&quot;));
 
 // find all endpoints matching given criteria
 let query = mesc::MultiEndpointQuery::new().chain_id(5);
