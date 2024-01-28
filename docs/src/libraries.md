@@ -1,6 +1,6 @@
 # MESC Libraries
 
-MESC aims to have an implementation for every common langauge in the cryptocurrency ecosystem.
+MESC aims to have an implementation for every common language in the cryptocurrency ecosystem.
 
 Implementations currently exist for:
 - [CLI](./cli.md)
