@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import copy
 from typing import Any, TypeVar, Sequence, Union
+import typing
 
-from mesc import RpcConfig, Profile, Endpoint
-from mesc.types import MescQuery
+if typing.TYPE_CHECKING:
+    from mesc import RpcConfig, Profile, Endpoint
+    from mesc.types import MescQuery
 
 blank_config: RpcConfig = {
     "mesc_version": "MESC 1.0",

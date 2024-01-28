@@ -19,7 +19,11 @@ from typing import (
 import pytest
 
 import generate
-from mesc.types import RpcConfig, MescQuery
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from mesc.types import RpcConfig, MescQuery
 
 
 # tests are in form [test_name, env, config, query, result, should_succeed]
