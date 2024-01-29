@@ -17,6 +17,9 @@ MESC is formally defined in [SPECIFICATION.md](./SPECIFICATION.md).
 
 Additional information can be found in the [MESC Documentation](https://paradigmxyz.github.io/mesc/).
 
+![basics](https://github.com/paradigmxyz/mesc/assets/7907648/2f84d90b-9cfd-42fd-89f1-bd35949e1c14)
+
+
 ### Contents
 - [Reference Implementations](#reference-implementations)
 - [Quickstart](#quickstart)
