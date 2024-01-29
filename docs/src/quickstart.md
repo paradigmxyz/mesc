@@ -43,6 +43,8 @@ You can create a `mesc.json` by one of two ways:
 
 The structure of the config must follow the MESC [specification](https://github.com/paradigmxyz/mesc/blob/main/SPECIFICATION.md).
 
+Installing the `mesc` cli on some linux distributions may require installing ssl libraries (e.g. `sudo apt-get install pkg-config libssl-dev` on ubunutu)
+
 ## Setting environment variables
 
 The typical way to set environment variables is in your shell configuration files: `~/.bashrc`, `~.profile`, and/or `~/.bash_profile`. Including this line in those files will enable MESC:

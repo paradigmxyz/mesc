@@ -46,6 +46,8 @@ These steps can be performed automatically using the interactive [`mesc`](./cli)
 1. Install: `cargo install mesc_cli`
 2. Perform interactive setup: `mesc setup`
 
+Installing the `mesc` cli on some linux distributions may require installing ssl libraries (e.g. `sudo apt-get install pkg-config libssl-dev` on ubunutu)
+
 ## Tutorial
 
 Below is a brief tutorial on MESC. For more detail, see the MESC [Specification](./SPECIFICATION.md) and [Documentation](https://paradigmxyz.github.io/mesc). 
