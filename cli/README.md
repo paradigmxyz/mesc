@@ -13,6 +13,8 @@ The most important cli subcommands:
 
 View help for each subcommand by typing `mesc [SUBCOMMAND] --help`
 
+![basics](https://github.com/paradigmxyz/mesc/assets/7907648/2f84d90b-9cfd-42fd-89f1-bd35949e1c14)
+
 ## Contents
 - [Installation](#installation)
 - [Example Usage](#example-usage)
