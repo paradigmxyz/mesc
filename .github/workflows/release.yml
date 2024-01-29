@@ -31,7 +31,8 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Install Common Dependencies
+    - name: Install Common Dependencies (Ubuntu)
+      if: startsWith(matrix.os, 'ubuntu')
       run: |
         sudo apt-get update
         sudo apt-get install -y pkg-config libssl-dev
@@ -40,7 +41,6 @@ jobs:
       if: matrix.target == 'aarch64-unknown-linux-gnu'
       run: |
         sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-        sudo apt-get install -y libssl-dev:arm64
 
     - name: Configure PKG_CONFIG_PATH for ARM64
       if: matrix.target == 'aarch64-unknown-linux-gnu'
