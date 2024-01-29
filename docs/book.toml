@@ -1,0 +1,11 @@
+[book]
+authors = ["sslivkoff"]
+language = "en"
+multilingual = false
+src = "src"
+title = "MESC User Guide"
+description = "A specification for how crypto tools configure their RPC endpoints"
+
+[output.html]
+git-repository-url = "https://github.com/paradigmxyz/mesc"
+edit-url-template = "https://github.com/paradigmxyz/mesc/edit/main/docs/{path}"

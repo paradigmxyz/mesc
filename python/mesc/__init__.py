@@ -11,7 +11,7 @@ from .interface import (
 )
 from .types import Endpoint, Profile, RpcConfig
 
-__version__ = '0.1.4'
+__version__ = '0.2.0'
 
 __all__ = (
     'Endpoint',

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing_extensions import Any
+from typing import Sequence
 
 from .exceptions import InvalidConfig
 from .types import rpc_config_types, endpoint_types, profile_types
@@ -100,7 +101,9 @@ def validate(config: Any) -> None:
 
     # default endpoints of each network actually use that specified network
     for chain_id, endpoint_name in config['network_defaults'].items():
-        if chain_id != config['endpoints'][endpoint_name]['chain_id']:
+        if not network_utils.chain_ids_equal(
+            chain_id, config['endpoints'][endpoint_name]['chain_id']
+        ):
             raise InvalidConfig(
                 'Endpoint is set as the default endpoint of network '
                 + chain_id
@@ -109,7 +112,9 @@ def validate(config: Any) -> None:
             )
     for profile_name, profile in config['profiles'].items():
         for chain_id, endpoint_name in profile['network_defaults'].items():
-            if chain_id != config['endpoints'][endpoint_name]['chain_id']:
+            if not network_utils.chain_ids_equal(
+                chain_id, config['endpoints'][endpoint_name]['chain_id']
+            ):
                 raise InvalidConfig(
                     'Endpoint is set as the default endpoint of network '
                     + chain_id
@@ -165,7 +170,28 @@ def validate(config: Any) -> None:
             )
 
     # no duplicate default network entries using decimal vs hex
-    pass
+    ensure_no_chain_id_collisions(
+        list(config['network_defaults'].keys()), 'network defaults'
+    )
+    for profile_name, profile in config['profiles'].items():
+        ensure_no_chain_id_collisions(
+            list(config['network_defaults'].keys()), 'profile ' + profile_name
+        )
+
+
+def ensure_no_chain_id_collisions(chain_ids: Sequence[str], name: str) -> None:
+    hex_numbers = set()
+    for chain_id in chain_ids:
+        as_hex = network_utils.chain_id_to_standard_hex(chain_id)
+        if as_hex in hex_numbers:
+            raise Exception(
+                'chain_id collision, '
+                + str(name)
+                + ' has multiple decimal/hex values for chain_id: '
+                + str(chain_id)
+            )
+        else:
+            hex_numbers.add(as_hex)
 
 
 def _check_type(

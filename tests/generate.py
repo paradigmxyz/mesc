@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import copy
-import json
-import os
-import time
-from typing import Any, TypeVar, Sequence
+from typing import Any, TypeVar, Sequence, Union
+import typing
 
-from mesc import RpcConfig, Profile, Endpoint
-from mesc.types import EndpointQuery, MultiEndpointQuery, GlobalMetadataQuery, MescQuery
+if typing.TYPE_CHECKING:
+    from mesc import RpcConfig, Profile, Endpoint
+    from mesc.types import MescQuery
 
 blank_config: RpcConfig = {
     "mesc_version": "MESC 1.0",
@@ -69,13 +68,19 @@ full_config: RpcConfig = {
         "llamanodes_ethereum": {
             "name": "llamanodes_ethereum",
             "url": "https://eth.llamarpc.com",
-            "chain_id": "1",
+            "chain_id": "0x01",
             "endpoint_metadata": {},
         },
         "llamanodes_optimism": {
             "name": "llamanodes_optimism",
             "url": "https://optimism.llamarpc.com",
             "chain_id": "10",
+            "endpoint_metadata": {},
+        },
+        "llamanodes_base": {
+            "name": "llamanodes_base",
+            "url": "https://base.llamarpc.com",
+            "chain_id": "0x2105",
             "endpoint_metadata": {},
         },
     },
@@ -91,17 +96,28 @@ full_config: RpcConfig = {
             "name": "xyz",
             "default_endpoint": "llamanodes_ethereum",
             "network_defaults": {
-                "1": "llamanodes_ethereum",
+                "0x00001": "llamanodes_ethereum",
                 "10": "llamanodes_optimism",
+                "8453": "llamanodes_base",
             },
-            "profile_metadata": {},
+            "profile_metadata": {
+                "sample_key": "profile_value",
+            },
             "use_mesc": True,
+        },
+        "not_using_mesc": {
+            "name": "not_using_mesc",
+            "default_endpoint": None,
+            "network_defaults": {},
+            "profile_metadata": {},
+            "use_mesc": False,
         },
     },
     "global_metadata": {
         "api_keys": {
             "etherscan": "abc123",
         },
+        "sample_key": "global_value",
     },
 }
 
@@ -113,14 +129,15 @@ known_networks = {
 }
 
 # tests are in form [test_name, env, config, query, result, should_succeed]
-Test = tuple[
-    str,
-    dict[str, str],
-    RpcConfig,
-    None | MescQuery,
-    Any,
-    bool,
-]
+if typing.TYPE_CHECKING:
+    Test = tuple[
+        str,
+        dict[str, str],
+        RpcConfig,
+        Union[None, MescQuery],
+        Any,
+        bool,
+    ]
 
 
 def generate_tests() -> list[Test]:
@@ -128,9 +145,104 @@ def generate_tests() -> list[Test]:
     generators = [
         create_basic_query_tests,
         create_override_tests,
-        create_invalid_tests,
+        create_invalid_query_tests,
+        create_invalid_config_tests,
     ]
-    return [test for generator in generators for test in generator()]
+
+    tests = [test for generator in generators for test in generator()]
+
+    # for queries that specify chain_id, also specify hexadecimal chain_id
+    for test in list(tests):
+        query = test[3]
+        if query is not None and "profile" in query.get("fields", {}):
+            if query["fields"].get("chain_id") is not None:
+                # version without leading zeros
+                chain_id = query["fields"]["chain_id"]  # type: ignore
+                as_hex = hex(int(chain_id))  # type: ignore
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["chain_id"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+                # version with 1 extra leading zero
+                chain_id = query["fields"]["chain_id"]  # type: ignore
+                as_hex = "0x" + "0" + hex(int(chain_id))[2:]  # type: ignore
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["chain_id"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+                # version with 4 extra leading zeros
+                chain_id = query["fields"]["chain_id"]  # type: ignore
+                as_hex = "0x" + "0000" + hex(int(chain_id))[2:]  # type: ignore
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["chain_id"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+            if (
+                query["fields"].get("user_input") is not None
+                and isinstance(query["fields"]["user_input"], str)  # type: ignore
+                and query["fields"]["user_input"].isdecimal()  # type: ignore
+            ):
+                # version without leading zeros
+                chain_id = query["fields"]["user_input"]  # type: ignore
+                as_hex = hex(int(chain_id))
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["user_input"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+                # version with 1 extra leading zero
+                chain_id = query["fields"]["user_input"]  # type: ignore
+                as_hex = "0x" + "0" + hex(int(chain_id))[2:]
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["user_input"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+                # version with 4 extra leading zeros
+                chain_id = query["fields"]["user_input"]  # type: ignore
+                as_hex = "0x" + "0000" + hex(int(chain_id))[2:]
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["user_input"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+    # for tests that query with null profile, also query with non-existent profile
+    for test in list(tests):
+        query = test[3]
+        if (
+            query is not None
+            and "profile" in query.get("fields", {})
+            and query["fields"].get("profile") is None
+        ):
+            new_test = copy.deepcopy(test)
+            new_test[3]["fields"]["profile"] = "unknown_profile"  # type: ignore
+            new_test = (new_test[0] + ", unknown_profile",) + new_test[1:]
+            tests.append(new_test)
+
+    # every query should return None or empty when a profile has use_mesc=True
+    for test in list(tests):
+        query = test[3]
+        target_output = test[4]
+        if (
+            query is not None
+            and "profile" in query.get("fields", {})
+            and query["fields"].get("profile") is None
+            and target_output is not None
+        ):
+            new_test = copy.deepcopy(test)
+            new_test[3]["fields"]["profile"] = "not_using_mesc"  # type: ignore
+            if query["query_type"] == "global_metadata":
+                expected: dict | None = {}
+            else:
+                expected = None
+            new_test = new_test[0:4] + (expected,) + new_test[5:]
+            new_test = (new_test[0] + ", profile not_using_mesc",) + new_test[1:]
+            tests.append(new_test)
+
+    return tests
 
 
 T = TypeVar("T")
@@ -240,6 +352,17 @@ def create_basic_query_tests() -> list[Test]:
             True,
         ),
         (
+            "query endpoint chain_id by int",
+            {},
+            full_config,
+            {
+                "query_type": "endpoint_by_network",
+                "fields": {"chain_id": 1, "profile": None},
+            },
+            full_config["endpoints"]["local_ethereum"],
+            True,
+        ),
+        (
             "get endpoint by network",
             {},
             full_config,
@@ -248,6 +371,28 @@ def create_basic_query_tests() -> list[Test]:
                 "fields": {"chain_id": "137", "profile": None},
             },
             None,
+            True,
+        ),
+        (
+            "get endpoint by network, base",
+            {},
+            full_config,
+            {
+                "query_type": "endpoint_by_network",
+                "fields": {"chain_id": "8453", "profile": None},
+            },
+            None,
+            True,
+        ),
+        (
+            "get endpoint by network, base, profile",
+            {},
+            full_config,
+            {
+                "query_type": "endpoint_by_network",
+                "fields": {"chain_id": "8453", "profile": "xyz"},
+            },
+            full_config["endpoints"]["llamanodes_base"],
             True,
         ),
         (
@@ -353,9 +498,20 @@ def create_basic_query_tests() -> list[Test]:
             full_config["endpoints"]["local_goerli"],
             True,
         ),
+        (
+            "get endpoint by user query, dne",
+            {},
+            full_config,
+            {
+                "query_type": "user_input",
+                "fields": {"user_input": "this_query_has_no_results", "profile": None},
+            },
+            None,
+            True,
+        ),
     ]
 
-    # get endpoint by user query, profile blank
+    # get endpoint by user query, with default profile
     tests += [
         (
             "get endpoint by user query, endpoint name",
@@ -423,6 +579,17 @@ def create_basic_query_tests() -> list[Test]:
             full_config["endpoints"]["local_goerli"],
             True,
         ),
+        (
+            "get endpoint by user query, dne",
+            {},
+            full_config,
+            {
+                "query_type": "user_input",
+                "fields": {"user_input": "this_query_has_no_results", "profile": "abc"},
+            },
+            None,
+            True,
+        ),
     ]
 
     # get endpoint by user query, profile full
@@ -482,16 +649,33 @@ def create_basic_query_tests() -> list[Test]:
             full_config["endpoints"]["llamanodes_ethereum"],
             True,
         ),
-        # (
-        #     "get endpoint by user query, custom network name",
-        #     full_config,
-        #     {"query_type": "user_input", "fields": {"user_input": "testnet", "profile": "xyz"}},
-        #     full_config['endpoints']['llamanodes_goerli'],
-        # ),
+        (
+            "get endpoint by user query, custom network name",
+            {},
+            full_config,
+            {
+                "query_type": "user_input",
+                "fields": {"user_input": "testnet", "profile": "xyz"},
+            },
+            full_config["endpoints"]["local_goerli"],
+            True,
+        ),
+        (
+            "get endpoint by user query, dne",
+            {},
+            full_config,
+            {
+                "query_type": "user_input",
+                "fields": {"user_input": "this_query_has_no_results", "profile": "xyz"},
+            },
+            None,
+            True,
+        ),
     ]
 
     # test querying by known network names
     for chain_id, network_name in known_networks.items():
+        # with a default endpoint
         network_endpoint = copy.deepcopy(blank_endpoint)
         network_endpoint["chain_id"] = chain_id
         network_config = copy.deepcopy(full_config)
@@ -510,6 +694,23 @@ def create_basic_query_tests() -> list[Test]:
         )
         tests.append(test)
 
+        # without a default endpoint
+        network_config = copy.deepcopy(full_config)
+        if chain_id in network_config["network_defaults"]:
+            del network_config["network_defaults"][chain_id]
+        test_without: Test = (
+            "test querying " + network_name + " by name",
+            {},
+            network_config,
+            {
+                "query_type": "user_input",
+                "fields": {"user_input": network_name, "profile": None},
+            },
+            None,
+            True,
+        )
+        tests.append(test_without)
+
     # test multi-endpoint queries
     tests += [
         (
@@ -525,6 +726,14 @@ def create_basic_query_tests() -> list[Test]:
             True,
         ),
         (
+            "empty fuzzy name query",
+            {},
+            full_config,
+            {"query_type": "multi_endpoint", "fields": {"name_contains": "yyyyyy"}},
+            [],
+            True,
+        ),
+        (
             "fuzzy url query",
             {},
             full_config,
@@ -532,7 +741,16 @@ def create_basic_query_tests() -> list[Test]:
             [
                 full_config["endpoints"]["llamanodes_ethereum"],
                 full_config["endpoints"]["llamanodes_optimism"],
+                full_config["endpoints"]["llamanodes_base"],
             ],
+            True,
+        ),
+        (
+            "fuzzy url query",
+            {},
+            full_config,
+            {"query_type": "multi_endpoint", "fields": {"url_contains": "yyyyyy"}},
+            [],
             True,
         ),
         (
@@ -546,59 +764,65 @@ def create_basic_query_tests() -> list[Test]:
             ],
             True,
         ),
+        (
+            "chain_id int query",
+            {},
+            full_config,
+            {"query_type": "multi_endpoint", "fields": {"chain_id": 1}},
+            [
+                full_config["endpoints"]["local_ethereum"],
+                full_config["endpoints"]["llamanodes_ethereum"],
+            ],
+            True,
+        ),
+        (
+            "empty chain_id query",
+            {},
+            full_config,
+            {"query_type": "multi_endpoint", "fields": {"chain_id": "1111"}},
+            [],
+            True,
+        ),
     ]
 
-    # for tests that query with null profile, also query with non-existent profile
-    for test in list(tests):
-        query = test[3]
-        if "profile" in query.get("fields", {}) and query["fields"]["profile"] is None:  # type: ignore
-            new_test = copy.deepcopy(test)
-            new_test[3]["fields"]["profile"] = "unknown_profile"  # type: ignore
-            tests.append(new_test)
+    # test fetching metadata
+    tests += [
+        (
+            "get full global metadata, no profile",
+            {},
+            full_config,
+            {"query_type": "global_metadata", "fields": {"profile": None}},
+            full_config["global_metadata"],
+            True,
+        ),
+        (
+            "get full global metadata, irrelevant profile",
+            {},
+            full_config,
+            {"query_type": "global_metadata", "fields": {"profile": "abc"}},
+            full_config["global_metadata"],
+            True,
+        ),
+        (
+            "get full global metadata, merged with profile",
+            {},
+            full_config,
+            {"query_type": "global_metadata", "fields": {"profile": "xyz"}},
+            dict(
+                full_config["global_metadata"],
+                **full_config["profiles"]["xyz"]["profile_metadata"],
+            ),
+            True,
+        ),
+    ]
 
     return tests
 
 
-# [name, env, config]
-def create_invalid_tests() -> list[Test]:
-    tests: list[Test] = []
-
-    # unknown default endpoint
-    config = copy.deepcopy(blank_config)
-    config["default_endpoint"] = "random_unknown"
-    tests.append(
-        (
-            "unknown default endpoint",
-            {},
-            config,
-            None,
-            None,
-            False,
-        )
-    )
-
-    # unknown network defaults
-    config = copy.deepcopy(full_config)
-    config["network_defaults"]["10"] = "random_unknown"
-    tests.append(
-        (
-            "unknown network defaults",
-            {},
-            config,
-            None,
-            None,
-            False,
-        ),
-    )
-
-    # invalid queries
+def create_invalid_query_tests() -> list[Test]:
     invalid_queries: Sequence[tuple[str, Any]] = [
         (
             "query default endpoint with int profile",
-            {"query_type": "default_endpoint", "fields": {"profile": 1}},
-        ),
-        (
-            "query endpoint name by non-existent name",
             {"query_type": "default_endpoint", "fields": {"profile": 1}},
         ),
         (
@@ -614,13 +838,6 @@ def create_invalid_tests() -> list[Test]:
             {
                 "query_type": "endpoint_by_network",
                 "fields": {"chain_id": None, "profile": None},
-            },
-        ),
-        (
-            "query endpoint chain_id by int",
-            {
-                "query_type": "endpoint_by_network",
-                "fields": {"chain_id": 1, "profile": None},
             },
         ),
         (
@@ -649,6 +866,8 @@ def create_invalid_tests() -> list[Test]:
             {"query_type": "user_input", "fields": {"user_input": True, "profile": 1}},
         ),
     ]
+
+    tests = []
     for test_name, query in invalid_queries:
         test: Test = (
             test_name,
@@ -659,6 +878,156 @@ def create_invalid_tests() -> list[Test]:
             False,
         )
         tests.append(test)
+
+    return tests
+
+
+def create_invalid_config_tests() -> list[Test]:
+    tests: list[Test] = []
+
+    # unknown default endpoint
+    config = copy.deepcopy(blank_config)
+    config["default_endpoint"] = "random_unknown"
+    tests.append(
+        (
+            "unknown default endpoint",
+            {},
+            config,
+            None,
+            None,
+            False,
+        )
+    )
+    config = copy.deepcopy(full_config)
+    config["profiles"]["abc"]["default_endpoint"] = "random_unknown"
+    tests.append(
+        (
+            "unknown default endpoint",
+            {},
+            config,
+            None,
+            None,
+            False,
+        )
+    )
+
+    # unknown network defaults
+    config = copy.deepcopy(full_config)
+    config["network_defaults"]["10"] = "random_unknown"
+    tests.append(
+        (
+            "unknown network defaults",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+    config = copy.deepcopy(full_config)
+    config["profiles"]["abc"]["network_defaults"]["10"] = "random_unknown"
+    tests.append(
+        (
+            "unknown network defaults",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # endpoint name doesn't match
+    config = copy.deepcopy(blank_config)
+    config["endpoints"] = {"other_name": blank_endpoint}
+    tests.append(
+        (
+            "unknown network defaults",
+            {},
+            # dict(blank_config, endpoints={'other_name': blank_endpoint}),
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # profile name doesn't match
+    config = copy.deepcopy(blank_config)
+    config["profiles"] = {"other_name": blank_profile}
+    tests.append(
+        (
+            "unknown network defaults",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # global default endpoint of network doesn't actually use that network
+    config = copy.deepcopy(full_config)
+    config["endpoints"]["local_ethereum"]["chain_id"] = "4"
+    tests.append(
+        (
+            "global default endpoint of network doesn't actually use that network",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # profile default endpoint of network doesn't actually use that network
+    config = copy.deepcopy(full_config)
+    config["endpoints"]["llamanodes_ethereum"]["chain_id"] = "4"
+    tests.append(
+        (
+            "global default endpoint of network doesn't actually use that network",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # conflicting chain_ids in global network defaults
+    config = copy.deepcopy(full_config)
+    config["network_defaults"]["8453"] = "llamanodes_base"
+    config["network_defaults"]["0x2105"] = "llamanodes_base"
+    tests.append(
+        (
+            "conflicting chain_ids in global network defaults",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # conflicting chain_ids in profile network defaults
+    for profile_name, profile_data in full_config["profiles"].items():
+        config = copy.deepcopy(full_config)
+        config["profiles"][profile_name]["network_defaults"]["8453"] = "llamanodes_base"
+        config["profiles"][profile_name]["network_defaults"][
+            "0x2105"
+        ] = "llamanodes_base"
+        tests.append(
+            (
+                "conflicting chain_ids in profile "
+                + profile_name
+                + " network defaults",
+                {},
+                config,
+                None,
+                None,
+                False,
+            ),
+        )
 
     # incorrect types tests
     invalid_type_tests = [
@@ -827,6 +1196,38 @@ def create_invalid_tests() -> list[Test]:
             ),
         ),
         (
+            "profile profile_metadata is null",
+            set_path_value(
+                copy.deepcopy(full_config),
+                ["profiles", "xyz", "profile_metadata"],
+                None,
+            ),
+        ),
+        (
+            "profile profile_metadata is int",
+            set_path_value(
+                copy.deepcopy(full_config),
+                ["profiles", "xyz", "profile_metadata"],
+                1,
+            ),
+        ),
+        (
+            "profile use_mesc is null",
+            set_path_value(
+                copy.deepcopy(full_config),
+                ["profiles", "xyz", "use_mesc"],
+                None,
+            ),
+        ),
+        (
+            "profile use_mesc is int",
+            set_path_value(
+                copy.deepcopy(full_config),
+                ["profiles", "xyz", "use_mesc"],
+                1,
+            ),
+        ),
+        (
             "global metadata is int",
             set_path_value(copy.deepcopy(full_config), ["global_metadata"], 1),
         ),
@@ -836,7 +1237,7 @@ def create_invalid_tests() -> list[Test]:
         ),
     ]
     for test_name, config in invalid_type_tests:
-        test = (
+        test: Test = (
             test_name,
             {},
             config,
@@ -929,7 +1330,6 @@ def create_invalid_tests() -> list[Test]:
     return tests
 
 
-# [name, env, config, query, result]
 def create_override_tests() -> list[Test]:
     tests: list[Test] = []
 
@@ -1200,15 +1600,15 @@ def create_override_tests() -> list[Test]:
             "override global metadata, change existing key",
             {"MESC_GLOBAL_METADATA": '{"api_keys": {"etherscan": "new_key"}}'},
             full_config,
-            {"query_type": "global_metadata", "fields": {"path": None}},
-            {"api_keys": {"etherscan": "new_key"}},
+            {"query_type": "global_metadata", "fields": {}},
+            dict(full_config["global_metadata"], api_keys={"etherscan": "new_key"}),
             True,
         ),
         (
             "override global metadata, add new key",
             {"MESC_GLOBAL_METADATA": '{"some_new_key": "value"}'},
             full_config,
-            {"query_type": "global_metadata", "fields": {"path": None}},
+            {"query_type": "global_metadata", "fields": {}},
             dict(full_config["global_metadata"], some_new_key="value"),
             True,
         ),
@@ -1216,7 +1616,7 @@ def create_override_tests() -> list[Test]:
             "override global metadata blank",
             {"MESC_GLOBAL_METADATA": ""},
             full_config,
-            {"query_type": "global_metadata", "fields": {"path": None}},
+            {"query_type": "global_metadata", "fields": {}},
             full_config["global_metadata"],
             True,
         ),
@@ -1282,17 +1682,3 @@ def create_override_tests() -> list[Test]:
     pass
 
     return tests
-
-
-if __name__ == "__main__":
-    start_time = time.time()
-    tests = generate_tests()
-    duration = time.time() - start_time
-    print("generated", len(tests), "tests in", "%.3f" % duration, "seconds")
-
-    path = "generated/tests.json"
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(tests, f)
-    print()
-    print("saved to", path)

@@ -1,1 +1,0 @@
-# MESC Libraries

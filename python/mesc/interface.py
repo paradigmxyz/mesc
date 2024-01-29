@@ -51,6 +51,8 @@ def get_endpoint_by_name(
     """get MESC endpoint by name"""
     if config is None:
         config = load.read_config_data()
+    if not isinstance(name, str):
+        raise Exception('invalid type for name query, it must be a str')
     return config['endpoints'].get(name)
 
 
@@ -66,18 +68,21 @@ def get_endpoint_by_network(
 
     # get global default for network
     if chain_id is None:
-        raise ValueError('chain_id must be a str')
+        raise ValueError('chain_id must be a str or int')
     chain_id = str(chain_id)
     network_defaults = config['network_defaults']
-    default_name = network_defaults.get(chain_id)
+    default_name = network_utils.get_by_chain_id(network_defaults, chain_id)
 
     # get profile default for network
-    if profile and profile in config['profiles']:
+    if profile is not None and profile in config['profiles']:
         if not config['profiles'][profile]['use_mesc']:
             return None
-        name = config['profiles'][profile]['network_defaults'].get(
-            chain_id, default_name
+        name = network_utils.get_by_chain_id(
+            config['profiles'][profile]['network_defaults'],
+            chain_id,
         )
+        if name is None:
+            name = default_name
     else:
         name = default_name
 
@@ -141,8 +146,12 @@ def find_endpoints(
     if chain_id is not None:
         if isinstance(chain_id, int):
             chain_id = str(chain_id)
+        chain_id = network_utils.chain_id_to_standard_hex(chain_id)
         endpoints = [
-            endpoint for endpoint in endpoints if endpoint['chain_id'] == chain_id
+            endpoint
+            for endpoint in endpoints
+            if endpoint['chain_id'] is not None
+            and network_utils.chain_id_to_standard_hex(endpoint['chain_id']) == chain_id
         ]
 
     # check name_contains
@@ -160,6 +169,19 @@ def find_endpoints(
     return endpoints
 
 
-def get_global_metadata() -> Mapping[str, Any]:
+def get_global_metadata(
+    *, profile: str | None = None, config: RpcConfig | None = None
+) -> Mapping[str, Any]:
     """return MESC global metadata"""
-    return load.read_config_data()['global_metadata']
+
+    if config is None:
+        config = load.read_config_data()
+
+    if profile is not None:
+        profile_data = config['profiles'].get(profile)
+        if profile_data is not None:
+            if not profile_data['use_mesc']:
+                return {}
+            return dict(config['global_metadata'], **profile_data['profile_metadata'])
+
+    return config['global_metadata']

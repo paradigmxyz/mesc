@@ -1,6 +1,12 @@
 
 # Multiple Endpoint Shared Configuration (MESC) Standard
 
+[![Specification](https://img.shields.io/badge/Spec-blueviolet)](https://github.com/paradigmxyz/mesc/blob/main/SPECIFICATION.md)
+[![issues - badge-generator](https://img.shields.io/badge/Docs-blueviolet)](https://paradigmxyz.github.io/mesc)
+[![Rust Tests](https://github.com/paradigmxyz/mesc/workflows/Rust%20Tests/badge.svg)](https://github.com/paradigmxyz/mesc/tree/main/tests)
+[![Python Tests](https://github.com/paradigmxyz/mesc/workflows/Python%20Tests/badge.svg)](https://github.com/paradigmxyz/mesc/tree/main/tests)
+
+
 MESC is a standard for how crypto tools configure their RPC endpoints. By following this specification, a user creates a single RPC configuration that can be shared by all crypto tools on their system.
 
 MESC has two main design goals:
@@ -8,6 +14,9 @@ MESC has two main design goals:
 2. make it easy to manage the configuration of a large number of RPC endpoints
 
 MESC is formally defined in [SPECIFICATION.md](./SPECIFICATION.md).
+
+Additional information can be found in the [MESC Documentation](https://paradigmxyz.github.io/mesc/).
+
 
 ### Contents
 - [Reference Implementations](#reference-implementations)
@@ -30,18 +39,21 @@ These implementations provide a consistent language-agnostic interface while sti
 
 ## Quickstart
 
-The interactive [`mesc`](./cli) CLI tool makes it easy to create and manage a MESC configuration.
-1. Install: `cargo install mesc_cli`
-2. Create config interactively: `mesc setup`
+The quickest way to use MESC is:
+1. create a `mesc.json` config file
+2. set the `MESC_PATH` environment variable to the path of this file
 
-To create a MESC config manually:
-1) Create a JSON file (can use [the example](./SPECIFICATION.md#example-rpcconfig) from the spec as a template).
-2) Set `MESC_PATH` to the path of this JSON file.
+These steps can be performed automatically using the interactive [`mesc`](./cli) CLI tool:
+1. Install: `cargo install mesc_cli`
+2. Perform interactive setup: `mesc setup`
+
+Installing the `mesc` cli on some linux distributions may require installing ssl libraries (e.g. `sudo apt-get install pkg-config libssl-dev` on ubunutu)
 
 ## Tutorial
 
-Below is a brief tutorial on MESC. For more detail, see [SPECIFICATION.md](./SPECIFICATION.md). 
+Below is a brief tutorial on MESC. For more detail, see the MESC [Specification](./SPECIFICATION.md) and [Documentation](https://paradigmxyz.github.io/mesc). 
 
+Topics:
 - [Tracked Information](#tracked-information)
 - [Common Interface](#common-interface)
 - [Typical Usage](#typical-usage)
@@ -112,7 +124,7 @@ let chain_id: OptionalResult = mesc::get_default_endpoint("xyz_tool");
 let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, "xyz_tool");
 
 // get an endpoint by name
-let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_query");
+let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_goerli");
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)

@@ -13,6 +13,8 @@ The most important cli subcommands:
 
 View help for each subcommand by typing `mesc [SUBCOMMAND] --help`
 
+![basics](https://github.com/paradigmxyz/mesc/assets/7907648/2f84d90b-9cfd-42fd-89f1-bd35949e1c14)
+
 ## Contents
 - [Installation](#installation)
 - [Example Usage](#example-usage)
@@ -71,25 +73,36 @@ mesc endpoint goerli --json
 
 ## Reference
 
+Show in terminal by typing `mesc --help`:
+
 ```
-Utility for creating and managing MESC RPC configurations
+command line interface for creating, loading, and modifying MESC configuration data
 
 Usage: mesc <COMMAND>
 
 Commands:
-  setup     Create new configuration or modify existing configuration
-  status    Print status of configuration
-  ls        Print list of endpoints
-  defaults  Print list of defaults
+  setup     Create or modify config interactively
+  import    Modify config by importing from file or other source
+  set       Modify config by setting specific values
   ping      Ping endpoints and fetch metadata
+  defaults  Print list of defaults
   endpoint  Print endpoint
+  help      Print help
+  ls        Print list of endpoints
   metadata  Print metadata
+  status    Print status of configuration
   url       Print endpoint URL
-  help      Print this message or the help of the given subcommand(s)
 
 Options:
   -h, --help     Print help
   -V, --version  Print version
+
+Help topics: (print these with mesc help <TOPIC>)
+  env       Environmental variables
+  python    Python interface
+  rust      Rust interface
+  schema    Schemas of configs, endpoints, and profiles
+  setup     How to set up MESC
 ```
 
 - If an endpoint is omitted, use the default endpoint

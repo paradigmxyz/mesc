@@ -46,33 +46,42 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
             values.push("false".to_string());
             if let MescError::IOError(ref e) = e {
                 if let std::io::ErrorKind::NotFound = e.kind() {
-                    println!("config file not found");
+                    println!("{}", "config file not found".red());
+                    println!();
                 } else {
-                    println!("could not load config: {:?}", e);
+                    println!("{}", format!("could not load config: {:?}", e).red());
+                    println!();
+                    keys.push("config found");
+                    values.push(format!("{}", "false".to_string().red()));
                 }
             } else {
-                println!("could not load config: {:?}", e);
+                println!("{}", format!("could not load config: {:?}", e).red());
+                println!();
             };
-            return Err(e.into());
+            None
         }
         Ok(config) => {
             keys.push("config found");
-            values.push("true".to_string());
-            config
+            values.push(format!("{}", "true".to_string().green()));
+            Some(config)
         }
     };
 
     // validate config
     keys.push("config valid");
-    match config.validate() {
-        Ok(()) => {
-            values.push("true".to_string());
-        }
-        Err(e) => {
-            values.push("false".to_string());
-            println!("{:?}", e);
-        }
-    };
+    if let Some(config) = config.clone() {
+        match config.validate() {
+            Ok(()) => {
+                values.push(format!("{}", "true".to_string().green()));
+            }
+            Err(e) => {
+                values.push(format!("{}", "false".to_string().red()));
+                println!("{:?}", e);
+            }
+        };
+    } else {
+        values.push("[no config]".to_string());
+    }
 
     let format = toolstr::TableFormat::default();
     let column_formats = vec![
@@ -80,13 +89,13 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
         toolstr::ColumnFormatShorthand::new()
             .name("v")
             .left_justify()
-            .font_style("".green().bold()),
+            .font_style("".bold().green()),
     ];
     let format = toolstr::TableFormat {
         include_header_row: false,
         indent: 4,
         column_formats: Some(column_formats),
-        column_delimiter: "   ".to_string(),
+        column_delimiter: "  ".to_string(),
         ..format
     };
     let mut table = toolstr::Table::default();
@@ -103,8 +112,12 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
         println!();
         toolstr::print_header("Configured Endpoints", &theme);
         println!();
-        let endpoints: Vec<_> = config.endpoints.clone().into_values().collect();
-        print_endpoints(&endpoints, args.reveal)?;
+        if let Some(ref config) = config.clone() {
+            let endpoints: Vec<_> = config.endpoints.clone().into_values().collect();
+            print_endpoints(&endpoints, args.reveal)?;
+        } else {
+            println!("[no config]");
+        }
     };
 
     // print defaults
@@ -113,8 +126,21 @@ pub(crate) fn status_command(args: StatusArgs) -> Result<(), MescCliError> {
         println!();
         toolstr::print_header("Default Endpoints", &theme);
         println!();
-        print_defaults(&config)?;
+        if let Some(config) = config.clone() {
+            print_defaults(&config)?;
+        } else {
+            println!("[no config]");
+        }
     };
+
+    if !args.verbose {
+        println!();
+        println!(
+            "use {} or {} to print additional information",
+            "-v".bold().white(),
+            "--verbose".bold().white()
+        )
+    }
 
     Ok(())
 }

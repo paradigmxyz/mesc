@@ -23,6 +23,14 @@ pub enum MescError {
     #[error("Missing endpoint: {0}")]
     MissingEndpoint(String),
 
+    /// Error for missing invalid path
+    #[error("Invalid path: {0}")]
+    InvalidPath(String),
+
+    /// Error for missing config file
+    #[error("Missing config file: {0}")]
+    MissingConfigFile(String),
+
     /// Error wrapper for standard IO errors.
     #[error(transparent)]
     IOError(#[from] std::io::Error),

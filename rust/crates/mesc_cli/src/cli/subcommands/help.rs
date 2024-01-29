@@ -9,6 +9,7 @@ pub(crate) fn help_command(args: HelpArgs) -> Result<(), MescCliError> {
             "python" => print_python_interface(),
             "rust" => print_rust_interface(),
             "schema" => print_schema()?,
+            "setup" => print_setup_help(),
             _ => println!("Unknown help topic: {}", topic),
         },
         None => Cli::command().print_help().map_err(|e| {
@@ -19,13 +20,48 @@ pub(crate) fn help_command(args: HelpArgs) -> Result<(), MescCliError> {
     Ok(())
 }
 
+fn print_help_topic(topic: &str) -> Result<(), MescCliError> {
+    match topic {
+        "env" => print_env_help(),
+        "python" => print_python_interface(),
+        "rust" => print_rust_interface(),
+        "schema" => print_schema()?,
+        "setup" => print_setup_help(),
+        _ => println!("Unknown help topic: {}", topic),
+    }
+    Ok(())
+}
+
 pub(crate) fn get_help_topics() -> Vec<(String, String)> {
     vec![
-        ("env".to_string(), "Description of environmental variables".to_string()),
-        ("python".to_string(), "Print python interface".to_string()),
-        ("rust".to_string(), "Print rust interface".to_string()),
+        ("env".to_string(), "Environmental variables".to_string()),
+        ("python".to_string(), "Python interface".to_string()),
+        ("rust".to_string(), "Rust interface".to_string()),
         ("schema".to_string(), "Schemas of configs, endpoints, and profiles".to_string()),
+        ("setup".to_string(), "How to set up MESC".to_string()),
     ]
+}
+
+pub(crate) fn print_interactive_help() -> Result<(), MescCliError> {
+    println!();
+    print_setup_help();
+    println!();
+    let topics = get_help_topics();
+    let mut options: Vec<_> = topics.iter().map(|(t, _)| t.as_str()).collect();
+    options.push("Return to main menu");
+    loop {
+        let prompt = "Print help about other MESC topics?";
+        match inquire::Select::new(prompt, options.clone()).prompt() {
+            Ok("Return to main menu") => return Ok(()),
+            Ok(topic) => {
+                println!();
+                print_help_topic(topic)?;
+                println!()
+            }
+            Err(inquire::InquireError::OperationCanceled) => return Ok(()),
+            Err(e) => return Err(e.into()),
+        }
+    }
 }
 
 fn print_env_help() {
@@ -105,7 +141,8 @@ fn print_code(content: String, filetype: &str) {
 }
 
 fn print_python_interface() {
-    let interface = r#"import mesc
+    let interface = r#"from typing import Any, Mapping, Sequence
+import mesc
 
 # check whether mesc is enabled
 enabled: bool = mesc.is_mesc_enabled()
@@ -130,7 +167,10 @@ endpoint: Endpoint | None = mesc.get_endpoint_by_name('local_goerli')
 endpoint: Endpoint | None = mesc.get_endpoint_by_query(user_str, profile='xyz_tool')
 
 # find all endpoints matching given criteria
-endpoints: list[Endpoint] = mesc.find_endpoints(chain_id=5)"#;
+endpoints: Sequence[Endpoint] = mesc.find_endpoints(chain_id=5)
+
+# get non-endpoint metadata
+metadata: Mapping[str, Any] = mesc.get_global_metadata(profile='xyz_tool')"#;
 
     print_code(interface.to_string(), "py")
 }
@@ -141,6 +181,7 @@ use mesc::MescError;
 
 type OptionalResult = Result<Option<Endpoint>, MescError>;
 type MultiResult = Result<Vec<Endpoint>, MescError>;
+type MetadataResult = Result<HashMap<String, serde_json::Value>, MescError>
 
 // get the default endpoint
 let endpoint: OptionalResult = mesc::get_default_endpoint(None);
@@ -149,21 +190,24 @@ let endpoint: OptionalResult = mesc::get_default_endpoint(None);
 let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, None);
 
 // get the default network for a particular tool
-let chain_id: OptionalResult = mesc::get_default_endpoint("xyz_tool");
+let chain_id: OptionalResult = mesc::get_default_endpoint(Some("xyz_tool"));
 
 // get the default endpoint of a network for a particular tool
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, "xyz_tool");
+let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, Some("xyz_tool"));
 
 // get an endpoint by name
-let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_query");
+let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_goerli");
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)
-let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, "xyz_tool");
+let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some("xyz_tool"));
 
 // find all endpoints matching given criteria
 let query = mesc::MultiEndpointQuery::new().chain_id(5);
-let endpoints: MultiResult = mesc::find_endpoints(query);"#;
+let endpoints: MultiResult = mesc::find_endpoints(query);
+
+// get non-endpoint metadata
+let metadata: MetadataResult  = mesc::get_global_metadata(Some("xyz_tool"));"#;
 
     print_code(interface.to_string(), "rs")
 }
@@ -297,4 +341,20 @@ fn print_schema() -> Result<(), MescCliError> {
     format.print(table)?;
 
     Ok(())
+}
+
+fn print_setup_help() {
+    println!(
+        r#"A basic MESC setup requires two steps:
+1. create a {} configuration file
+2. set the {} environment variable to the path of this file
+
+The {} command can interactively perform both steps
+
+{} can also be used to create and modify configuration data"#,
+        "mesc.json".white().bold(),
+        "MESC_PATH".white().bold(),
+        "mesc setup".white().bold(),
+        "mesc setup".white().bold()
+    )
 }

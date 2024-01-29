@@ -115,6 +115,8 @@ pub struct UserInputQuery {
 /// GlobalMetadataQuery
 #[derive(Debug, Clone)]
 pub struct GlobalMetadataQuery {
+    /// profile
+    pub profile: Option<String>,
     /// path
     pub path: Option<Vec<String>>,
 }

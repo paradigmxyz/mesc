@@ -18,7 +18,7 @@ pub fn get_default_endpoint(profile: Option<&str>) -> Result<Option<Endpoint>, M
 }
 
 /// get endpoint by network
-pub fn get_endpoint_by_network<T: TryIntoChainId>(
+pub fn get_endpoint_by_network<T: TryIntoChainId + std::fmt::Debug + std::clone::Clone>(
     chain_id: T,
     profile: Option<&str>,
 ) -> Result<Option<Endpoint>, MescError> {
@@ -44,6 +44,8 @@ pub fn find_endpoints(query: MultiEndpointQuery) -> Result<Vec<Endpoint>, MescEr
 }
 
 /// get global metadata
-pub fn get_global_metadata() -> Result<HashMap<String, serde_json::Value>, MescError> {
-    query::get_global_metadata(&load_config_data()?)
+pub fn get_global_metadata(
+    profile: Option<&str>,
+) -> Result<HashMap<String, serde_json::Value>, MescError> {
+    query::get_global_metadata(&load_config_data()?, profile)
 }
