@@ -77,7 +77,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: binary-${{ matrix.target }}
-        path: path/to/your/binary
+        path: rust/target/${{ matrix.target }}/release/mesc_cli
 
   publish_release:
     needs: build
