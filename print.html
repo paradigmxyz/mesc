@@ -619,7 +619,16 @@ Help topics: (print these with mesc help &lt;TOPIC&gt;)
 <li>Can use <code>--profile PROFILENAME</code> to use defaults of a particular profile</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="go-mesc-implementation"><a class="header" href="#go-mesc-implementation">Go MESC Implementation</a></h1>
-<p>[WIP]</p>
+<p>This is a reference implementation of the Go MESC standard.</p>
+<h2 id="installation-1"><a class="header" href="#installation-1">Installation</a></h2>
+<p>To use this project within your Golang project, execute the following within your project:</p>
+<pre><code>go get github.com/paradigmxyz/mesc/go
+</code></pre>
+<h2 id="example-usage-2"><a class="header" href="#example-usage-2">Example Usage</a></h2>
+<p>// TODO: pending doc</p>
+<h2 id="reference-1"><a class="header" href="#reference-1">Reference</a></h2>
+<p>Refer to the function signatures defined in <a href="pkg/mesc/endpoints.go">endpoints.go</a> for the list of available functions.</p>
+<p>Models are available in the <a href="pkg/mesc/model">model</a> package.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="python-mesc-implementation"><a class="header" href="#python-mesc-implementation">Python MESC Implementation</a></h1>
 <p>This is a reference implementation of the Python MESC Standard</p>
 <p>It has no external dependencies.</p>
@@ -628,7 +637,7 @@ Help topics: (print these with mesc help &lt;TOPIC&gt;)
 <li><a href="python.html#example-usage">Example Usage</a></li>
 <li><a href="python.html#reference">Reference</a></li>
 </ul>
-<h2 id="installation-1"><a class="header" href="#installation-1">Installation</a></h2>
+<h2 id="installation-2"><a class="header" href="#installation-2">Installation</a></h2>
 <h3 id="from-pypi"><a class="header" href="#from-pypi">From PyPI</a></h3>
 <p><code>pip install mesc</code></p>
 <h3 id="from-source"><a class="header" href="#from-source">From Source</a></h3>
@@ -636,7 +645,7 @@ Help topics: (print these with mesc help &lt;TOPIC&gt;)
 cd mesc
 pip install ./
 </code></pre>
-<h2 id="example-usage-2"><a class="header" href="#example-usage-2">Example Usage</a></h2>
+<h2 id="example-usage-3"><a class="header" href="#example-usage-3">Example Usage</a></h2>
 <pre><code class="language-python">from typing import Any, Mapping, Sequence
 import mesc
 
@@ -668,7 +677,7 @@ endpoints: Sequence[Endpoint] = mesc.find_endpoints(chain_id=5)
 # get non-endpoint metadata
 metadata: Mapping[str, Any] = mesc.get_global_metadata(profile='xyz_tool')
 </code></pre>
-<h2 id="reference-1"><a class="header" href="#reference-1">Reference</a></h2>
+<h2 id="reference-2"><a class="header" href="#reference-2">Reference</a></h2>
 <pre><code class="language-python">from typing import Any, MutableMapping, TypedDict, Literal, Sequence
 
 class RpcConfig(TypedDict):
@@ -701,10 +710,10 @@ class Profile(TypedDict):
 <li><a href="rust.html#Example-Usage">Example-Usage</a></li>
 <li><a href="rust.html#Reference">Reference</a></li>
 </ul>
-<h2 id="installation-2"><a class="header" href="#installation-2">Installation</a></h2>
+<h2 id="installation-3"><a class="header" href="#installation-3">Installation</a></h2>
 <p>Inside a cargo project: <code>cargo add mesc</code></p>
 <p>Inside a <code>Cargo.toml</code>: <code>mesc = &quot;1.0&quot;</code></p>
-<h2 id="example-usage-3"><a class="header" href="#example-usage-3">Example Usage</a></h2>
+<h2 id="example-usage-4"><a class="header" href="#example-usage-4">Example Usage</a></h2>
 <p>Basic data structures</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
