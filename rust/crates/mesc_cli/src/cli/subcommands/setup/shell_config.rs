@@ -22,7 +22,6 @@ pub(crate) fn get_shell_config_paths() -> Result<Vec<PathBuf>, MescCliError> {
     let candidates = vec![
         home_path.join(".bashrc"),
         home_path.join(".profile"),
-        home_path.join(".bash_profile"),
     ];
     Ok(candidates)
 }
