@@ -178,7 +178,7 @@
 <p>If you are creating a new MESC implementation, you may find the following useful:</p>
 <ol>
 <li>
-<p>The main functionality that a MESC implementation provides is the <a href="https://github.com/paradigmxyz/mesc/blob/main/SPECIFICATION.md#reference-implementation">Core MESC Interface</a>. This is a set of functions for reading whatever MESC data a user has configured on their system.</p>
+<p>The main functionality that a MESC implementation provides is the <a href="https://github.com/paradigmxyz/mesc/blob/main/SPECIFICATION.md#reference-implementation">core MESC interface</a>. This is a set of functions for reading whatever MESC data a user has configured on their system.</p>
 </li>
 <li>
 <p>The ability to <strong>write</strong> MESC configurations is useful, but should be considered a secondary goal. Users already have the ability to create MESC configurations either by 1) editing JSON by hand, 2) editing JSON programmatically, or 3) using the interactive <a href="https://github.com/paradigmxyz/mesc/tree/main/cli">MESC cli tool</a>.</p>
@@ -192,6 +192,12 @@
 <li>
 <p>If parts of the MESC specification are confusing or difficult to implement, it may be helpful to look at existing implementations. These currently exist for <a href="https://github.com/paradigmxyz/mesc/tree/main/python">python</a> and <a href="https://github.com/paradigmxyz/mesc/tree/main/rust">rust</a>.</p>
 </li>
+</ol>
+<h2 id="implementation-checklist"><a class="header" href="#implementation-checklist">Implementation Checklist</a></h2>
+<ol>
+<li>Implement the <a href="https://paradigmxyz.github.io/mesc/queries.html">core MESC interface</a> functions. These functions should have the same behavior in each implementation.</li>
+<li>Create an adapter to run the <a href="https://github.com/paradigmxyz/mesc/tree/main/tests">MESC test suite</a>. Passing these tests means the implementation is fully compliant with the MESC specification.</li>
+<li>Add an entry to the <a href="https://github.com/paradigmxyz/mesc/blob/main/python/generate_network_names.py">generate_network_names.py</a> script. This script creates a native language code file for mapping between network names and chain id's using the standard <a href="https://github.com/ethereum-lists/chains">ethereum-lists/chains</a> repository.</li>
 </ol>
 
                     </main>
