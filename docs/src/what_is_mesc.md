@@ -1,6 +1,6 @@
 # What is MESC?
 
-MESC is a standardized approach for configuring RPC endpoints. Using MESC, a user creates a single RPC config that is shared by all RPC tools on their system.
+MESC (Multiple Endpoint Shared Configuration) is a standardized approach for configuring RPC endpoints. Using MESC, a user creates a single RPC config that is shared by all RPC tools on their system.
 
 ## Design Goals
 
