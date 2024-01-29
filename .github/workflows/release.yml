@@ -68,11 +68,34 @@ jobs:
         cd rust
         cargo build --release --manifest-path=crates/mesc_cli/Cargo.toml --target ${{ matrix.target }}
 
-    - name: Publish Release
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: binary-${{ matrix.target }}
+        path: path/to/your/binary
+
+  publish_release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: artifacts
+
+    - name: Create Release
+      id: create_release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          rust/target/${{ matrix.target }}/release/mesc_cli*
+          artifacts/*
+        name: ${{ github.event.inputs.release_name || github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        draft: false
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
