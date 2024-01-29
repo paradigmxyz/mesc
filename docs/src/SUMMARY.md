@@ -20,5 +20,4 @@
     - [Go](./go.md)
     - [Python](./python.md)
     - [Rust](./rust.md)
-    - [Typescript](./typescript.md)
-
+    - [TypeScript](./typescript.md)
