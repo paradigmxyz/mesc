@@ -115,7 +115,7 @@ Requirements:
 - All keys of `RpcConfig` and `Endpoint` are required. No additional keys must be present, except within `global_metadata`, `profile_metadata`, and `endpoint_metadata`.
 - Every endpoint name specified in `RpcConfig.default_endpoint` and in `RpcConfig.network_defaults` must exist in `RpcConfig.endpoints`.
 - These key-value structures can be easily represented in JSON and in most common programming languages.
-- EVM `chain_id`'s must be represented using either a decimal string or a hex string. Strings are used because chain id's can be 256 bits and most programming languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
+- EVM `chain_id`'s must be represented using either a decimal string or a `0x`-prefixed hex string. Strings are used because chain id's can be 256 bits and most programming languages do not have native 256 bit integer types. For readability, decimal should be used for small chain id values and hex should be used for values that use the entire 256 bits.
 - Names of endpoints, networks, and profiles should be composed of characters that are either alphanumeric, dashes, underscores, or periods. Names should be at least 1 character long.
 
 ##### Metadata

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing
 from .types import RpcConfig
 from . import network_names
 
@@ -31,3 +32,31 @@ def network_name_to_chain_id(
                 return chain_id
         else:
             return None
+
+
+def chain_id_to_standard_hex(chain_id: str) -> str | None:
+    if chain_id.startswith('0x'):
+        if len(chain_id) > 2:
+            as_hex = chain_id
+    else:
+        try:
+            as_hex = hex(int(chain_id))
+        except ValueError:
+            return None
+
+    return '0x' + as_hex[2:].lstrip('0')
+
+
+T = typing.TypeVar('T')
+
+
+def get_by_chain_id(mapping: typing.Mapping[str, T], chain_id: str) -> T | None:
+    if chain_id in mapping:
+        return mapping[chain_id]
+
+    standard_mapping = {chain_id_to_standard_hex(k): v for k, v in mapping.items()}
+    return standard_mapping.get(chain_id_to_standard_hex(chain_id))
+
+
+def chain_ids_equal(lhs: str, rhs: str) -> bool:
+    return chain_id_to_standard_hex(lhs) == chain_id_to_standard_hex(rhs)

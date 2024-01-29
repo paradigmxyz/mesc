@@ -68,13 +68,19 @@ full_config: RpcConfig = {
         "llamanodes_ethereum": {
             "name": "llamanodes_ethereum",
             "url": "https://eth.llamarpc.com",
-            "chain_id": "1",
+            "chain_id": "0x01",
             "endpoint_metadata": {},
         },
         "llamanodes_optimism": {
             "name": "llamanodes_optimism",
             "url": "https://optimism.llamarpc.com",
             "chain_id": "10",
+            "endpoint_metadata": {},
+        },
+        "llamanodes_base": {
+            "name": "llamanodes_base",
+            "url": "https://base.llamarpc.com",
+            "chain_id": "0x2105",
             "endpoint_metadata": {},
         },
     },
@@ -90,8 +96,9 @@ full_config: RpcConfig = {
             "name": "xyz",
             "default_endpoint": "llamanodes_ethereum",
             "network_defaults": {
-                "1": "llamanodes_ethereum",
+                "0x00001": "llamanodes_ethereum",
                 "10": "llamanodes_optimism",
+                "8453": "llamanodes_base",
             },
             "profile_metadata": {
                 "sample_key": "profile_value",
@@ -144,6 +151,64 @@ def generate_tests() -> list[Test]:
 
     tests = [test for generator in generators for test in generator()]
 
+    # for queries that specify chain_id, also specify hexadecimal chain_id
+    for test in list(tests):
+        query = test[3]
+        if query is not None and "profile" in query.get("fields", {}):
+            if query["fields"].get("chain_id") is not None:
+                # version without leading zeros
+                chain_id = query["fields"]["chain_id"]  # type: ignore
+                as_hex = hex(int(chain_id))  # type: ignore
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["chain_id"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+                # version with 1 extra leading zero
+                chain_id = query["fields"]["chain_id"]  # type: ignore
+                as_hex = "0x" + "0" + hex(int(chain_id))[2:]  # type: ignore
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["chain_id"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+                # version with 4 extra leading zeros
+                chain_id = query["fields"]["chain_id"]  # type: ignore
+                as_hex = "0x" + "0000" + hex(int(chain_id))[2:]  # type: ignore
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["chain_id"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+            if (
+                query["fields"].get("user_input") is not None
+                and isinstance(query["fields"]["user_input"], str)  # type: ignore
+                and query["fields"]["user_input"].isdecimal()  # type: ignore
+            ):
+                # version without leading zeros
+                chain_id = query["fields"]["user_input"]  # type: ignore
+                as_hex = hex(int(chain_id))
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["user_input"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+                # version with 1 extra leading zero
+                chain_id = query["fields"]["user_input"]  # type: ignore
+                as_hex = "0x" + "0" + hex(int(chain_id))[2:]
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["user_input"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
+                # version with 4 extra leading zeros
+                chain_id = query["fields"]["user_input"]  # type: ignore
+                as_hex = "0x" + "0000" + hex(int(chain_id))[2:]
+                new_test = copy.deepcopy(test)
+                new_test[3]["fields"]["user_input"] = as_hex  # type: ignore
+                new_test = (new_test[0] + ", hex chain_id",) + new_test[1:]
+                tests.append(new_test)
+
     # for tests that query with null profile, also query with non-existent profile
     for test in list(tests):
         query = test[3]
@@ -154,7 +219,6 @@ def generate_tests() -> list[Test]:
         ):
             new_test = copy.deepcopy(test)
             new_test[3]["fields"]["profile"] = "unknown_profile"  # type: ignore
-
             new_test = (new_test[0] + ", unknown_profile",) + new_test[1:]
             tests.append(new_test)
 
@@ -307,6 +371,28 @@ def create_basic_query_tests() -> list[Test]:
                 "fields": {"chain_id": "137", "profile": None},
             },
             None,
+            True,
+        ),
+        (
+            "get endpoint by network, base",
+            {},
+            full_config,
+            {
+                "query_type": "endpoint_by_network",
+                "fields": {"chain_id": "8453", "profile": None},
+            },
+            None,
+            True,
+        ),
+        (
+            "get endpoint by network, base, profile",
+            {},
+            full_config,
+            {
+                "query_type": "endpoint_by_network",
+                "fields": {"chain_id": "8453", "profile": "xyz"},
+            },
+            full_config["endpoints"]["llamanodes_base"],
             True,
         ),
         (
@@ -655,6 +741,7 @@ def create_basic_query_tests() -> list[Test]:
             [
                 full_config["endpoints"]["llamanodes_ethereum"],
                 full_config["endpoints"]["llamanodes_optimism"],
+                full_config["endpoints"]["llamanodes_base"],
             ],
             True,
         ),
@@ -812,7 +899,7 @@ def create_invalid_config_tests() -> list[Test]:
         )
     )
     config = copy.deepcopy(full_config)
-    config['profiles']['abc']["default_endpoint"] = "random_unknown"
+    config["profiles"]["abc"]["default_endpoint"] = "random_unknown"
     tests.append(
         (
             "unknown default endpoint",
@@ -838,7 +925,7 @@ def create_invalid_config_tests() -> list[Test]:
         ),
     )
     config = copy.deepcopy(full_config)
-    config['profiles']['abc']["network_defaults"]["10"] = "random_unknown"
+    config["profiles"]["abc"]["network_defaults"]["10"] = "random_unknown"
     tests.append(
         (
             "unknown network defaults",
@@ -852,7 +939,7 @@ def create_invalid_config_tests() -> list[Test]:
 
     # endpoint name doesn't match
     config = copy.deepcopy(blank_config)
-    config['endpoints'] = {'other_name': blank_endpoint}
+    config["endpoints"] = {"other_name": blank_endpoint}
     tests.append(
         (
             "unknown network defaults",
@@ -867,7 +954,7 @@ def create_invalid_config_tests() -> list[Test]:
 
     # profile name doesn't match
     config = copy.deepcopy(blank_config)
-    config['profiles'] = {'other_name': blank_profile}
+    config["profiles"] = {"other_name": blank_profile}
     tests.append(
         (
             "unknown network defaults",
@@ -881,7 +968,7 @@ def create_invalid_config_tests() -> list[Test]:
 
     # global default endpoint of network doesn't actually use that network
     config = copy.deepcopy(full_config)
-    config['endpoints']['local_ethereum']['chain_id'] = '4'
+    config["endpoints"]["local_ethereum"]["chain_id"] = "4"
     tests.append(
         (
             "global default endpoint of network doesn't actually use that network",
@@ -895,7 +982,7 @@ def create_invalid_config_tests() -> list[Test]:
 
     # profile default endpoint of network doesn't actually use that network
     config = copy.deepcopy(full_config)
-    config['endpoints']['llamanodes_ethereum']['chain_id'] = '4'
+    config["endpoints"]["llamanodes_ethereum"]["chain_id"] = "4"
     tests.append(
         (
             "global default endpoint of network doesn't actually use that network",
@@ -906,6 +993,41 @@ def create_invalid_config_tests() -> list[Test]:
             False,
         ),
     )
+
+    # conflicting chain_ids in global network defaults
+    config = copy.deepcopy(full_config)
+    config["network_defaults"]["8453"] = "llamanodes_base"
+    config["network_defaults"]["0x2105"] = "llamanodes_base"
+    tests.append(
+        (
+            "conflicting chain_ids in global network defaults",
+            {},
+            config,
+            None,
+            None,
+            False,
+        ),
+    )
+
+    # conflicting chain_ids in profile network defaults
+    for profile_name, profile_data in full_config["profiles"].items():
+        config = copy.deepcopy(full_config)
+        config["profiles"][profile_name]["network_defaults"]["8453"] = "llamanodes_base"
+        config["profiles"][profile_name]["network_defaults"][
+            "0x2105"
+        ] = "llamanodes_base"
+        tests.append(
+            (
+                "conflicting chain_ids in profile "
+                + profile_name
+                + " network defaults",
+                {},
+                config,
+                None,
+                None,
+                False,
+            ),
+        )
 
     # incorrect types tests
     invalid_type_tests = [

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// ChainId is a string representation of an integer chain id
 /// - TryFrom conversions allow specifying as String, &str, uint, or binary data
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Eq)]
 pub struct ChainId(String);
 
 impl ChainId {
@@ -23,12 +23,14 @@ impl ChainId {
     /// convert to hex representation, zero-padded to 256 bits
     pub fn to_hex_256(&self) -> Result<String, MescError> {
         let ChainId(chain_id) = self;
-        if chain_id.starts_with("0x") {
-            Ok(chain_id.clone())
+        if let Some(stripped) = chain_id.strip_prefix("0x") {
+            Ok(format!("0x{:0>64}", stripped))
         } else {
-            match chain_id.parse::<u64>() {
-                Ok(number) => Ok(format!("0x{:016x}", number)),
-                Err(_) => Err(MescError::IntegrityError("bad chain_id".to_string())),
+            match chain_id.parse::<u128>() {
+                Ok(number) => Ok(format!("0x{:064x}", number)),
+                Err(_) => {
+                    Err(MescError::InvalidChainId("cannot convert chain_id to hex".to_string()))
+                }
             }
         }
     }
@@ -40,9 +42,39 @@ impl ChainId {
     }
 }
 
+impl std::hash::Hash for ChainId {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self.to_hex_256() {
+            Ok(as_hex) => {
+                as_hex.hash(state);
+            }
+            _ => {
+                let ChainId(contents) = self;
+                contents.hash(state);
+            }
+        }
+    }
+}
+
 impl PartialOrd for ChainId {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for ChainId {
+    fn eq(&self, other: &Self) -> bool {
+        let self_string: String = match self.to_hex() {
+            Ok(s) => s[2..].to_string(),
+            Err(_) => return self == other,
+        };
+        let other_string = match other.to_hex() {
+            Ok(s) => s[2..].to_string(),
+            Err(_) => return self == other,
+        };
+        let self_str = format!("{:0>79}", self_string);
+        let other_str = format!("{:0>79}", other_string);
+        self_str.eq(&other_str)
     }
 }
 
@@ -96,7 +128,10 @@ impl TryIntoChainId for ChainId {
 
 impl TryIntoChainId for String {
     fn try_into_chain_id(self) -> Result<ChainId, MescError> {
-        if !self.is_empty() && self.chars().all(|c| c.is_ascii_digit()) {
+        if !self.is_empty() &&
+            (self.chars().all(|c| c.is_ascii_digit()) ||
+                (self.starts_with("0x") && self[2..].chars().all(|c| c.is_ascii_hexdigit())))
+        {
             Ok(ChainId(self))
         } else {
             Err(MescError::InvalidChainId(self))
@@ -106,7 +141,10 @@ impl TryIntoChainId for String {
 
 impl TryIntoChainId for &str {
     fn try_into_chain_id(self) -> Result<ChainId, MescError> {
-        if self.chars().all(|c| c.is_ascii_digit()) {
+        if !self.is_empty() &&
+            (self.chars().all(|c| c.is_ascii_digit()) ||
+                (self.starts_with("0x") && self[2..].chars().all(|c| c.is_ascii_hexdigit())))
+        {
             Ok(ChainId(self.to_string()))
         } else {
             Err(MescError::InvalidChainId(self.to_string()))

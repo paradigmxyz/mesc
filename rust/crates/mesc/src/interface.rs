@@ -18,7 +18,7 @@ pub fn get_default_endpoint(profile: Option<&str>) -> Result<Option<Endpoint>, M
 }
 
 /// get endpoint by network
-pub fn get_endpoint_by_network<T: TryIntoChainId>(
+pub fn get_endpoint_by_network<T: TryIntoChainId + std::fmt::Debug + std::clone::Clone>(
     chain_id: T,
     profile: Option<&str>,
 ) -> Result<Option<Endpoint>, MescError> {
