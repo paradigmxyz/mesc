@@ -8,4 +8,4 @@ description = "A specification for how crypto tools configure their RPC endpoint
 
 [output.html]
 git-repository-url = "https://github.com/paradigmxyz/mesc"
-edit-url-template = "https://github.com/paradigmxyz/mesc/docs/edit/main/{path}"
+edit-url-template = "https://github.com/paradigmxyz/mesc/edit/main/docs/{path}"
