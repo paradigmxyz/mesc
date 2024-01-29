@@ -1,6 +1,7 @@
 use crate::{MescCliError, SetupArgs};
 use mesc::{MescError, RpcConfig};
 use toolstr::Colorize;
+use std::path::PathBuf;
 
 use super::{config_modification::*, inquire_utils::*, selectors::*, shell_config::*, writing::*};
 
@@ -9,7 +10,7 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
     if args.editor {
         edit_config_in_editor(args)
     } else {
-        let mode = get_write_mode()?;
+        let (mode, shell_config_modified) = get_write_mode()?;
         let config = load_config_data(&mode)?;
         let endpoint_word = if config.endpoints.len() == 1 { "endpoint" } else { "endpoints" };
         let profile_word = if config.profiles.len() == 1 { "profile" } else { "profiles" };
@@ -21,7 +22,12 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
             profile_word,
         );
         println!();
-        modify_existing_config(config, Some(mode)).await
+        let result = modify_existing_config(config, Some(mode)).await;
+        if shell_config_modified {
+            println!();
+            println!("{}", "Shell config files were modified. Restart shell to load these files.".magenta())
+        }
+        result
     }
 }
 
@@ -39,7 +45,7 @@ fn edit_config_in_editor(args: SetupArgs) -> Result<(), MescCliError> {
 }
 
 /// get write mode for config
-fn get_write_mode() -> Result<ConfigWriteMode, MescCliError> {
+fn get_write_mode() -> Result<(ConfigWriteMode, bool), MescCliError> {
     match (
         std::env::var("MESC_MODE").as_deref(),
         std::env::var("MESC_PATH").as_deref(),
@@ -55,9 +61,9 @@ fn get_write_mode() -> Result<ConfigWriteMode, MescCliError> {
                 "ENV".green().bold()
             );
             let config_mode = select_config_mode()?;
-            setup_mesc_mode_env_var(&config_mode)?;
-            setup_mesc_env_vars(&config_mode)?;
-            Ok(config_mode)
+            let modified_first = setup_mesc_mode_env_var(&config_mode)?;
+            let modified_second = setup_mesc_env_vars(&config_mode)?;
+            Ok((config_mode, !modified_first.is_empty() || !modified_second.is_empty()))
         }
         (Ok("PATH"), Ok(path), _, _) | (Err(_), Ok(path), _, _) => {
             let path = mesc::load::expand_path(path)?;
@@ -65,8 +71,7 @@ fn get_write_mode() -> Result<ConfigWriteMode, MescCliError> {
             let print_path =
                 if let Ok(raw_path) = std::env::var("MESC_PATH") { raw_path } else { path.clone() };
             println!(" Using {}{}", "MESC_PATH=".green().bold(), print_path.green().bold());
-
-            Ok(ConfigWriteMode::Path(path.into()))
+            Ok((ConfigWriteMode::Path(path.into()), false))
         }
         (Ok("PATH"), Err(_), _, _) => {
             println!(" MESC is enabled");
@@ -77,13 +82,13 @@ fn get_write_mode() -> Result<ConfigWriteMode, MescCliError> {
             );
             let path = select_config_path()?;
             println!(" Using config path: {}", path.to_string_lossy().green().bold());
-            setup_mesc_path_env_var(&path)?;
-            Ok(ConfigWriteMode::Path(path))
+            let modified_files = setup_mesc_path_env_var(&path)?;
+            Ok((ConfigWriteMode::Path(path), !modified_files.is_empty()))
         }
         (Ok("ENV"), _, Ok(_env), _) | (Err(_), Err(_), Ok(_env), _) => {
             println!(" MESC is enabled");
             println!(" Using {}", "MESC_MODE=ENV".green().bold());
-            Ok(ConfigWriteMode::Env(vec![]))
+            Ok((ConfigWriteMode::Env(vec![]), false))
         }
         (Ok("ENV"), _, Err(_), _) => {
             println!(" MESC is enabled");
@@ -92,7 +97,7 @@ fn get_write_mode() -> Result<ConfigWriteMode, MescCliError> {
                 "MESC_MODE=ENV".green().bold(),
                 "MESC_ENV".green().bold()
             );
-            Ok(ConfigWriteMode::Env(vec![]))
+            Ok((ConfigWriteMode::Env(vec![]), false))
         }
         (Ok(other), _, _, _) => {
             eprintln!("Invaild value for {}: {}", "MESC_MODE".green().bold(), other.green().bold());
@@ -112,15 +117,15 @@ fn get_write_mode() -> Result<ConfigWriteMode, MescCliError> {
                 "MESC_ENV".green().bold()
             );
             let mode = select_config_mode()?;
-            setup_mesc_env_vars(&mode)?;
-            Ok(mode)
+            let modified_files = setup_mesc_env_vars(&mode)?;
+            Ok((mode, !modified_files.is_empty()))
         }
         (Err(_), Err(_), Err(_), false) => {
             println!(" MESC is disabled because no MESC env vars are set");
             println!(" To enabled MESC, set one of the MESC env vars");
             let mode = select_config_mode()?;
-            setup_mesc_env_vars(&mode)?;
-            Ok(mode)
+            let modified_files = setup_mesc_env_vars(&mode)?;
+            Ok((mode, !modified_files.is_empty()))
         }
     }
 }
@@ -210,24 +215,22 @@ fn load_config_data(mode: &ConfigWriteMode) -> Result<RpcConfig, MescCliError> {
     Ok(config)
 }
 
-fn setup_mesc_mode_env_var(mode: &ConfigWriteMode) -> Result<(), MescCliError> {
+fn setup_mesc_mode_env_var(mode: &ConfigWriteMode) -> Result<Vec<PathBuf>, MescCliError> {
     let value = match mode {
         ConfigWriteMode::Path(_) => "PATH",
         ConfigWriteMode::Env(_) => "ENV",
     };
-    modify_shell_config_var("MESC_MODE", value.to_string(), None)?;
-    Ok(())
+    modify_shell_config_var("MESC_MODE", value.to_string(), None)
 }
 
-fn setup_mesc_env_vars(mode: &ConfigWriteMode) -> Result<(), MescCliError> {
+fn setup_mesc_env_vars(mode: &ConfigWriteMode) -> Result<Vec<PathBuf>, MescCliError> {
     match mode {
         ConfigWriteMode::Path(path) => setup_mesc_path_env_var(path),
-        ConfigWriteMode::Env(_) => Ok(()),
+        ConfigWriteMode::Env(_) => Ok(vec![]),
     }
 }
 
-fn setup_mesc_path_env_var(path: &std::path::Path) -> Result<(), MescCliError> {
+fn setup_mesc_path_env_var(path: &std::path::Path) -> Result<Vec<PathBuf>, MescCliError> {
     let value = path.to_string_lossy().to_string();
-    modify_shell_config_var("MESC_PATH", value, None)?;
-    Ok(())
+    modify_shell_config_var("MESC_PATH", value, None)
 }
