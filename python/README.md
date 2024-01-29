@@ -16,7 +16,7 @@ It has no external dependencies.
 
 ### From Source
 ```
-git clone https://github/paradigmxyz/mesc
+git clone https://github.com/paradigmxyz/mesc
 cd mesc
 pip install ./
 ```
