@@ -19,10 +19,7 @@ pub(crate) fn get_shell_config_paths() -> Result<Vec<PathBuf>, MescCliError> {
     let home_dir =
         std::env::var("HOME").map_err(|_| MescCliError::Error("home dir not found".to_string()))?;
     let home_path = PathBuf::from(home_dir);
-    let candidates = vec![
-        home_path.join(".bashrc"),
-        home_path.join(".profile"),
-    ];
+    let candidates = vec![home_path.join(".bashrc"), home_path.join(".profile")];
     Ok(candidates)
 }
 
@@ -55,11 +52,6 @@ pub(crate) fn modify_shell_config_var(
             set_wrong.push(path)
         }
     }
-
-    println!("NOT_SET {:?}", not_set);
-    println!("COMPLEX_MENTIONS {:?}", complex_mentions);
-    println!("SET_ALREADY {:?}", set_already);
-    println!("SET_WRONG {:?}", set_wrong);
 
     // modify shell configs accordingly
     match (not_set.len(), complex_mentions.len(), set_wrong.len(), set_already.len()) {
@@ -225,6 +217,10 @@ pub(crate) fn replace_mentions<P: AsRef<Path>>(
     new_value: &str,
 ) -> Result<(), MescCliError> {
     let path = path.as_ref();
+
+    if !path.exists() {
+        let _file = File::create(path)?;
+    }
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
