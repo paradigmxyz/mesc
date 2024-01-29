@@ -77,7 +77,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: binary-${{ matrix.target }}
-        path: rust/target/${{ matrix.target }}/release/mesc_cli
+        path: rust/target/${{ matrix.target }}/release/mesc
 
   publish_release:
     needs: build
@@ -95,8 +95,7 @@ jobs:
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          artifacts/*
+        files: artifacts/**
         name: ${{ github.event.inputs.release_name || github.ref_name }}
         tag_name: ${{ github.ref_name }}
         draft: false
