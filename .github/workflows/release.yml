@@ -2,6 +2,11 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      release_name:
+        description: 'Release Name'
+        required: false
+        default: ''
 
 jobs:
   build:
