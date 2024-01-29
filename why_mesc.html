@@ -187,6 +187,15 @@
 <li>is backwards compatible with previous solutions</li>
 </ul>
 <p>MESC aims to satisfy all of these constraints.</p>
+<h2 id="as-a-developer-why-should-i-integrate-mesc-into-my-tools"><a class="header" href="#as-a-developer-why-should-i-integrate-mesc-into-my-tools">As a developer, why should I integrate MESC into my tools?</a></h2>
+<ul>
+<li><strong>Easier Onboarding</strong>. As soon as a user installs your tool, they will be able to use your tool with all of their configured networks. This eliminates one of the major setup steps for most RPC consuming tools.</li>
+<li><strong>Interoperability</strong>. If you maintain multiple tools, or your tool has components in multiple languages, MESC will create a single, shared source of truth across all of these tool components.</li>
+<li><strong>Safety and Robustness</strong>. MESC is thoroughly tested against a large number of config-related edge cases. In many cases it will be safer to user MESC than to create a configuration system from scratch.</li>
+<li><strong>Minimize maintenance burden</strong>. Leaning on MESC to handle configuration means there is one less thing you need to maintain. You can spend your time on other things.</li>
+<li><strong>Developer Features</strong>. If you need to develop or test your tool with multiple endpoints, the <code>mesc</code> CLI tools contains many useful developer features for managing endpoints.</li>
+<li><strong>Go config-free</strong>. In some cases, adopting MESC means that your tool no longer needs its own config. You can store your tool's config data in MESC's metadata and then just use MESC for all config IO.</li>
+</ul>
 
                     </main>
 
