@@ -16,7 +16,16 @@ jobs:
           - os: ubuntu-latest
             arch: arm64
             target: aarch64-unknown-linux-gnu
-          # ... other matrix entries ...
+          - os: macos-latest
+            arch: amd64
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            arch: arm64
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            arch: amd64
+            target: x86_64-pc-windows-msvc
+
 
     steps:
     - name: Checkout Repository
