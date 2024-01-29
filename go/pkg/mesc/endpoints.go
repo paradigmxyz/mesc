@@ -33,7 +33,9 @@ func GetEndpointByNetwork(ctx context.Context, chainID model.ChainID, options ..
 
 // GetEndpointByName resolves the endpoint metadata, if available, for the network for the given name.
 // This will return nil if no endpoint metadata can be resolved.
-func GetEndpointByName(ctx context.Context, name string, options ...resolution.EndpointResolutionOption) (*model.EndpointMetadata, error) {
+// If the given RPC config is non-nil, it will be used to determine the endpoint.
+// If the given RPC config is nil, then the RPC config will be resolved according to the MESC specification.
+func GetEndpointByName(ctx context.Context, name string, rpcConfig *model.RPCConfig) (*model.EndpointMetadata, error) {
 	// TODO: implement
 	return nil, errors.New("not yet implemented")
 }
