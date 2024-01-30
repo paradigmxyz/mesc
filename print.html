@@ -722,7 +722,7 @@ class Profile(TypedDict):
 </ul>
 <h2 id="installation-3"><a class="header" href="#installation-3">Installation</a></h2>
 <p>Inside a cargo project: <code>cargo add mesc</code></p>
-<p>Inside a <code>Cargo.toml</code>: <code>mesc = &quot;1.0&quot;</code></p>
+<p>Inside a <code>Cargo.toml</code>: <code>mesc = &quot;0.2.0&quot;</code></p>
 <h2 id="example-usage-4"><a class="header" href="#example-usage-4">Example Usage</a></h2>
 <p>Basic data structures</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -761,12 +761,12 @@ pub struct ChainId(String);
 <p>Basic read functions</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>use mesc;
-use mesc::MescError;
+</span>use mesc::{MescError, Endpoint};
+use std::collections::HashMap;
 
 type OptionalResult = Result&lt;Option&lt;Endpoint&gt;, MescError&gt;;
 type MultiResult = Result&lt;Vec&lt;Endpoint&gt;, MescError&gt;;
-type MetadataResult = Result&lt;HashMap&lt;String, serde_json::Value&gt;, MescError&gt;
+type MetadataResult = Result&lt;HashMap&lt;String, serde_json::Value&gt;, MescError&gt;;
 
 // check whether mesc is enabled
 let enabled: bool = mesc::is_mesc_enabled();
@@ -775,23 +775,24 @@ let enabled: bool = mesc::is_mesc_enabled();
 let endpoint: OptionalResult = mesc::get_default_endpoint(None);
 
 // get the default endpoint of a network
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, None);
+let endpoint: OptionalResult = mesc::get_endpoint_by_network(5 as u8, None);
 
 // get the default network for a particular tool
 let chain_id: OptionalResult = mesc::get_default_endpoint(Some(&quot;xyz_tool&quot;));
 
 // get the default endpoint of a network for a particular tool
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, Some(&quot;xyz_tool&quot;));
+let endpoint: OptionalResult = mesc::get_endpoint_by_network(5 as u8, Some(&quot;xyz_tool&quot;));
 
 // get an endpoint by name
 let endpoint: OptionalResult = mesc::get_endpoint_by_name(&quot;local_goerli&quot;);
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)
+let user_str = &quot;local_goerli&quot;;
 let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some(&quot;xyz_tool&quot;));
 
 // find all endpoints matching given criteria
-let query = mesc::MultiEndpointQuery::new().chain_id(5);
+let query = mesc::MultiEndpointQuery::new().chain_id(5 as u8).unwrap();
 let endpoints: MultiResult = mesc::find_endpoints(query);
 
 // get non-endpoint metadata
