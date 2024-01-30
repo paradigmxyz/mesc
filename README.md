@@ -105,33 +105,38 @@ endpoints: list[Endpoint] = mesc.find_endpoints(chain_id=5)
 
 ###### rust
 ```rust
-use mesc;
-use mesc::MescError;
+use mesc::{MescError, Endpoint};
+use std::collections::HashMap;
 
 type OptionalResult = Result<Option<Endpoint>, MescError>;
 type MultiResult = Result<Vec<Endpoint>, MescError>;
+type MetadataResult = Result<HashMap<String, serde_json::Value>, MescError>;
+
+// check whether mesc is enabled
+let enabled: bool = mesc::is_mesc_enabled();
 
 // get the default endpoint
 let endpoint: OptionalResult = mesc::get_default_endpoint(None);
 
 // get the default endpoint of a network
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, None);
+let endpoint: OptionalResult = mesc::get_endpoint_by_network("5", None);
 
 // get the default network for a particular tool
-let chain_id: OptionalResult = mesc::get_default_endpoint("xyz_tool");
+let chain_id: OptionalResult = mesc::get_default_endpoint(Some("xyz_tool"));
 
 // get the default endpoint of a network for a particular tool
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(5, "xyz_tool");
+let endpoint: OptionalResult = mesc::get_endpoint_by_network("5", Some("xyz_tool"));
 
 // get an endpoint by name
 let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_goerli");
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)
-let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, "xyz_tool");
+let user_str = "local_goerli";
+let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some("xyz_tool"));
 
 // find all endpoints matching given criteria
-let query = mesc::MultiEndpointQuery::new().chain_id(5);
+let query = mesc::MultiEndpointQuery::new().chain_id("5").unwrap();
 let endpoints: MultiResult = mesc::find_endpoints(query);
 ```
 

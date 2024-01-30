@@ -70,13 +70,13 @@ let enabled: bool = mesc::is_mesc_enabled();
 let endpoint: OptionalResult = mesc::get_default_endpoint(None);
 
 // get the default endpoint of a network
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(5 as u8, None);
+let endpoint: OptionalResult = mesc::get_endpoint_by_network("5", None);
 
 // get the default network for a particular tool
 let chain_id: OptionalResult = mesc::get_default_endpoint(Some("xyz_tool"));
 
 // get the default endpoint of a network for a particular tool
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(5 as u8, Some("xyz_tool"));
+let endpoint: OptionalResult = mesc::get_endpoint_by_network("5", Some("xyz_tool"));
 
 // get an endpoint by name
 let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_goerli");
@@ -87,7 +87,7 @@ let user_str = "local_goerli";
 let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some("xyz_tool"));
 
 // find all endpoints matching given criteria
-let query = mesc::MultiEndpointQuery::new().chain_id(5 as u8).unwrap();
+let query = mesc::MultiEndpointQuery::new().chain_id("5").unwrap();
 let endpoints: MultiResult = mesc::find_endpoints(query);
 
 // get non-endpoint metadata
