@@ -1,7 +1,7 @@
 use crate::{MescCliError, SetupArgs};
 use mesc::{MescError, RpcConfig};
-use toolstr::Colorize;
 use std::path::PathBuf;
+use toolstr::Colorize;
 
 use super::{config_modification::*, inquire_utils::*, selectors::*, shell_config::*, writing::*};
 
@@ -25,7 +25,10 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
         let result = modify_existing_config(config, Some(mode)).await;
         if shell_config_modified {
             println!();
-            println!("{}", "Shell config files were modified. Restart shell to load these files.".magenta())
+            println!(
+                "{}",
+                "Shell config files were modified. Restart shell to load these files.".magenta()
+            )
         }
         result
     }
