@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing_extensions import Any
-from typing import Sequence
+import typing
 
 from .exceptions import InvalidConfig
 from .types import rpc_config_types, endpoint_types, profile_types
 from . import network_utils
+
+if typing.TYPE_CHECKING:
+    from typing import Sequence
+    from typing_extensions import Any
 
 
 def is_valid(config: Any) -> bool:

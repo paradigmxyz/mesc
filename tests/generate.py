@@ -235,7 +235,7 @@ def generate_tests() -> list[Test]:
             new_test = copy.deepcopy(test)
             new_test[3]["fields"]["profile"] = "not_using_mesc"  # type: ignore
             if query["query_type"] == "global_metadata":
-                expected: dict | None = {}
+                expected: dict[str, Any] | None = {}
             else:
                 expected = None
             new_test = new_test[0:4] + (expected,) + new_test[5:]

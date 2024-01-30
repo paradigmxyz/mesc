@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import os
-from typing_extensions import Any, Mapping, Sequence
+import typing
 
-from .types import mesc_env_vars, Endpoint, RpcConfig
+from .types import mesc_env_vars
 from . import network_utils
 from . import load
+
+if typing.TYPE_CHECKING:
+    from typing_extensions import Any, Mapping, Sequence
+    from .types import Endpoint, RpcConfig
 
 
 def is_mesc_enabled() -> bool:
