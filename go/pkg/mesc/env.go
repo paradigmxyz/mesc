@@ -43,12 +43,7 @@ func applyOverrides(rpcConfig *model.RPCConfig) (*model.RPCConfig, error) {
 	}
 
 	if networkDefaultsOverride := os.Getenv("MESC_NETWORK_DEFAULTS"); networkDefaultsOverride != "" {
-		networkDefaults := rpcConfig.NetworkDefaults
-		if networkDefaults == nil {
-			networkDefaults = make(map[model.ChainID]string)
-			rpcConfig.NetworkDefaults = networkDefaults
-		}
-
+		networkDefaults := make(map[model.ChainID]string)
 		for _, networkDefault := range strings.Split(networkDefaultsOverride, " ") {
 			splitNetworkDefault := strings.Split(networkDefault, "=")
 			if len(splitNetworkDefault) != 2 {
@@ -57,6 +52,20 @@ func applyOverrides(rpcConfig *model.RPCConfig) (*model.RPCConfig, error) {
 
 			networkDefaults[model.ChainID(splitNetworkDefault[0])] = splitNetworkDefault[1]
 		}
+		rpcConfig.NetworkDefaults = networkDefaults
+	}
+
+	if networkNameOverride := os.Getenv("MESC_NETWORK_NAMES"); networkNameOverride != "" {
+		networkNames := make(map[string]model.ChainID)
+		for _, networkName := range strings.Split(networkNameOverride, " ") {
+			splitNetworkName := strings.Split(networkName, "=")
+			if len(splitNetworkName) != 2 {
+				return nil, fmt.Errorf("invalid network name overide: '%s'", networkName)
+			}
+
+			networkNames[splitNetworkName[0]] = model.ChainID(splitNetworkName[1])
+		}
+		rpcConfig.NetworkNames = networkNames
 	}
 
 	return rpcConfig, nil

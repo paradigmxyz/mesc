@@ -85,6 +85,22 @@ var _ = Describe("Env", func() {
 				), "the network default override should have been applied")
 			})
 		})
+
+		When("there are network names set", func() {
+			BeforeEach(func() {
+				Expect(setAndResetEnv("MESC_NETWORK_NAMES", "zora=7777777 scroll=534352")).To(Succeed(), "setting the network names override should work")
+			})
+
+			It("applies the network names override", func() {
+				rpcConfig, err := mesc.ResolveRPCConfig(ctx)
+				Expect(err).ToNot(HaveOccurred(), "resolving the RPC configurations should not fail")
+				Expect(rpcConfig.NetworkNames).To(And(
+					HaveLen(2),
+					HaveKeyWithValue("zora", model.ChainID("7777777")),
+					HaveKeyWithValue("scroll", model.ChainID("534352")),
+				), "the network names override should be applied")
+			})
+		})
 	})
 
 	When("there is no resolvable RPC configuration", func() {
