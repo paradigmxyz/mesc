@@ -68,6 +68,33 @@ func applyOverrides(rpcConfig *model.RPCConfig) (*model.RPCConfig, error) {
 		rpcConfig.NetworkNames = networkNames
 	}
 
+	if endpointOverrides := os.Getenv("MESC_ENDPOINTS"); endpointOverrides != "" {
+		endpoints := make(map[string]model.EndpointMetadata)
+		for _, endpoint := range strings.Split(endpointOverrides, " ") {
+			splitEndpoint := strings.Split(endpoint, "=")
+			if len(splitEndpoint) != 2 {
+				return nil, fmt.Errorf("invalid endpoint override: '%s'", endpoint)
+			}
+
+			endpoint := model.EndpointMetadata{}
+			endpointKey := splitEndpoint[0]
+			if strings.Contains(endpointKey, ":") {
+				splitKey := strings.Split(endpointKey, ":")
+				endpoint.Name = splitKey[0]
+				endpointKey = splitKey[0]
+				chainID := model.ChainID(splitKey[1])
+				endpoint.ChainID = &chainID
+			} else {
+				endpoint.Name = splitEndpoint[0]
+			}
+
+			endpoint.URL = splitEndpoint[1]
+
+			endpoints[endpointKey] = endpoint
+		}
+		rpcConfig.Endpoints = endpoints
+	}
+
 	return rpcConfig, nil
 }
 

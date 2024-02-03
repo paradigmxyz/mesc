@@ -101,6 +101,33 @@ var _ = Describe("Env", func() {
 				), "the network names override should be applied")
 			})
 		})
+
+		When("there are endpoint overrides set", func() {
+			BeforeEach(func() {
+				Expect(setAndResetEnv("MESC_ENDPOINTS", "alchemy_optimism=https://alchemy.com/fjsj local_goerli:5=localhost:8545")).To(Succeed(), "setting the endpoint overrides should succeed")
+			})
+
+			It("applies the endpoint overrides", func() {
+				rpcConfig, err := mesc.ResolveRPCConfig(ctx)
+				Expect(err).ToNot(HaveOccurred(), "resolving the RPC configurations should not fail")
+				Expect(rpcConfig.Endpoints).To(And(
+					HaveLen(2),
+					HaveKey("alchemy_optimism"),
+					HaveKey("local_goerli"),
+				), "the endpoints should be loaded into the RPC configuration")
+
+				optimismEndpoint := rpcConfig.Endpoints["alchemy_optimism"]
+				Expect(optimismEndpoint.Name).To(Equal("alchemy_optimism"), "the Optimism endpoint should inherit its key as its name")
+				Expect(optimismEndpoint.URL).To(Equal("https://alchemy.com/fjsj"), "the Optimism URL should be set")
+				Expect(optimismEndpoint.ChainID).To(BeNil(), "no chain ID should be set for the Optimism endpoint")
+
+				goerliEndpoint := rpcConfig.Endpoints["local_goerli"]
+				Expect(goerliEndpoint.Name).To(Equal("local_goerli"), "the Goerli endpoint should inherit its key as its name")
+				Expect(goerliEndpoint.URL).To(Equal("localhost:8545"), "the Goerli endpoint should have the right URL")
+				Expect(goerliEndpoint.ChainID).ToNot(BeNil(), "the Goerli endpoint should have a chain ID set")
+				Expect(*goerliEndpoint.ChainID).To(Equal(model.ChainID("5")), "the Goerli endpoint should have the correct chain ID")
+			})
+		})
 	})
 
 	When("there is no resolvable RPC configuration", func() {
