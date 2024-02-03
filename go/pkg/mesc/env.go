@@ -13,28 +13,53 @@ import (
 
 // ResolveRPCConfig resolves an RPC configuration per the MESC specification rules.
 func ResolveRPCConfig(ctx context.Context) (*model.RPCConfig, error) {
-	rpcConfig, resolvedByMode, err := resolveFromMode()
+	byMode, hasByMode, err := resolveFromMode()
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve RPC configuration by mode: %w", err)
-	} else if resolvedByMode {
-		return rpcConfig, nil
+	} else if hasByMode {
+		return applyOverrides(byMode)
 	}
 
 	byPath, hasByPath, err := readRPCConfigFile()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read RPC configuration from file: %w", err)
 	} else if hasByPath {
-		return byPath, nil
+		return applyOverrides(byPath)
 	}
 
 	byEnv, hasByEnv, err := readRPCConfigEnv()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read RPC configuration from env: %w", err)
 	} else if hasByEnv {
-		return byEnv, nil
+		return applyOverrides(byEnv)
 	}
 
 	return nil, fmt.Errorf("unable to resolve MESC configuration")
+}
+
+func applyOverrides(rpcConfig *model.RPCConfig) (*model.RPCConfig, error) {
+	if defaultEndpointOverride := os.Getenv("MESC_DEFAULT_ENDPOINT"); defaultEndpointOverride != "" {
+		rpcConfig.DefaultEndpoint = &defaultEndpointOverride
+	}
+
+	if networkDefaultsOverride := os.Getenv("MESC_NETWORK_DEFAULTS"); networkDefaultsOverride != "" {
+		networkDefaults := rpcConfig.NetworkDefaults
+		if networkDefaults == nil {
+			networkDefaults = make(map[model.ChainID]string)
+			rpcConfig.NetworkDefaults = networkDefaults
+		}
+
+		for _, networkDefault := range strings.Split(networkDefaultsOverride, " ") {
+			splitNetworkDefault := strings.Split(networkDefault, "=")
+			if len(splitNetworkDefault) != 2 {
+				return nil, fmt.Errorf("invalid network default override: '%s'", networkDefault)
+			}
+
+			networkDefaults[model.ChainID(splitNetworkDefault[0])] = splitNetworkDefault[1]
+		}
+	}
+
+	return rpcConfig, nil
 }
 
 func readRPCConfigBytes(jsonBytes []byte) (*model.RPCConfig, error) {
