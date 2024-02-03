@@ -128,6 +128,35 @@ var _ = Describe("Env", func() {
 				Expect(*goerliEndpoint.ChainID).To(Equal(model.ChainID("5")), "the Goerli endpoint should have the correct chain ID")
 			})
 		})
+
+		When("there are profile overrides set", func() {
+			BeforeEach(func() {
+				Expect(setAndResetEnv("MESC_PROFILES", "foundry.default_endpoint=local_goerli foundry.network_defaults.5=alchemy_optimism foundry.profile_metadata.metadatum_key=metadatum_value foundry.use_mesc=true")).To(Succeed(), "setting the profiles override should not fail")
+			})
+
+			It("applies the profile overrides", func() {
+				rpcConfig, err := mesc.ResolveRPCConfig(ctx)
+				Expect(err).ToNot(HaveOccurred(), "resolving the RPC configurations should not fail")
+				Expect(rpcConfig.Profiles).To(And(
+					HaveLen(1),
+					HaveKey("foundry"),
+				), "the profile should be loaded")
+
+				profile := rpcConfig.Profiles["foundry"]
+				Expect(profile.Name).To(Equal("foundry"), "the profile should inherit the key as the name")
+				Expect(profile.DefaultEndpoint).ToNot(BeNil(), "the profile should have a default endpoint")
+				Expect(*profile.DefaultEndpoint).To(Equal("local_goerli"), "the profile should have the correct default endpoint")
+				Expect(profile.NetworkDefaults).To(And(
+					HaveLen(1),
+					HaveKeyWithValue(model.ChainID("5"), "alchemy_optimism"),
+				), "the profile should have the correct network defaults loaded")
+				Expect(profile.ProfileMetadata).To(And(
+					HaveLen(1),
+					HaveKeyWithValue("metadatum_key", "metadatum_value"),
+				), "the profile should have the correct metadata")
+				Expect(profile.UseMESC).To(BeTrue(), "the profile should have MESC enabled")
+			})
+		})
 	})
 
 	When("there is no resolvable RPC configuration", func() {

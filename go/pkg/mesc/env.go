@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/paradigmxyz/mesc/go/pkg/mesc/endpoint/io/serialization"
@@ -37,65 +38,174 @@ func ResolveRPCConfig(ctx context.Context) (*model.RPCConfig, error) {
 	return nil, fmt.Errorf("unable to resolve MESC configuration")
 }
 
+func applyEndpointOverrides(rpcConfig *model.RPCConfig) error {
+	endpointOverrides := os.Getenv("MESC_ENDPOINTS")
+	if endpointOverrides == "" {
+		return nil
+	}
+
+	endpoints := make(map[string]model.EndpointMetadata)
+	for _, endpoint := range strings.Split(endpointOverrides, " ") {
+		splitEndpoint := strings.Split(endpoint, "=")
+		if len(splitEndpoint) != 2 {
+			return fmt.Errorf("invalid endpoint override: '%s'", endpoint)
+		}
+
+		endpoint := model.EndpointMetadata{}
+		endpointKey := splitEndpoint[0]
+		if strings.Contains(endpointKey, ":") {
+			splitKey := strings.Split(endpointKey, ":")
+			endpoint.Name = splitKey[0]
+			endpointKey = splitKey[0]
+			chainID := model.ChainID(splitKey[1])
+			endpoint.ChainID = &chainID
+		} else {
+			endpoint.Name = splitEndpoint[0]
+		}
+
+		endpoint.URL = splitEndpoint[1]
+
+		endpoints[endpointKey] = endpoint
+	}
+	rpcConfig.Endpoints = endpoints
+
+	return nil
+}
+
+func applyNetworkDefaultsOverride(rpcConfig *model.RPCConfig) error {
+	networkDefaultsOverride := os.Getenv("MESC_NETWORK_DEFAULTS")
+	if networkDefaultsOverride == "" {
+		return nil
+	}
+
+	networkDefaults := make(map[model.ChainID]string)
+	for _, networkDefault := range strings.Split(networkDefaultsOverride, " ") {
+		splitNetworkDefault := strings.Split(networkDefault, "=")
+		if len(splitNetworkDefault) != 2 {
+			return fmt.Errorf("invalid network default override: '%s'", networkDefault)
+		}
+
+		networkDefaults[model.ChainID(splitNetworkDefault[0])] = splitNetworkDefault[1]
+	}
+	rpcConfig.NetworkDefaults = networkDefaults
+
+	return nil
+}
+
+func applyNetworkNamesOverride(rpcConfig *model.RPCConfig) error {
+	networkNameOverride := os.Getenv("MESC_NETWORK_NAMES")
+	if networkNameOverride == "" {
+		return nil
+	}
+
+	networkNames := make(map[string]model.ChainID)
+	for _, networkName := range strings.Split(networkNameOverride, " ") {
+		splitNetworkName := strings.Split(networkName, "=")
+		if len(splitNetworkName) != 2 {
+			return fmt.Errorf("invalid network name overide: '%s'", networkName)
+		}
+
+		networkNames[splitNetworkName[0]] = model.ChainID(splitNetworkName[1])
+	}
+	rpcConfig.NetworkNames = networkNames
+
+	return nil
+}
+
 func applyOverrides(rpcConfig *model.RPCConfig) (*model.RPCConfig, error) {
 	if defaultEndpointOverride := os.Getenv("MESC_DEFAULT_ENDPOINT"); defaultEndpointOverride != "" {
 		rpcConfig.DefaultEndpoint = &defaultEndpointOverride
 	}
 
-	if networkDefaultsOverride := os.Getenv("MESC_NETWORK_DEFAULTS"); networkDefaultsOverride != "" {
-		networkDefaults := make(map[model.ChainID]string)
-		for _, networkDefault := range strings.Split(networkDefaultsOverride, " ") {
-			splitNetworkDefault := strings.Split(networkDefault, "=")
-			if len(splitNetworkDefault) != 2 {
-				return nil, fmt.Errorf("invalid network default override: '%s'", networkDefault)
-			}
-
-			networkDefaults[model.ChainID(splitNetworkDefault[0])] = splitNetworkDefault[1]
-		}
-		rpcConfig.NetworkDefaults = networkDefaults
+	if err := applyNetworkDefaultsOverride(rpcConfig); err != nil {
+		return nil, fmt.Errorf("failed to apply network defaults overrides: %w", err)
 	}
 
-	if networkNameOverride := os.Getenv("MESC_NETWORK_NAMES"); networkNameOverride != "" {
-		networkNames := make(map[string]model.ChainID)
-		for _, networkName := range strings.Split(networkNameOverride, " ") {
-			splitNetworkName := strings.Split(networkName, "=")
-			if len(splitNetworkName) != 2 {
-				return nil, fmt.Errorf("invalid network name overide: '%s'", networkName)
-			}
-
-			networkNames[splitNetworkName[0]] = model.ChainID(splitNetworkName[1])
-		}
-		rpcConfig.NetworkNames = networkNames
+	if err := applyNetworkNamesOverride(rpcConfig); err != nil {
+		return nil, fmt.Errorf("failed to apply network names overrides: %w", err)
 	}
 
-	if endpointOverrides := os.Getenv("MESC_ENDPOINTS"); endpointOverrides != "" {
-		endpoints := make(map[string]model.EndpointMetadata)
-		for _, endpoint := range strings.Split(endpointOverrides, " ") {
-			splitEndpoint := strings.Split(endpoint, "=")
-			if len(splitEndpoint) != 2 {
-				return nil, fmt.Errorf("invalid endpoint override: '%s'", endpoint)
-			}
+	if err := applyEndpointOverrides(rpcConfig); err != nil {
+		return nil, fmt.Errorf("failed apply endpoint overrides: %w", err)
+	}
 
-			endpoint := model.EndpointMetadata{}
-			endpointKey := splitEndpoint[0]
-			if strings.Contains(endpointKey, ":") {
-				splitKey := strings.Split(endpointKey, ":")
-				endpoint.Name = splitKey[0]
-				endpointKey = splitKey[0]
-				chainID := model.ChainID(splitKey[1])
-				endpoint.ChainID = &chainID
-			} else {
-				endpoint.Name = splitEndpoint[0]
-			}
-
-			endpoint.URL = splitEndpoint[1]
-
-			endpoints[endpointKey] = endpoint
-		}
-		rpcConfig.Endpoints = endpoints
+	if err := applyProfileOverrides(rpcConfig); err != nil {
+		return nil, fmt.Errorf("failed to apply profile overrides: %w", err)
 	}
 
 	return rpcConfig, nil
+}
+
+func applyProfileOverrides(rpcConfig *model.RPCConfig) error {
+	profileOverrides := os.Getenv("MESC_PROFILES")
+	if profileOverrides == "" {
+		return nil
+	}
+
+	profiles := make(map[string]*model.Profile)
+	for _, profileOverride := range strings.Split(profileOverrides, " ") {
+		keyValue := strings.Split(profileOverride, "=")
+		if len(keyValue) != 2 {
+			return fmt.Errorf("invalid profile override: '%s'", profileOverride)
+		}
+
+		keyParts := strings.Split(keyValue[0], ".")
+		if len(keyParts) < 2 {
+			return fmt.Errorf("invalid key in profile override key/value pair: '%s'", profileOverride)
+		}
+
+		profile, hasProfile := profiles[keyParts[0]]
+		if !hasProfile {
+			profile = &model.Profile{
+				Name: keyParts[0],
+			}
+			profiles[keyParts[0]] = profile
+		}
+
+		switch keyParts[1] {
+		case "default_endpoint":
+			profile.DefaultEndpoint = &keyValue[1]
+		case "network_defaults":
+			if len(keyParts) < 3 {
+				return fmt.Errorf("invalid network default setting in profile override: '%s'", profileOverride)
+			}
+
+			networkDefaults := profile.NetworkDefaults
+			if networkDefaults == nil {
+				networkDefaults = make(map[model.ChainID]string)
+				profile.NetworkDefaults = networkDefaults
+			}
+			networkDefaults[model.ChainID(keyParts[2])] = keyValue[1]
+		case "profile_metadata":
+			if len(keyParts) < 3 {
+				return fmt.Errorf("invalid profile metadata setting in profile override: '%s'", profileOverride)
+			}
+
+			profileMetadata := profile.ProfileMetadata
+			if profileMetadata == nil {
+				profileMetadata = make(map[string]any)
+				profile.ProfileMetadata = profileMetadata
+			}
+			profileMetadata[keyParts[2]] = keyValue[1]
+		case "use_mesc":
+			parsedBool, parseErr := strconv.ParseBool(keyValue[1])
+			if parseErr != nil {
+				return fmt.Errorf("invalid use_mesc setting in profile override: '%s'", profileOverride)
+			}
+
+			profile.UseMESC = parsedBool
+		default:
+			return fmt.Errorf("unrecognized profile override setting: '%s'", profileOverride)
+		}
+	}
+
+	dereffedProfiles := make(map[string]model.Profile, len(profiles))
+	for profileName, profile := range profiles {
+		dereffedProfiles[profileName] = *profile
+	}
+	rpcConfig.Profiles = dereffedProfiles
+
+	return nil
 }
 
 func readRPCConfigBytes(jsonBytes []byte) (*model.RPCConfig, error) {
