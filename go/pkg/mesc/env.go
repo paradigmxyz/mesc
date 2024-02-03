@@ -39,6 +39,21 @@ func ResolveRPCConfig(ctx context.Context) (*model.RPCConfig, error) {
 	return nil, fmt.Errorf("unable to resolve MESC configuration")
 }
 
+func applyEndpointMetadataOverrides(rpcConfig *model.RPCConfig) error {
+	endpointMetadataOverrides := os.Getenv("MESC_ENDPOINT_METADATA")
+	if endpointMetadataOverrides == "" {
+		return nil
+	}
+
+	endpointMetadata, err := serialization.DeserializeEndpointMetadataJSON(bytes.NewBufferString(endpointMetadataOverrides))
+	if err != nil {
+		return fmt.Errorf("failed to deserialize endpoint metadata overrides: %w", err)
+	}
+	rpcConfig.Endpoints = endpointMetadata
+
+	return nil
+}
+
 func applyEndpointOverrides(rpcConfig *model.RPCConfig) error {
 	endpointOverrides := os.Getenv("MESC_ENDPOINTS")
 	if endpointOverrides == "" {
@@ -152,6 +167,10 @@ func applyOverrides(rpcConfig *model.RPCConfig) (*model.RPCConfig, error) {
 
 	if err := applyGlobalMetadataOverride(rpcConfig); err != nil {
 		return nil, fmt.Errorf("failed to apply global metadata overrides: %w", err)
+	}
+
+	if err := applyEndpointMetadataOverrides(rpcConfig); err != nil {
+		return nil, fmt.Errorf("failed to apply endpoint metadata overrides: %w", err)
 	}
 
 	return rpcConfig, nil

@@ -19,6 +19,21 @@ func DeserializeJSON(reader io.Reader) (*model.RPCConfig, error) {
 	return jsonConfig.toModel(), nil
 }
 
+// DeserializeEndpointMetadataJSON deserializes the given representation of endpoint metadata mapped by endpoint name.
+func DeserializeEndpointMetadataJSON(reader io.Reader) (map[string]model.EndpointMetadata, error) {
+	var endpointJSONMetadata map[string]*jsonEndpoint
+	if decodeErr := json.NewDecoder(reader).Decode(&endpointJSONMetadata); decodeErr != nil {
+		return nil, fmt.Errorf("failed to decode endpoint metadata JSON: %w", decodeErr)
+	}
+
+	endpoints := make(map[string]model.EndpointMetadata, len(endpointJSONMetadata))
+	for endpointName, endpointJSON := range endpointJSONMetadata {
+		endpoints[endpointName] = endpointJSON.toModel()
+	}
+
+	return endpoints, nil
+}
+
 func toOptionalChainID(v *string) *model.ChainID {
 	if v == nil {
 		return nil

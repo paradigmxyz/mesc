@@ -173,6 +173,22 @@ var _ = Describe("Env", func() {
 				), "the global metadata should be overridden")
 			})
 		})
+
+		When("there is an endpoint metadata override", func() {
+			BeforeEach(func() {
+				Expect(setAndResetEnv("MESC_ENDPOINT_METADATA", `{ "local_ethereum": { "url": "http://localhost:8545" } }`))
+			})
+
+			It("overrides it with the set JSON", func() {
+				rpcConfig, err := mesc.ResolveRPCConfig(ctx)
+				Expect(err).ToNot(HaveOccurred(), "resolving the RPC configurations should not fail")
+				Expect(rpcConfig.Endpoints).To(And(
+					HaveLen(1),
+					HaveKey("local_ethereum"),
+				), "the RPC configuration should have the endpoint metadata loaded")
+				Expect(rpcConfig.Endpoints["local_ethereum"].URL).To(Equal("http://localhost:8545"), "the data for the endpoint should have been deserialized")
+			})
+		})
 	})
 
 	When("there is no resolvable RPC configuration", func() {
