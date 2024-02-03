@@ -40,16 +40,23 @@ func ResolveRPCConfig(ctx context.Context) (*model.RPCConfig, error) {
 }
 
 func applyEndpointMetadataOverrides(rpcConfig *model.RPCConfig) error {
-	endpointMetadataOverrides := os.Getenv("MESC_ENDPOINT_METADATA")
-	if endpointMetadataOverrides == "" {
+	endpointMetadataOverrideJSON := os.Getenv("MESC_ENDPOINT_METADATA")
+	if endpointMetadataOverrideJSON == "" {
 		return nil
 	}
 
-	endpointMetadata, err := serialization.DeserializeEndpointMetadataJSON(bytes.NewBufferString(endpointMetadataOverrides))
+	endpointMetadataOverrides, err := serialization.DeserializeEndpointMetadataJSON(bytes.NewBufferString(endpointMetadataOverrideJSON))
 	if err != nil {
 		return fmt.Errorf("failed to deserialize endpoint metadata overrides: %w", err)
 	}
-	rpcConfig.Endpoints = endpointMetadata
+
+	if rpcConfig.Endpoints == nil {
+		rpcConfig.Endpoints = make(map[string]model.EndpointMetadata)
+	}
+
+	for endpointName, endpointMetadata := range endpointMetadataOverrides {
+		rpcConfig.Endpoints[endpointName] = endpointMetadata
+	}
 
 	return nil
 }
@@ -94,12 +101,18 @@ func applyGlobalMetadataOverride(rpcConfig *model.RPCConfig) error {
 		return nil
 	}
 
-	var globalMetadata map[string]any
-	if unmarshalErr := json.Unmarshal([]byte(globalMetadataOverride), &globalMetadata); unmarshalErr != nil {
+	var globalMetadataOverrides map[string]any
+	if unmarshalErr := json.Unmarshal([]byte(globalMetadataOverride), &globalMetadataOverrides); unmarshalErr != nil {
 		return fmt.Errorf("failed to unmarshal global metadata override: %w", unmarshalErr)
 	}
 
-	rpcConfig.GlobalMetadata = globalMetadata
+	if rpcConfig.GlobalMetadata == nil {
+		rpcConfig.GlobalMetadata = make(map[string]any)
+	}
+
+	for overrideName, overrideValue := range globalMetadataOverrides {
+		rpcConfig.GlobalMetadata[overrideName] = overrideValue
+	}
 
 	return nil
 }

@@ -172,6 +172,23 @@ var _ = Describe("Env", func() {
 					HaveKeyWithValue("string_field", "str_value"),
 				), "the global metadata should be overridden")
 			})
+
+			When("the configuration already has global metadata set", func() {
+				BeforeEach(func() {
+					Expect(setAndResetEnv("MESC_ENV", `{ "mesc_version": "MESC 1.0", "global_metadata": { "keep_val": "do not lose" } }`)).To(Succeed(), "setting the JSON env should not fail")
+				})
+
+				It("overlays the override on top of the data", func() {
+					rpcConfig, err := mesc.ResolveRPCConfig(ctx)
+					Expect(err).ToNot(HaveOccurred(), "resolving the RPC configurations should not fail")
+					Expect(rpcConfig.GlobalMetadata).To(And(
+						HaveLen(3),
+						HaveKeyWithValue("bool_field", true),
+						HaveKeyWithValue("string_field", "str_value"),
+						HaveKeyWithValue("keep_val", "do not lose"),
+					), "the global metadata should be overlayed by what's set as an override")
+				})
+			})
 		})
 
 		When("there is an endpoint metadata override", func() {
@@ -187,6 +204,22 @@ var _ = Describe("Env", func() {
 					HaveKey("local_ethereum"),
 				), "the RPC configuration should have the endpoint metadata loaded")
 				Expect(rpcConfig.Endpoints["local_ethereum"].URL).To(Equal("http://localhost:8545"), "the data for the endpoint should have been deserialized")
+			})
+
+			When("the RPC configuration already has endpoint metadata", func() {
+				BeforeEach(func() {
+					Expect(setAndResetEnv("MESC_ENV", `{ "mesc_version": "MESC 1.0", "endpoints": { "base_mainnet": { "url": "https://base.coinbase.com/rpc" }} }`)).To(Succeed(), "setting the JSON env should not fail")
+				})
+
+				It("overlays the existing configuration with the configured override", func() {
+					rpcConfig, err := mesc.ResolveRPCConfig(ctx)
+					Expect(err).ToNot(HaveOccurred(), "resolving the RPC configurations should not fail")
+					Expect(rpcConfig.Endpoints).To(And(
+						HaveLen(2),
+						HaveKey("base_mainnet"),
+						HaveKey("local_ethereum"),
+					), "the RPC configuration should have the override endpoint metadata overlayed onto the pre-existing data")
+				})
 			})
 		})
 	})
