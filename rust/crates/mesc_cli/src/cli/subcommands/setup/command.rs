@@ -125,7 +125,7 @@ fn get_write_mode() -> Result<(ConfigWriteMode, bool), MescCliError> {
         }
         (Err(_), Err(_), Err(_), false) => {
             println!(" MESC is disabled because no MESC env vars are set");
-            println!(" To enabled MESC, set one of the MESC env vars");
+            println!(" To enable MESC, set one of the MESC env vars");
             let mode = select_config_mode()?;
             let modified_files = setup_mesc_env_vars(&mode)?;
             Ok((mode, !modified_files.is_empty()))
