@@ -3,6 +3,7 @@ package mesc
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -72,6 +73,22 @@ func applyEndpointOverrides(rpcConfig *model.RPCConfig) error {
 	return nil
 }
 
+func applyGlobalMetadataOverride(rpcConfig *model.RPCConfig) error {
+	globalMetadataOverride := os.Getenv("MESC_GLOBAL_METADATA")
+	if globalMetadataOverride == "" {
+		return nil
+	}
+
+	var globalMetadata map[string]any
+	if unmarshalErr := json.Unmarshal([]byte(globalMetadataOverride), &globalMetadata); unmarshalErr != nil {
+		return fmt.Errorf("failed to unmarshal global metadata override: %w", unmarshalErr)
+	}
+
+	rpcConfig.GlobalMetadata = globalMetadata
+
+	return nil
+}
+
 func applyNetworkDefaultsOverride(rpcConfig *model.RPCConfig) error {
 	networkDefaultsOverride := os.Getenv("MESC_NETWORK_DEFAULTS")
 	if networkDefaultsOverride == "" {
@@ -131,6 +148,10 @@ func applyOverrides(rpcConfig *model.RPCConfig) (*model.RPCConfig, error) {
 
 	if err := applyProfileOverrides(rpcConfig); err != nil {
 		return nil, fmt.Errorf("failed to apply profile overrides: %w", err)
+	}
+
+	if err := applyGlobalMetadataOverride(rpcConfig); err != nil {
+		return nil, fmt.Errorf("failed to apply global metadata overrides: %w", err)
 	}
 
 	return rpcConfig, nil

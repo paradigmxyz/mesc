@@ -157,6 +157,22 @@ var _ = Describe("Env", func() {
 				Expect(profile.UseMESC).To(BeTrue(), "the profile should have MESC enabled")
 			})
 		})
+
+		When("there is a global metadata override", func() {
+			BeforeEach(func() {
+				Expect(setAndResetEnv("MESC_GLOBAL_METADATA", `{ "bool_field": true, "string_field": "str_value" }`))
+			})
+
+			It("assigns the configured metadata as global metadata", func() {
+				rpcConfig, err := mesc.ResolveRPCConfig(ctx)
+				Expect(err).ToNot(HaveOccurred(), "resolving the RPC configurations should not fail")
+				Expect(rpcConfig.GlobalMetadata).To(And(
+					HaveLen(2),
+					HaveKeyWithValue("bool_field", true),
+					HaveKeyWithValue("string_field", "str_value"),
+				), "the global metadata should be overridden")
+			})
+		})
 	})
 
 	When("there is no resolvable RPC configuration", func() {
