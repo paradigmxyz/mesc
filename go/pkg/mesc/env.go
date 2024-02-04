@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -158,10 +159,6 @@ func applyNetworkNamesOverride(rpcConfig *model.RPCConfig) error {
 }
 
 func applyOverrides(rpcConfig *model.RPCConfig) (*model.RPCConfig, error) {
-	if defaultEndpointOverride := os.Getenv("MESC_DEFAULT_ENDPOINT"); defaultEndpointOverride != "" {
-		rpcConfig.DefaultEndpoint = &defaultEndpointOverride
-	}
-
 	if err := applyNetworkDefaultsOverride(rpcConfig); err != nil {
 		return nil, fmt.Errorf("failed to apply network defaults overrides: %w", err)
 	}
@@ -184,6 +181,11 @@ func applyOverrides(rpcConfig *model.RPCConfig) (*model.RPCConfig, error) {
 
 	if err := applyEndpointMetadataOverrides(rpcConfig); err != nil {
 		return nil, fmt.Errorf("failed to apply endpoint metadata overrides: %w", err)
+	}
+
+	if defaultEndpointOverride := os.Getenv("MESC_DEFAULT_ENDPOINT"); defaultEndpointOverride != "" {
+		rpcConfig.DefaultEndpoint = &defaultEndpointOverride
+		synthesizeEndpoint(rpcConfig, defaultEndpointOverride)
 	}
 
 	return rpcConfig, nil
@@ -317,4 +319,30 @@ func resolveFromMode() (*model.RPCConfig, bool, error) {
 	}
 
 	return nil, false, nil
+}
+
+func synthesizeEndpoint(rpcConfig *model.RPCConfig, endpointName string) {
+	endpoints := rpcConfig.Endpoints
+	if endpoints == nil {
+		endpoints = make(map[string]model.EndpointMetadata)
+		rpcConfig.Endpoints = endpoints
+	}
+
+	syntheticEndpointName := endpointName
+	if url, parseErr := url.Parse(endpointName); parseErr == nil {
+		if host := url.Host; host != "" {
+			syntheticEndpointName = host
+		} else if scheme := url.Scheme; scheme != "" {
+			syntheticEndpointName = scheme
+		}
+	}
+
+	if _, hasEndpoint := endpoints[syntheticEndpointName]; hasEndpoint {
+		return
+	}
+
+	endpoints[syntheticEndpointName] = model.EndpointMetadata{
+		Name: syntheticEndpointName,
+		URL:  endpointName,
+	}
 }

@@ -67,6 +67,56 @@ var _ = Describe("Env", func() {
 				Expect(err).ToNot(HaveOccurred(), "resolving the RPC configuration should not fail")
 				Expect(rpcConfig.DefaultEndpoint).ToNot(BeNil(), "the default endpoint should be set")
 				Expect(*rpcConfig.DefaultEndpoint).To(Equal("localhost.default:9999"), "the default endpoint override should be applied")
+
+				// A synthesized endpoint should also be created
+				Expect(rpcConfig.Endpoints).To(And(
+					HaveLen(1),
+					HaveKey("localhost.default"),
+				), "a synthesized endpoint with the host name should be created")
+
+				endpoint := rpcConfig.Endpoints["localhost.default"]
+				Expect(endpoint.Name).To(Equal("localhost.default"), "the endpoint name should match its key")
+				Expect(endpoint.URL).To(Equal("localhost.default:9999"), "the endpoint should inherit the specified URL")
+				Expect(endpoint.ChainID).To(BeNil(), "no chain ID should be inferred")
+			})
+
+			When("the override is a URL with a scheme", func() {
+				BeforeEach(func() {
+					Expect(setAndResetEnv("MESC_DEFAULT_ENDPOINT", "http://localhost.schemed:9999")).To(Succeed(), "setting the default endpoint override should succeed")
+				})
+
+				It("extracts the host out as the endpoint name", func() {
+					rpcConfig, err := mesc.ResolveRPCConfig(ctx)
+					Expect(err).ToNot(HaveOccurred(), "resolving the RPC configuration should not fail")
+
+					Expect(rpcConfig.Endpoints).To(And(
+						HaveLen(1),
+						HaveKey("localhost.schemed:9999"),
+					), "a synthesized endpoint with the host name should be created")
+				})
+			})
+
+			When("there is another endpoint configured with the name of the override", func() {
+				BeforeEach(func() {
+					Expect(setAndResetEnv("MESC_DEFAULT_ENDPOINT", "localhost.default")).To(Succeed(), "setting the default endpoint override should succeed")
+					Expect(setAndResetEnv("MESC_ENDPOINTS", "localhost.default=https://alchemy.com/default")).To(Succeed(), "setting the endpoint overrides should succeed")
+				})
+
+				It("does not synthesize a new endpoint", func() {
+					rpcConfig, err := mesc.ResolveRPCConfig(ctx)
+					Expect(err).ToNot(HaveOccurred(), "resolving the RPC configuration should not fail")
+
+					Expect(rpcConfig.DefaultEndpoint).ToNot(BeNil(), "the default endpoint should be present")
+					Expect(*rpcConfig.DefaultEndpoint).To(Equal("localhost.default"), "the default endpoint should be correct")
+
+					Expect(rpcConfig.Endpoints).To(And(
+						HaveLen(1),
+						HaveKey("localhost.default"),
+					), "the existing endpoint should be re-used")
+
+					endpoint := rpcConfig.Endpoints["localhost.default"]
+					Expect(endpoint.URL).To(Equal("https://alchemy.com/default"), "the URL of the endpoint should be correct")
+				})
 			})
 		})
 
