@@ -1,0 +1,95 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MESC Config Schema",
+    "description": "MESC Config Schema. See https://github.com/paradigmxyz/mesc/blob/main/SPECIFICATION.md",
+    "type": "object",
+    "properties": {
+      "mesc_version": {
+        "type": "string",
+        "default": "MESC 1.0"
+      },
+      "default_endpoint": {
+        "type": "string"
+      },
+      "network_defaults": {
+        "type": "object",
+        "properties": {
+          "chain_id": {
+            "type": "string"
+          }
+        }
+      },
+      "network_names": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "endpoints": {
+        "type": "object",
+        "properties": {
+          "endpoint_name": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "chain_id": {
+                "type": "string"
+              },
+              "endpoint_metadata": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "required": []
+      },
+      "profiles": {
+        "type": "object",
+        "properties": {
+          "profile_name": {
+            "type": "object",
+            "properties": {
+              "default_endpoint": {
+                "type": "string"
+              },
+              "network_defaults": {
+                "type": "object",
+                "properties": {
+                  "chain_id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "chain_id"
+                ]
+              }
+            },
+            "required": [
+              "default_endpoint",
+              "network_defaults"
+            ]
+          }
+        },
+        "required": []
+      },
+      "global_metadata": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    "required": [
+      "mesc_version",
+      "default_endpoint",
+      "network_defaults",
+      "network_names",
+      "endpoints",
+      "profiles",
+      "global_metadata"
+    ]
+  }
+  
