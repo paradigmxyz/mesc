@@ -8,6 +8,26 @@ type EndpointResolutionConfig struct {
 	rpcConfig *model.RPCConfig
 }
 
+// GetProfile gets the profile, if any, that was supplied.
+// It returns true for the bool if there is a profile supplied; false if not.
+func (e *EndpointResolutionConfig) GetProfile() (string, bool) {
+	if e.profile == nil {
+		return "", false
+	}
+
+	return *e.profile, true
+}
+
+// GetRPCConfig gets the RPC configuration, if any, that was supplied.
+// It returns false for the bool if there is an RPC configuration supplied; false if not.
+func (e *EndpointResolutionConfig) GetRPCConfig() (model.RPCConfig, bool) {
+	if e.rpcConfig == nil {
+		return model.RPCConfig{}, false
+	}
+
+	return *e.rpcConfig, true
+}
+
 // EndpointResolutionOption describes a way of configuring the resolution of an endpoint
 type EndpointResolutionOption func(*EndpointResolutionConfig)
 
