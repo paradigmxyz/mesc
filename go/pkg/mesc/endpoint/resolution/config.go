@@ -1,4 +1,4 @@
-package mesc
+package resolution
 
 import "github.com/paradigmxyz/mesc/go/pkg/mesc/model"
 
