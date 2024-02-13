@@ -8,3 +8,7 @@ __pycache__
 python/dist
 docs/book
 *.gif
+node_modules
+dist
+.env
+!.env.example

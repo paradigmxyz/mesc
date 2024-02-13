@@ -1,0 +1,49 @@
+name: TypeScript
+
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "typescript/**" ]
+  pull_request:
+    branches: [ "main" ]
+    paths: [ "typescript/**" ]
+
+defaults:
+  run:
+    working-directory: typescript
+
+env:
+  # enable debug logging
+  ACTIONS_RUNNER_DEBUG: true
+
+jobs:
+  build-lint-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Biome
+      uses: biomejs/setup-biome@v2
+      with:
+        version: latest
+
+    - name: Run Biome
+      run: biome ci .
+
+    - name: Set up Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+    
+    - name: Install dependencies
+      run: bun install
+
+    - name: Build
+      run: bun run build
+
+    - name: Test
+      run: bun run test
