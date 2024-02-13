@@ -19,16 +19,16 @@ export const rpcConfigSchema = v.object({
       name: v.string(),
       url: v.string(),
       chain_id: v.optional(v.string()),
-      endpoint_metadata: v.any(),
+      endpoint_metadata: v.any()
     })
   ),
   profiles: v.record(
     v.object({
       default_endpoint: v.optional(v.nullable(v.string())),
-      network_defaults: v.record(v.string()),
+      network_defaults: v.record(v.string())
     })
   ),
-  global_metadata: v.any(),
+  global_metadata: v.any()
 })
 
 export type RpcConfig = v.Output<typeof rpcConfigSchema>

@@ -8,7 +8,7 @@ import type { RawMESCConfig } from '#/schemas/mesc-config'
 export function parseMescVariables({
   MESC_MODE,
   MESC_PATH,
-  MESC_ENV,
+  MESC_ENV
 }: Pick<RawMESCConfig, 'MESC_MODE' | 'MESC_PATH' | 'MESC_ENV'>) {
   if (MESC_MODE.length > 0 && !['PATH', 'ENV'].includes(MESC_MODE)) {
     raise('MESC_MODE must be set to PATH or ENV')
@@ -18,11 +18,19 @@ export function parseMescVariables({
     const mescFileExists = fs.existsSync(MESC_PATH)
     if (!mescFileExists) raise('MESC_MODE is set to PATH but file set in MESC_PATH does not exist')
     const rawRpcConfig = fs.readFileSync(MESC_PATH, { encoding: 'utf-8' })
-    return v.safeParse(rpcConfigSchema, JSON.parse(rawRpcConfig), { abortEarly: false, abortPipeEarly: false })
+    return v.safeParse(rpcConfigSchema, JSON.parse(rawRpcConfig), {
+      abortEarly: false,
+      abortPipeEarly: false
+    })
   }
   if (MESC_MODE === 'ENV') {
-    const rawRpcConfig = MESC_ENV?.length ? MESC_ENV : raise('MESC_MODE is set to ENV but MESC_ENV is not set or empty')
-    return v.safeParse(rpcConfigSchema, JSON.parse(rawRpcConfig), { abortEarly: false, abortPipeEarly: false })
+    const rawRpcConfig = MESC_ENV?.length
+      ? MESC_ENV
+      : raise('MESC_MODE is set to ENV but MESC_ENV is not set or empty')
+    return v.safeParse(rpcConfigSchema, JSON.parse(rawRpcConfig), {
+      abortEarly: false,
+      abortPipeEarly: false
+    })
   }
   raise('MESC_MODE is not enabled')
 }

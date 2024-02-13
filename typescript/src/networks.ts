@@ -7,12 +7,12 @@ export const knownNetworks = {
   optimism: '10',
   polygon: '137',
   holesky: '17000',
-  arbitrum: '42161',
+  arbitrum: '42161'
 } satisfies Record<NetworkName, ChainId>
 
 export function networkNameToChainId({
   networkName,
-  config,
+  config
 }: {
   networkName: string
   config?: RpcConfig

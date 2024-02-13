@@ -17,7 +17,7 @@ export const mescConfigSchema = v.object({
   /** space-separated pairs of <profile>.<key>[.<chain_id]=<endpoint>	 */
   MESC_PROFILES: v.optional(v.string([v.regex(/(\w+\.\w+(\.\d+)?)=[\w\d]+/)])),
   /** space-separated pairs of <chain_id>=<endpoint> */
-  MESC_NETWORK_DEFAULTS: v.optional(v.string([v.regex(/(\d+=[\w\d]+)+/)])),
+  MESC_NETWORK_DEFAULTS: v.optional(v.string([v.regex(/(\d+=[\w\d]+)+/)]))
 })
 
 export type RawMESCConfig = v.Input<typeof mescConfigSchema>

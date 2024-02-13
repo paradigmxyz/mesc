@@ -9,5 +9,5 @@ export default defineConfig({
   format: ['esm'],
   target: ['node20'],
   treeshake: 'recommended',
-  entry: ['./src/index.ts'],
+  entry: ['./src/index.ts']
 })

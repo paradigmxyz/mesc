@@ -20,13 +20,15 @@
   ],
   "scripts": {
     "build": "tsup --config=tsup.config.ts",
-    "lint": "bunx oxlint@latest --import-plugin --ignore-path='.gitignore' --fix .",
+    "lint": "bunx @biomejs/biome lint . --apply",
+    "format": "bunx @biomejs/biome format . --write",
     "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
     "valibot": "^0.28.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.5.3",
     "@total-typescript/ts-reset": "^0.5.1",
     "@types/bun": "^1.0.5",
     "@types/node": "^20.11.17",
@@ -40,11 +42,5 @@
     "directory": "typescript"
   },
   "license": "MIT",
-  "prettier": {
-    "printWidth": 120,
-    "semi": false,
-    "arrowParens": "avoid",
-    "singleQuote": true
-  },
   "sideEffects": false
 }

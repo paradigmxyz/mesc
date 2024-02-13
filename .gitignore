@@ -4,6 +4,7 @@ TODO.md
 INTEGRATION.md
 PITCH.md
 *.json
+!biome.json
 __pycache__
 python/dist
 docs/book

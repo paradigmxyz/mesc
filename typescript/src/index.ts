@@ -11,7 +11,10 @@ interface MESC {
   getDefaultEndpoint(args?: { profile: string }): Maybe<Endpoint>
   getEndpointByName({ name }: { name: string }): Endpoint
   getEndpointByQuery({ query, profile }: { query: string; profile?: string }): Maybe<Endpoint>
-  getEndpointByNetwork({ chainId, profile }: { chainId: ChainId; profile?: string }): Maybe<Endpoint>
+  getEndpointByNetwork({
+    chainId,
+    profile
+  }: { chainId: ChainId; profile?: string }): Maybe<Endpoint>
   findEndpoins(): Endpoint[]
 }
 
@@ -35,5 +38,5 @@ export const mesc = {
   },
   findEndpoins: () => {
     throw new Error('Method not implemented.')
-  },
+  }
 } satisfies MESC
