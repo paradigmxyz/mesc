@@ -24,11 +24,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup Biome
-      uses: biomejs/setup-biome@v2
-      with:
-        version: latest
-
     - name: Set up Bun
       uses: oven-sh/setup-bun@v1
       with:
