@@ -1,0 +1,48 @@
+{
+  "name": "@mesc/core",
+  "version": "0.0.0",
+  "description": "MESC is a specification for how crypto tools configure their RPC endpoints.",
+  "readme": "github:paradigmxyz/mesc#readme",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsup --config=tsup.config.ts",
+    "lint": "bunx @biomejs/biome lint . --apply",
+    "format": "bunx @biomejs/biome format . --write",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "valibot": "^0.28.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3",
+    "@total-typescript/ts-reset": "^0.5.1",
+    "@types/bun": "^1.0.5",
+    "@types/node": "^20.11.17",
+    "bun": "^1.0.26",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paradigmxyz/mesc",
+    "directory": "typescript"
+  },
+  "license": "MIT",
+  "sideEffects": false
+}

@@ -4,6 +4,7 @@ TODO.md
 INTEGRATION.md
 PITCH.md
 *.json
+!biome.json
 __pycache__
 python/dist
 docs/book
@@ -12,3 +13,4 @@ node_modules
 dist
 .env
 !.env.example
+_

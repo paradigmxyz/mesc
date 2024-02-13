@@ -1,0 +1,64 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "organizeImports": {
+    "enabled": true
+  },
+  "files": {
+    "ignore": ["dist", "_"]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "all": true,
+      "style": {
+        "noNamespace": "off"
+      },
+      "complexity": {
+        "useLiteralKeys": "off"
+      },
+      "correctness": {
+        "noUnusedVariables": "off"
+      },
+      "nursery": {
+        "noNodejsModules": "off"
+      },
+      "performance": {
+        "noAccumulatingSpread": "off"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "indentStyle": "space",
+    "formatWithErrors": true
+  },
+  "javascript": {
+    "globals": [
+      "NodeJS",
+      "MESC_MODE",
+      "MESC_PATH",
+      "MESC_ENV",
+      "MESC_ENDPOINTS",
+      "MESC_DEFAULT_ENDPOINT",
+      "MESC_PROFILES",
+      "MESC_NETWORK_NAMES",
+      "MESC_NETWORK_DEFAULTS",
+      "MESC_GLOBAL_METADATA",
+      "MESC_ENDPOINT_METADATA"
+    ],
+    "formatter": {
+      "enabled": true,
+      "lineWidth": 100,
+      "indentWidth": 2,
+      "indentStyle": "space",
+      "quoteStyle": "single",
+      "trailingComma": "none",
+      "semicolons": "asNeeded",
+      "jsxQuoteStyle": "single",
+      "quoteProperties": "asNeeded",
+      "arrowParentheses": "asNeeded"
+    }
+  }
+}
