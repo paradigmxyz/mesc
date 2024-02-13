@@ -4,27 +4,30 @@ from __future__ import annotations
 
 import argparse
 import json
-from typing import Sequence, cast, Union
+import typing
 
-from mesc.types import Endpoint, EndpointQuery
 import mesc
+
+if typing.TYPE_CHECKING:
+    from typing import Sequence, Union
+    from mesc.types import Endpoint, EndpointQuery
 
 
 def run_query(query: EndpointQuery) -> Union[Endpoint, Sequence[Endpoint], None]:
     if query["query_type"] == "default_endpoint":
-        default_fields = cast(mesc.types.DefaultEndpointQuery, query["fields"])
+        default_fields: mesc.types.DefaultEndpointQuery = query["fields"]
         return mesc.get_default_endpoint(**default_fields)
     elif query["query_type"] == "endpoint_by_name":
-        name_fields = cast(mesc.types.EndpointNameQuery, query["fields"])
+        name_fields: mesc.types.EndpointNameQuery = query["fields"]
         return mesc.get_endpoint_by_name(**name_fields)
     elif query["query_type"] == "endpoint_by_network":
-        network_fields = cast(mesc.types.EndpointNetworkQuery, query["fields"])
+        network_fields: mesc.types.EndpointNetworkQuery = query["fields"]
         return mesc.get_endpoint_by_network(**network_fields)
     elif query["query_type"] == "user_input":
-        user_input_fields = cast(mesc.types.UserInputQuery, query["fields"])
+        user_input_fields: mesc.types.UserInputQuery = query["fields"]
         return mesc.get_endpoint_by_query(**user_input_fields)
     elif query["query_type"] == "multi_endpoint":
-        multi_endpoint_fields = cast(mesc.types.MultiEndpointQuery, query["fields"])
+        multi_endpoint_fields: mesc.types.MultiEndpointQuery = query["fields"]
         return mesc.find_endpoints(**multi_endpoint_fields)
     elif query["query_type"] == "global_metadata":
         return mesc.get_global_metadata(**query["fields"])

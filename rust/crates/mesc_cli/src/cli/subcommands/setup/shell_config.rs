@@ -19,7 +19,15 @@ pub(crate) fn get_shell_config_paths() -> Result<Vec<PathBuf>, MescCliError> {
     let home_dir =
         std::env::var("HOME").map_err(|_| MescCliError::Error("home dir not found".to_string()))?;
     let home_path = PathBuf::from(home_dir);
-    let candidates = vec![home_path.join(".bashrc"), home_path.join(".profile")];
+    let mut candidates = vec![home_path.join(".bashrc"), home_path.join(".profile")];
+
+    // paths added only if they exist
+    for path in [home_path.join(".zshrc")] {
+        if path.exists() {
+            candidates.push(path)
+        }
+    }
+
     Ok(candidates)
 }
 

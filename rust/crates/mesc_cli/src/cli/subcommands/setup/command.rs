@@ -1,7 +1,7 @@
 use crate::{MescCliError, SetupArgs};
 use mesc::{MescError, RpcConfig};
-use toolstr::Colorize;
 use std::path::PathBuf;
+use toolstr::Colorize;
 
 use super::{config_modification::*, inquire_utils::*, selectors::*, shell_config::*, writing::*};
 
@@ -25,7 +25,10 @@ pub(crate) async fn setup_command(args: SetupArgs) -> Result<(), MescCliError> {
         let result = modify_existing_config(config, Some(mode)).await;
         if shell_config_modified {
             println!();
-            println!("{}", "Shell config files were modified. Restart shell to load these files.".magenta())
+            println!(
+                "{}",
+                "Shell config files were modified. Restart shell to load these files.".magenta()
+            )
         }
         result
     }
@@ -122,7 +125,7 @@ fn get_write_mode() -> Result<(ConfigWriteMode, bool), MescCliError> {
         }
         (Err(_), Err(_), Err(_), false) => {
             println!(" MESC is disabled because no MESC env vars are set");
-            println!(" To enabled MESC, set one of the MESC env vars");
+            println!(" To enable MESC, set one of the MESC env vars");
             let mode = select_config_mode()?;
             let modified_files = setup_mesc_env_vars(&mode)?;
             Ok((mode, !modified_files.is_empty()))

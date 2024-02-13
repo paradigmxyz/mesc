@@ -4,10 +4,13 @@ import copy
 import json
 import os
 import re
-from typing_extensions import Any, Mapping, MutableMapping
+import typing
 
 from . import interface, network_utils, exceptions
-from .types import RpcConfig, Endpoint, Profile
+
+if typing.TYPE_CHECKING:
+    from typing_extensions import Any, Mapping, MutableMapping
+    from .types import RpcConfig, Endpoint, Profile
 
 
 def apply_env_overrides(config: RpcConfig | None) -> RpcConfig:

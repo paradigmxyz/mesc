@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import typing
-from .types import RpcConfig
 from . import network_names
+
+if typing.TYPE_CHECKING:
+    from .types import RpcConfig
 
 
 def is_chain_id(chain_id: str) -> bool:

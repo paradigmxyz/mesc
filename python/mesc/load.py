@@ -1,12 +1,16 @@
 from __future__ import annotations
+
 import json
 import os
-from typing_extensions import cast, overload, Literal, Any
+import typing
 
-from .types import RpcConfig
 from . import exceptions
 from . import overrides
 from . import validation
+
+if typing.TYPE_CHECKING:
+    from typing_extensions import Literal, Any
+    from .types import RpcConfig
 
 
 def read_config_data() -> RpcConfig:
@@ -37,15 +41,15 @@ def read_config_data() -> RpcConfig:
 
     # validate
     validation.validate(config)
-    return cast(RpcConfig, config)
+    return config  # type: ignore
 
 
-@overload
+@typing.overload
 def read_env_config(*, validate: Literal[False]) -> Any:
     ...
 
 
-@overload
+@typing.overload
 def read_env_config(*, validate: Literal[True]) -> RpcConfig:
     ...
 
@@ -68,17 +72,15 @@ def read_env_config(*, validate: bool = True) -> RpcConfig | Any:
     # validate config
     if validate:
         validation.validate(config)
-        return cast(RpcConfig, config)
-    else:
-        return config
+    return config
 
 
-@overload
+@typing.overload
 def read_file_config(*, path: str | None = None, validate: Literal[False]) -> Any:
     ...
 
 
-@overload
+@typing.overload
 def read_file_config(*, path: str | None = None, validate: Literal[True]) -> RpcConfig:
     ...
 
@@ -120,6 +122,4 @@ def read_file_config(
     # validate config
     if validate:
         validation.validate(config)
-        return cast(RpcConfig, config)
-    else:
-        return config
+    return config
