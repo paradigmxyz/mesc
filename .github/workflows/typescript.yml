@@ -28,10 +28,6 @@ jobs:
       uses: biomejs/setup-biome@v2
       with:
         version: latest
-        working-dir: typescript
-
-    - name: Run Biome
-      run: biome ci .
 
     - name: Set up Bun
       uses: oven-sh/setup-bun@v1
@@ -41,8 +37,12 @@ jobs:
     - name: Install dependencies
       run: bun install
 
-    - name: Type Check
-      run: bun run typecheck
+    - name: Lint, Format, & Typecheck
+      working-directory: typescript
+      run: |
+        bun run lint
+        bun run format
+        bun run typecheck
 
     - name: Build
       run: bun run build
