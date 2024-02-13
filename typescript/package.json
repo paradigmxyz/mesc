@@ -22,7 +22,8 @@
     "build": "tsup --config=tsup.config.ts",
     "lint": "bunx @biomejs/biome lint . --apply",
     "format": "bunx @biomejs/biome format . --write",
-    "typecheck": "tsc --project tsconfig.json --noEmit"
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "vitest --run"
   },
   "dependencies": {
     "valibot": "^0.28.1"
@@ -34,7 +35,8 @@
     "@types/node": "^20.11.17",
     "bun": "^1.0.26",
     "tsup": "^8.0.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
   },
   "repository": {
     "type": "git",
