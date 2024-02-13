@@ -191,7 +191,7 @@
 </ul>
 <h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
 <p>Inside a cargo project: <code>cargo add mesc</code></p>
-<p>Inside a <code>Cargo.toml</code>: <code>mesc = &quot;0.2.0&quot;</code></p>
+<p>Inside a <code>Cargo.toml</code>: <code>mesc = "0.2.0"</code></p>
 <h2 id="example-usage"><a class="header" href="#example-usage">Example Usage</a></h2>
 <p>Basic data structures</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -244,28 +244,28 @@ let enabled: bool = mesc::is_mesc_enabled();
 let endpoint: OptionalResult = mesc::get_default_endpoint(None);
 
 // get the default endpoint of a network
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(&quot;5&quot;, None);
+let endpoint: OptionalResult = mesc::get_endpoint_by_network("5", None);
 
 // get the default network for a particular tool
-let chain_id: OptionalResult = mesc::get_default_endpoint(Some(&quot;xyz_tool&quot;));
+let chain_id: OptionalResult = mesc::get_default_endpoint(Some("xyz_tool"));
 
 // get the default endpoint of a network for a particular tool
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(&quot;5&quot;, Some(&quot;xyz_tool&quot;));
+let endpoint: OptionalResult = mesc::get_endpoint_by_network("5", Some("xyz_tool"));
 
 // get an endpoint by name
-let endpoint: OptionalResult = mesc::get_endpoint_by_name(&quot;local_goerli&quot;);
+let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_goerli");
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)
-let user_str = &quot;local_goerli&quot;;
-let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some(&quot;xyz_tool&quot;));
+let user_str = "local_goerli";
+let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some("xyz_tool"));
 
 // find all endpoints matching given criteria
-let query = mesc::MultiEndpointQuery::new().chain_id(&quot;5&quot;).unwrap();
+let query = mesc::MultiEndpointQuery::new().chain_id("5").unwrap();
 let endpoints: MultiResult = mesc::find_endpoints(query);
 
 // get non-endpoint metadata
-let metadata: MetadataResult  = mesc::get_global_metadata(Some(&quot;xyz_tool&quot;));
+let metadata: MetadataResult  = mesc::get_global_metadata(Some("xyz_tool"));
 <span class="boring">}</span></code></pre></pre>
 
                     </main>

@@ -204,32 +204,32 @@
 <li>modify the template below:</li>
 </ol>
 <pre><code class="language-json">{
-    &quot;mesc_version&quot;: &quot;MESC 1.0&quot;,
-    &quot;default_endpoint&quot;: &quot;local_ethereum&quot;,
-    &quot;network_defaults&quot;: {
-        &quot;1&quot;: &quot;local_ethereum&quot;
+    "mesc_version": "MESC 1.0",
+    "default_endpoint": "local_ethereum",
+    "network_defaults": {
+        "1": "local_ethereum"
     },
-    &quot;network_names&quot;: {},
-    &quot;endpoints&quot;: {
-        &quot;local_ethereum&quot;: {
-            &quot;name&quot;: &quot;local_ethereum&quot;,
-            &quot;url&quot;: &quot;http://localhost:8545&quot;,
-            &quot;chain_id&quot;: &quot;1&quot;,
-            &quot;endpoint_metadata&quot;: {}
+    "network_names": {},
+    "endpoints": {
+        "local_ethereum": {
+            "name": "local_ethereum",
+            "url": "http://localhost:8545",
+            "chain_id": "1",
+            "endpoint_metadata": {}
         }
     },
-    &quot;profiles&quot;: {
-        &quot;xyz&quot;: {
-            &quot;name&quot;: &quot;xyz&quot;,
-            &quot;default_endpoint&quot;: &quot;local_ethereum&quot;,
-            &quot;network_defaults&quot;: {
-                &quot;1&quot;: &quot;local_ethereum&quot;
+    "profiles": {
+        "xyz": {
+            "name": "xyz",
+            "default_endpoint": "local_ethereum",
+            "network_defaults": {
+                "1": "local_ethereum"
             },
-            &quot;profile_metadata&quot;: {},
-            &quot;use_mesc&quot;: true
+            "profile_metadata": {},
+            "use_mesc": true
         }
     },
-    &quot;global_metadata&quot;: {}
+    "global_metadata": {}
 }
 </code></pre>
 <p>The structure of the config must follow the MESC <a href="https://github.com/paradigmxyz/mesc/blob/main/SPECIFICATION.md">specification</a>.</p>
@@ -322,16 +322,16 @@
 <p>The easiest way to create a profile is by using the interactive <code>mesc</code> cli tool, using the <code>mesc setup</code> subcommand.</p>
 <p>Alternatively, you can manually add a new <code>Profile</code> to the <code>profiles</code> key inside your <code>mesc.json</code>. The following is a template <code>Profile</code>:</p>
 <pre><code class="language-json">{
-    &quot;name&quot;: &quot;PROFILE_NAME&quot;,
-    &quot;default_endpoint&quot;: null,
-    &quot;network_defaults&quot;: {},
-    &quot;profile_metadata&quot;: {},
-    &quot;use_mesc&quot;: true
+    "name": "PROFILE_NAME",
+    "default_endpoint": null,
+    "network_defaults": {},
+    "profile_metadata": {},
+    "use_mesc": true
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="metadata"><a class="header" href="#metadata">Metadata</a></h1>
 <p>In a MESC configuration, the <code>global_metadata</code>, <code>profile_metadata</code>, and <code>endpoint_metadata</code> fields allow for optional or idiosyncratic metadata to be stored alongside the core RPC data.</p>
-<p>Tools using MESC can choose to ignore these fields. </p>
+<p>Tools using MESC can choose to ignore these fields.</p>
 <h2 id="metadata-fields"><a class="header" href="#metadata-fields">Metadata fields</a></h2>
 <p>Contents of MESC metadata is only loosely specified. This is intentional to allow for some degree of future-proofing. It enables MESC to handle use-cases that are either unanticipated or highly-specific to a given tool.</p>
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
@@ -339,13 +339,13 @@
 <div class="table-wrapper"><table><thead><tr><th>key</th><th>value type</th><th>description</th><th>examples</th></tr></thead><tbody>
 <tr><td><code>rate_limit_rps</code></td><td><code>int</code> or <code>float</code></td><td>ratelimit in requests per second</td><td><code>250</code></td></tr>
 <tr><td><code>rate_limit_cups</code></td><td><code>int</code> or <code>float</code></td><td>ratelimit in CUPS</td><td><code>1000</code></td></tr>
-<tr><td><code>rate_limit_per_method</code></td><td><code>Mapping[str, int or float]</code></td><td>ratelimit in RPS for each method</td><td><code>{&quot;trace_block&quot;: 200}</code></td></tr>
+<tr><td><code>rate_limit_per_method</code></td><td><code>Mapping[str, int or float]</code></td><td>ratelimit in RPS for each method</td><td><code>{"trace_block": 200}</code></td></tr>
 <tr><td><code>api_key</code></td><td><code>str</code></td><td>api key</td><td><code>a2798f237a2398rf7</code></td></tr>
 <tr><td><code>jwt_secret</code></td><td><code>str</code></td><td>jwt secret</td><td></td></tr>
-<tr><td><code>host</code></td><td><code>str</code></td><td>name of provider host</td><td><code>&quot;llamanodes&quot;</code>, <code>&quot;alchemy&quot;</code>, <code>&quot;quicknode&quot;</code>, <code>&quot;localhost&quot;</code></td></tr>
-<tr><td><code>ecosystem</code></td><td><code>str</code></td><td>ecosystem of chain, (e.g. relates mainnets to testnets)</td><td><code>&quot;ethereum&quot;</code>, <code>&quot;polygon&quot;</code></td></tr>
+<tr><td><code>host</code></td><td><code>str</code></td><td>name of provider host</td><td><code>"llamanodes"</code>, <code>"alchemy"</code>, <code>"quicknode"</code>, <code>"localhost"</code></td></tr>
+<tr><td><code>ecosystem</code></td><td><code>str</code></td><td>ecosystem of chain, (e.g. relates mainnets to testnets)</td><td><code>"ethereum"</code>, <code>"polygon"</code></td></tr>
 <tr><td><code>node_client</code></td><td><code>str</code></td><td>versioned node client</td><td><code>erigon/2.48.1/linux-amd64/go1.20.5</code> <code>reth/v0.1.0-alpha.10-7b781eb60/x86_64-unknown-linux-gnu</code></td></tr>
-<tr><td><code>namespaces</code></td><td><code>Sequence[str]</code></td><td>RPC name spaces enabled for endpoint</td><td><code>[&quot;eth&quot;, &quot;trace, &quot;debug&quot;]</code></td></tr>
+<tr><td><code>namespaces</code></td><td><code>Sequence[str]</code></td><td>RPC name spaces enabled for endpoint</td><td><code>["eth", "trace, "debug"]</code></td></tr>
 <tr><td><code>explorer</code></td><td><code>str</code></td><td>block explorer url</td><td><code>https://etherscan.io</code></td></tr>
 <tr><td><code>location</code></td><td><code>str</code></td><td>geographic region</td><td><code>Paris, France</code></td></tr>
 <tr><td><code>cloud_region</code></td><td><code>str</code></td><td>cloud provider region</td><td><code>aws-us-east-1a</code></td></tr>
@@ -357,8 +357,8 @@
 <tr><td><code>last_modified_by</code></td><td><code>str</code></td><td>versioned tool used to create configuration</td><td><code>mesc__1.0</code></td></tr>
 <tr><td><code>last_modified_time</code></td><td><code>int</code></td><td>timestamp of config modification</td><td><code>1700200462</code></td></tr>
 <tr><td><code>creation_time</code></td><td><code>int</code></td><td>timestamp of config creation</td><td><code>1700200462</code></td></tr>
-<tr><td><code>api_keys</code></td><td><code>Mapping[str, str]</code></td><td>API keys to RPC-related services</td><td><code>{&quot;etherscan&quot;: &quot;abc123&quot;}</code></td></tr>
-<tr><td><code>groups</code></td><td><code>Mapping[str, Sequence[str]]</code></td><td>groupings of endpoints, mapping of group name to list of endpoint names</td><td><code>{&quot;load_balancer&quot;: [&quot;alchemy_optimism&quot;, &quot;quicknode_optimism&quot;]}</code></td></tr>
+<tr><td><code>api_keys</code></td><td><code>Mapping[str, str]</code></td><td>API keys to RPC-related services</td><td><code>{"etherscan": "abc123"}</code></td></tr>
+<tr><td><code>groups</code></td><td><code>Mapping[str, Sequence[str]]</code></td><td>groupings of endpoints, mapping of group name to list of endpoint names</td><td><code>{"load_balancer": ["alchemy_optimism", "quicknode_optimism"]}</code></td></tr>
 <tr><td><code>conceal</code></td><td><code>bool</code></td><td>whether tool should avoid casually revealing private RPC url's unprompted</td><td><code>true</code></td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="overrides-1"><a class="header" href="#overrides-1">Overrides</a></h1>
@@ -395,7 +395,7 @@ export MESC_DEFAULT_ENDPOINT=local_goerli
 <tr><td><code>MESC_ENDPOINTS</code></td><td>space-separated items of <code>[&lt;endpoint_name&gt;[:&lt;chain_id&gt;]=]&lt;url&gt;</code></td><td><code>alchemy_optimism=https://alchemy.com/fjsj local_goerli:5=localhost:8545</code></td></tr>
 <tr><td><code>MESC_PROFILES</code></td><td>space-separated pairs of <code>&lt;profile&gt;.&lt;key&gt;[.&lt;subkey]=&lt;endpoint&gt;</code></td><td><code>foundry.default_endpoint=local_goerli foundry.network_defaults.5=alchemy_optimism</code></td></tr>
 <tr><td><code>MESC_GLOBAL_METADATA</code></td><td>JSON formatted global metadata</td><td><code>{}</code></td></tr>
-<tr><td><code>MESC_ENDPOINT_METADATA</code></td><td>JSON mapping of <code>{&quot;endpoint_name&quot;: {&lt;ENDPOINT_METADATA&gt;}}</code></td><td><code>{}</code></td></tr>
+<tr><td><code>MESC_ENDPOINT_METADATA</code></td><td>JSON mapping of <code>{"endpoint_name": {&lt;ENDPOINT_METADATA&gt;}}</code></td><td><code>{}</code></td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="querying-mesc-data"><a class="header" href="#querying-mesc-data">Querying MESC data</a></h1>
 <p>Each MESC implementation provides the same set of 7 functions for querying MESC data.</p>
@@ -722,7 +722,7 @@ class Profile(TypedDict):
 </ul>
 <h2 id="installation-3"><a class="header" href="#installation-3">Installation</a></h2>
 <p>Inside a cargo project: <code>cargo add mesc</code></p>
-<p>Inside a <code>Cargo.toml</code>: <code>mesc = &quot;0.2.0&quot;</code></p>
+<p>Inside a <code>Cargo.toml</code>: <code>mesc = "0.2.0"</code></p>
 <h2 id="example-usage-4"><a class="header" href="#example-usage-4">Example Usage</a></h2>
 <p>Basic data structures</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -775,28 +775,28 @@ let enabled: bool = mesc::is_mesc_enabled();
 let endpoint: OptionalResult = mesc::get_default_endpoint(None);
 
 // get the default endpoint of a network
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(&quot;5&quot;, None);
+let endpoint: OptionalResult = mesc::get_endpoint_by_network("5", None);
 
 // get the default network for a particular tool
-let chain_id: OptionalResult = mesc::get_default_endpoint(Some(&quot;xyz_tool&quot;));
+let chain_id: OptionalResult = mesc::get_default_endpoint(Some("xyz_tool"));
 
 // get the default endpoint of a network for a particular tool
-let endpoint: OptionalResult = mesc::get_endpoint_by_network(&quot;5&quot;, Some(&quot;xyz_tool&quot;));
+let endpoint: OptionalResult = mesc::get_endpoint_by_network("5", Some("xyz_tool"));
 
 // get an endpoint by name
-let endpoint: OptionalResult = mesc::get_endpoint_by_name(&quot;local_goerli&quot;);
+let endpoint: OptionalResult = mesc::get_endpoint_by_name("local_goerli");
 
 // parse a user-provided string into a matching endpoint
 // (first try 1. endpoint name, then 2. chain id, then 3. network name)
-let user_str = &quot;local_goerli&quot;;
-let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some(&quot;xyz_tool&quot;));
+let user_str = "local_goerli";
+let endpoint: OptionalResult = mesc::get_endpoint_by_query(user_str, Some("xyz_tool"));
 
 // find all endpoints matching given criteria
-let query = mesc::MultiEndpointQuery::new().chain_id(&quot;5&quot;).unwrap();
+let query = mesc::MultiEndpointQuery::new().chain_id("5").unwrap();
 let endpoints: MultiResult = mesc::find_endpoints(query);
 
 // get non-endpoint metadata
-let metadata: MetadataResult  = mesc::get_global_metadata(Some(&quot;xyz_tool&quot;));
+let metadata: MetadataResult  = mesc::get_global_metadata(Some("xyz_tool"));
 <span class="boring">}</span></code></pre></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="typescript-mesc-implementation"><a class="header" href="#typescript-mesc-implementation">Typescript MESC Implementation</a></h1>
 <p>[WIP]</p>
