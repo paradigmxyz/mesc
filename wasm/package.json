@@ -1,0 +1,21 @@
+{
+  "name": "mesc-wasm",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "bun run wasm && tsc && vite build",
+    "preview": "vite preview",
+    "wasm": "wasm-pack build ./mesc-wasm --target web"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.1.4",
+    "vite-plugin-wasm": "^3.3.0",
+    "vite-tsconfig-paths": "^4.3.1"
+  },
+  "dependencies": {
+    "vite-plugin-top-level-await": "^1.4.1"
+  }
+}
