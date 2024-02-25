@@ -12,14 +12,14 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-
+    "types": ["node", "bun", "typed-query-selector/strict"],
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "mesc_wasm/*": ["./mesc-wasm/pkg/*"],
+      "mesc_wasm/*": ["./mesc-wasm/pkg/*"]
     }
   },
   "include": ["src"]
