@@ -1,6 +1,7 @@
 package serialization
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -34,6 +35,54 @@ func DeserializeEndpointMetadataJSON(reader io.Reader) (map[string]model.Endpoin
 	return endpoints, nil
 }
 
+// SerializeJSON serializes the given RPC configuration to a JSON representation conforming to the MESC specification.
+func SerializeJSON(rpcConfig *model.RPCConfig) (io.Reader, error) {
+	jsonProfiles := make(map[string]*jsonProfile)
+	for profileKey, profile := range jsonProfiles {
+		jsonProfiles[profileKey] = &jsonProfile{
+			Name:            profile.Name,
+			DefaultEndpoint: profile.DefaultEndpoint,
+			NetworkDefaults: profile.NetworkDefaults,
+			ProfileMetadata: profile.ProfileMetadata,
+			UseMESC:         profile.UseMESC,
+		}
+	}
+
+	jsonEndpoints := make(map[string]*jsonEndpoint)
+	for endpointKey, endpoint := range rpcConfig.Endpoints {
+		jsonEndpoints[endpointKey] = modelEndpointToJSON(&endpoint)
+	}
+
+	jsonRPCConfig := &jsonRPCConfig{
+		MESCVersion:     rpcConfig.MESCVersion,
+		DefaultEndpoint: rpcConfig.DefaultEndpoint,
+		NetworkDefaults: fromChainIDMap(rpcConfig.NetworkDefaults),
+		NetworkNames:    fromMappedChainID(rpcConfig.NetworkNames),
+		Endpoints:       jsonEndpoints,
+		Profiles:        jsonProfiles,
+		GlobalMetadata:  rpcConfig.GlobalMetadata,
+	}
+
+	jsonBytes, err := json.Marshal(jsonRPCConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal RPC config to bytes: %w", err)
+	}
+
+	return bytes.NewBuffer(jsonBytes), nil
+}
+
+// SerializeEndpointMetadataJSON serializes the given endpoint model to a JSON form compliant with the MESC specification.
+func SerializeEndpointMetadataJSON(endpoint *model.EndpointMetadata) (io.Reader, error) {
+	jsonEndpoint := modelEndpointToJSON(endpoint)
+
+	jsonBytes, err := json.Marshal(jsonEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal endpoint metadata to bytes: %w", err)
+	}
+
+	return bytes.NewBuffer(jsonBytes), nil
+}
+
 func toOptionalChainID(v *string) *model.ChainID {
 	if v == nil {
 		return nil
@@ -41,6 +90,32 @@ func toOptionalChainID(v *string) *model.ChainID {
 
 	asModel := model.ChainID(*v)
 	return &asModel
+}
+
+func fromChainIDMap[V any](source map[model.ChainID]V) map[string]V {
+	if source == nil {
+		return nil
+	}
+
+	copy := make(map[string]V, len(source))
+	for chainID, value := range source {
+		copy[string(chainID)] = value
+	}
+
+	return copy
+}
+
+func fromMappedChainID[K comparable](source map[K]model.ChainID) map[K]string {
+	if source == nil {
+		return nil
+	}
+
+	copy := make(map[K]string, len(source))
+	for key, chainID := range source {
+		copy[key] = string(chainID)
+	}
+
+	return copy
 }
 
 func toChainIDMap[V any](source map[string]V) map[model.ChainID]V {
@@ -70,13 +145,13 @@ func toMappedChainID[K comparable](source map[K]string) map[K]model.ChainID {
 }
 
 type jsonRPCConfig struct {
-	MESCVersion     string            `json:"mesc_version"`
-	DefaultEndpoint *string           `json:"default_endpoint"`
-	NetworkDefaults map[string]string `json:"network_defaults"`
-	NetworkNames    map[string]string `json:"network_names"`
-	Endpoints       map[string]*jsonEndpoint
-	Profiles        map[string]*jsonProfile
-	GlobalMetadata  map[string]any `json:"global_metadata"`
+	MESCVersion     string                   `json:"mesc_version"`
+	DefaultEndpoint *string                  `json:"default_endpoint"`
+	NetworkDefaults map[string]string        `json:"network_defaults"`
+	NetworkNames    map[string]string        `json:"network_names"`
+	Endpoints       map[string]*jsonEndpoint `json:"endpoints"`
+	Profiles        map[string]*jsonProfile  `json:"profiles"`
+	GlobalMetadata  map[string]any           `json:"global_metadata"`
 }
 
 func (j *jsonRPCConfig) toModel() *model.RPCConfig {
@@ -110,9 +185,24 @@ func (j *jsonRPCConfig) toModel() *model.RPCConfig {
 	return rpcConfig
 }
 
+func modelEndpointToJSON(endpoint *model.EndpointMetadata) *jsonEndpoint {
+	var chainIDPtr *string
+	if endpoint.ChainID != nil {
+		v := string(*endpoint.ChainID)
+		chainIDPtr = &v
+	}
+
+	return &jsonEndpoint{
+		Name:             endpoint.Name,
+		URL:              endpoint.URL,
+		ChainID:          chainIDPtr,
+		EndpointMetadata: endpoint.EndpointMetadata,
+	}
+}
+
 type jsonEndpoint struct {
-	Name             string
-	URL              string
+	Name             string         `json:"name"`
+	URL              string         `json:"url"`
 	ChainID          *string        `json:"chain_id"`
 	EndpointMetadata map[string]any `json:"endpoint_metadata"`
 }
@@ -127,7 +217,7 @@ func (j *jsonEndpoint) toModel() model.EndpointMetadata {
 }
 
 type jsonProfile struct {
-	Name            string
+	Name            string            `json:"name"`
 	DefaultEndpoint *string           `json:"default_endpoint"`
 	NetworkDefaults map[string]string `json:"network_defaults"`
 	ProfileMetadata map[string]any    `json:"profile_metadata"`

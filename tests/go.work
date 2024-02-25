@@ -1,0 +1,4 @@
+go 1.21.3
+
+// Needed so that 'go run' works from this directory
+use ../go
