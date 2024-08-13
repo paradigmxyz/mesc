@@ -28,13 +28,16 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Typing :: Typed",
 ]
-dependencies = [
-    "typing-extensions >=4.9.0",
-]
+dependencies = []
 
 [project.urls]
 Documentation = "https://github.com/paradigmxyz/mesc"
 Source = "https://github.com/paradigmxyz/mesc"
+
+[project.optional-dependencies]
+test = [
+    "typing-extensions >=4.9.0",
+]
 
 [tool.mypy]
 python_version = "3.9"
