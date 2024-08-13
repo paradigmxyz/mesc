@@ -170,7 +170,7 @@ pub(crate) async fn modify_global_metadata(config: &mut RpcConfig) -> Result<(),
                         }
                     }
                 } else {
-                    return Ok(())
+                    return Ok(());
                 }
             }
             Ok("Modify endpoint metadata") => {
@@ -179,7 +179,7 @@ pub(crate) async fn modify_global_metadata(config: &mut RpcConfig) -> Result<(),
                 } else if let Some(endpoint) = select_endpoint(config, "Which endpoint?")? {
                     modify_endpoint_metadata(endpoint.as_str(), config)?;
                 } else {
-                    return Ok(())
+                    return Ok(());
                 }
             }
             Ok("Print global metadata") => {

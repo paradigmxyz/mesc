@@ -73,7 +73,7 @@ pub(crate) async fn modify_endpoint(config: &mut RpcConfig) -> Result<(), MescCl
     let mut options: Vec<String> = config.endpoints.clone().into_keys().collect();
     if options.is_empty() {
         println!(" No endpoints to modify");
-        return Ok(())
+        return Ok(());
     }
     options.sort();
     let endpoint_name = match inquire::Select::new("Which endpoint to modify?", options).prompt() {

@@ -128,9 +128,9 @@ impl TryIntoChainId for ChainId {
 
 impl TryIntoChainId for String {
     fn try_into_chain_id(self) -> Result<ChainId, MescError> {
-        if !self.is_empty() &&
-            (self.chars().all(|c| c.is_ascii_digit()) ||
-                (self.starts_with("0x") && self[2..].chars().all(|c| c.is_ascii_hexdigit())))
+        if !self.is_empty()
+            && (self.chars().all(|c| c.is_ascii_digit())
+                || (self.starts_with("0x") && self[2..].chars().all(|c| c.is_ascii_hexdigit())))
         {
             Ok(ChainId(self))
         } else {
@@ -141,9 +141,9 @@ impl TryIntoChainId for String {
 
 impl TryIntoChainId for &str {
     fn try_into_chain_id(self) -> Result<ChainId, MescError> {
-        if !self.is_empty() &&
-            (self.chars().all(|c| c.is_ascii_digit()) ||
-                (self.starts_with("0x") && self[2..].chars().all(|c| c.is_ascii_hexdigit())))
+        if !self.is_empty()
+            && (self.chars().all(|c| c.is_ascii_digit())
+                || (self.starts_with("0x") && self[2..].chars().all(|c| c.is_ascii_hexdigit())))
         {
             Ok(ChainId(self.to_string()))
         } else {

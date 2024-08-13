@@ -15,7 +15,7 @@ pub fn get_api_key<T: AsRef<str>>(
             if let Some(api_keys) = profile.profile_metadata.get("api_keys") {
                 let api_keys: HashMap<String, String> = get_value_at(api_keys, &[])?;
                 if let Some(key) = api_keys.get(key_name) {
-                    return Ok(Some(key.clone()))
+                    return Ok(Some(key.clone()));
                 }
             }
         }
@@ -24,7 +24,7 @@ pub fn get_api_key<T: AsRef<str>>(
     if let Some(api_keys) = config.global_metadata.get("api_keys") {
         let api_keys: HashMap<String, String> = get_value_at(api_keys, &[])?;
         if let Some(key) = api_keys.get(key_name) {
-            return Ok(Some(key.clone()))
+            return Ok(Some(key.clone()));
         }
     }
 
