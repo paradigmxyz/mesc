@@ -49,10 +49,20 @@ pub(crate) fn print_endpoints(
         let mut names = Vec::new();
         let mut networks = Vec::new();
         let mut urls = Vec::new();
+        let mut network_names = Vec::new();
         let sorted_endpoints = sort_endpoints(endpoints);
+
+        let all_network_names = mesc::network_names::get_network_names();
         for endpoint in sorted_endpoints.into_iter() {
             names.push(endpoint.name.clone());
             networks.push(endpoint.chain_id_string());
+
+            let network_name = match endpoint.chain_id {
+                Some(ref chain_id) => all_network_names.get(&chain_id).map(String::clone),
+                None => None,
+            };
+            let network_name = network_name.unwrap_or(endpoint.chain_id_string().clone());
+            network_names.push(network_name);
             if reveal {
                 urls.push(endpoint.url.clone());
             } else {
@@ -71,9 +81,14 @@ pub(crate) fn print_endpoints(
         let mut table = toolstr::Table::default();
         table.add_column("endpoint", names)?;
         format.add_column(ColumnFormatShorthand::new().name("endpoint").font_style(metavar_style));
-        table.add_column("network", networks)?;
-        format
-            .add_column(ColumnFormatShorthand::new().name("network").font_style(description_style));
+        table.add_column("network", network_names)?;
+        format.add_column(
+            ColumnFormatShorthand::new().name("network").font_style(description_style.clone()),
+        );
+        // table.add_column("chain id", networks)?;
+        // format.add_column(
+        //     ColumnFormatShorthand::new().name("chain id").font_style(description_style),
+        // );
         table.add_column("url", urls)?;
         format.add_column(ColumnFormatShorthand::new().name("url").font_style(option_style));
         format.print(table)?;
