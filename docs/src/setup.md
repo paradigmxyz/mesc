@@ -11,7 +11,7 @@ As described in the [quickstart](./quickstart.md), the `mesc.json` file is usual
 
 ## Alternative setup without a `mesc.json`
 
-Sometimes it is convenient to configure a system without editing any files (e.g. inside a container, or on a network drive, or in a low-privilege environment).
+Sometimes it is convenient to configure a system without editing any files (e.g. inside a container, or when creating lots of unit tests, or in a low-privilege environment).
 
 This can be accomplished with MESC by setting the `MESC_ENV` variable instead of the `MESC_PATH` variable. `MESC_ENV` should simply contain the JSON content of a MESC configuration.
 
