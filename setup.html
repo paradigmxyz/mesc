@@ -185,7 +185,7 @@
 <p>In the simplest case, only one variable necessary: <code>MESC_PATH</code> is set to the path of a <code>mesc.json</code> config file.</p>
 <p>As described in the <a href="./quickstart.html">quickstart</a>, the <code>mesc.json</code> file is usually created using either 1) the interactive <code>mesc setup</code> command, or 2) copying from a starter template. The quickstart guide also describes how to set environment variables in your terminal shell.</p>
 <h2 id="alternative-setup-without-a-mescjson"><a class="header" href="#alternative-setup-without-a-mescjson">Alternative setup without a <code>mesc.json</code></a></h2>
-<p>Sometimes it is convenient to configure a system without editing any files (e.g. inside a container, or on a network drive, or in a low-privilege environment).</p>
+<p>Sometimes it is convenient to configure a system without editing any files (e.g. inside a container, or when creating lots of unit tests, or in a low-privilege environment).</p>
 <p>This can be accomplished with MESC by setting the <code>MESC_ENV</code> variable instead of the <code>MESC_PATH</code> variable. <code>MESC_ENV</code> should simply contain the JSON content of a MESC configuration.</p>
 <p>If both <code>MESC_PATH</code> and <code>MESC_ENV</code> are set, you can select which one to use by setting <code>MESC_MODE</code> to either <code>PATH</code> or <code>ENV</code>. <code>MESC_PATH</code> takes precedence over <code>MESC_ENV</code> if <code>MESC_MODE</code> is not set.</p>
 <h2 id="disabling-mesc"><a class="header" href="#disabling-mesc">Disabling MESC</a></h2>
