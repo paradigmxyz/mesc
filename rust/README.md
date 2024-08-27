@@ -16,7 +16,7 @@ The `crates/mesc_cli` crate is a tool for reading, writing, and validating MESC 
 
 Inside a cargo project: `cargo add mesc`
 
-Inside a `Cargo.toml`: `mesc = "0.2.0"`
+Inside a `Cargo.toml`: `mesc = "0.2.1"`
 
 ## Example Usage
 
