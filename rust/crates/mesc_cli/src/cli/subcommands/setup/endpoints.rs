@@ -8,7 +8,7 @@ use super::{metadata::*, selectors::*};
 
 pub(crate) async fn add_endpoint(config: &mut RpcConfig) -> Result<(), MescCliError> {
     let url = match inquire::Text::new("New endpoint URL?").prompt() {
-        Ok(input) => input,
+        Ok(input) => input.trim().to_string(),
         Err(InquireError::OperationCanceled) => return Ok(()),
         Err(_) => return Err(MescCliError::InvalidInput("invalid input".to_string())),
     };

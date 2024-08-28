@@ -1378,7 +1378,7 @@ dependencies = [
 
 [[package]]
 name = "mesc"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -1387,7 +1387,7 @@ dependencies = [
 
 [[package]]
 name = "mesc_cli"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "bat",
  "clap",
