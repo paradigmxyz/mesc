@@ -90,7 +90,7 @@ fn print_custom_network_names(config: &RpcConfig) {
             config.network_names.len().to_string().green().bold()
         );
         for (network_name, chain_id) in config.network_names.iter() {
-            println!("    - {} = {}", network_name.bold(), chain_id.as_str().green().bold());
+            println!("    - {} = {}", network_name.bold(), chain_id.to_string().green().bold());
         }
     };
 }

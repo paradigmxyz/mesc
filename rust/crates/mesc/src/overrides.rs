@@ -190,7 +190,7 @@ pub fn get_default_endpoint_name(url: &str, chain_id: Option<ChainId>) -> Option
         if let Some(split) = hostname.split('.').last() { split.to_string() } else { hostname };
 
     match chain_id {
-        Some(chain_id) => Some(format!("{}_{}", hostname, chain_id.as_str())),
+        Some(chain_id) => Some(format!("{hostname}_{chain_id}")),
         None => Some(hostname),
     }
 }

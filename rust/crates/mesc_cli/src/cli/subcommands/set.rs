@@ -69,9 +69,7 @@ fn determine_kv_pairs(args: &SetArgs) -> Result<Vec<(String, Option<String>)>, M
             return Err(MescCliError::InvalidInput("specify one of key or --keys".to_string()))
         }
         (Some(_), _, Some(_), _, _) => {
-            return Err(MescCliError::InvalidInput(
-                "cannot specify both key and --keys".to_string(),
-            ))
+            return Err(MescCliError::InvalidInput("cannot specify both key and --keys".to_string()))
         }
         (_, None, _, None, false) => {
             return Err(MescCliError::InvalidInput("specify value or --values".to_string()))
@@ -131,9 +129,7 @@ fn set_config_value(
                     ["endpoint_metadata", location @ ..] => {
                         set_metadata_entry(&mut endpoint.endpoint_metadata, location, value)?;
                     }
-                    _ => {
-                        return Err(MescCliError::InvalidInput(format!("cannot set key: {}", key)))
-                    }
+                    _ => return Err(MescCliError::InvalidInput(format!("cannot set key: {}", key))),
                 }
             };
         }
@@ -166,9 +162,7 @@ fn set_config_value(
                             ))
                         }
                     },
-                    _ => {
-                        return Err(MescCliError::InvalidInput(format!("cannot set key: {}", key)))
-                    }
+                    _ => return Err(MescCliError::InvalidInput(format!("cannot set key: {}", key))),
                 }
             }
         }
