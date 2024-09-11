@@ -72,8 +72,7 @@ fn get_network_defaults_override() -> Result<Option<HashMap<ChainId, String>>, M
         for piece in raw.split(' ') {
             match piece.split('=').collect::<Vec<&str>>().as_slice() {
                 [chain_id, endpoint] => {
-                    network_defaults
-                        .insert((chain_id.to_string()).try_into_chain_id()?, endpoint.to_string());
+                    network_defaults.insert(chain_id.try_into_chain_id()?, endpoint.to_string());
                 }
                 _ => {
                     return Err(MescError::OverrideError(
@@ -97,8 +96,7 @@ fn get_network_names_override() -> Result<Option<HashMap<String, ChainId>>, Mesc
         for piece in raw.split(' ') {
             match piece.split('=').collect::<Vec<&str>>().as_slice() {
                 [name, chain_id] => {
-                    network_names
-                        .insert(name.to_string(), (chain_id.to_string()).try_into_chain_id()?);
+                    network_names.insert(name.to_string(), chain_id.try_into_chain_id()?);
                 }
                 _ => {
                     return Err(MescError::OverrideError(
