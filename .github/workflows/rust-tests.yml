@@ -16,6 +16,7 @@ jobs:
       uses: Swatinem/rust-cache@v2
       with:
         cache-on-failure: true
+        workspaces: rust
 
     - name: Build and Install Rust Project
       run: cargo install --path rust/crates/mesc_cli --profile dev
