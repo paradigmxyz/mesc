@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import copy
-from typing import Any, TypeVar, Sequence, Union
 import typing
+from typing import Any, Sequence, TypeVar, Union
 
 if typing.TYPE_CHECKING:
-    from mesc import RpcConfig, Profile, Endpoint
+    from mesc import Endpoint, Profile, RpcConfig
     from mesc.types import MescQuery
 
 blank_config: RpcConfig = {
@@ -68,7 +68,7 @@ full_config: RpcConfig = {
         "llamanodes_ethereum": {
             "name": "llamanodes_ethereum",
             "url": "https://eth.llamarpc.com",
-            "chain_id": "0x01",
+            "chain_id": "1",
             "endpoint_metadata": {},
         },
         "llamanodes_optimism": {
@@ -80,7 +80,7 @@ full_config: RpcConfig = {
         "llamanodes_base": {
             "name": "llamanodes_base",
             "url": "https://base.llamarpc.com",
-            "chain_id": "0x2105",
+            "chain_id": "8453",
             "endpoint_metadata": {},
         },
     },
@@ -1013,9 +1013,9 @@ def create_invalid_config_tests() -> list[Test]:
     for profile_name, profile_data in full_config["profiles"].items():
         config = copy.deepcopy(full_config)
         config["profiles"][profile_name]["network_defaults"]["8453"] = "llamanodes_base"
-        config["profiles"][profile_name]["network_defaults"][
-            "0x2105"
-        ] = "llamanodes_base"
+        config["profiles"][profile_name]["network_defaults"]["0x2105"] = (
+            "llamanodes_base"
+        )
         tests.append(
             (
                 "conflicting chain_ids in profile "

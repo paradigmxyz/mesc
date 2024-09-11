@@ -114,7 +114,7 @@ struct ChainIdSerde(String);
 
 impl From<ChainId> for ChainIdSerde {
     fn from(chain_id: ChainId) -> ChainIdSerde {
-        ChainIdSerde(chain_id.to_hex())
+        ChainIdSerde(chain_id.to_string())
     }
 }
 
