@@ -56,9 +56,7 @@ pub(crate) async fn select_chain_id_by_name() -> Result<Option<ChainId>, MescCli
         }
     };
     let mut pairs: Vec<(ChainId, String)> = network_list.into_iter().collect();
-    pairs.sort_by_key(|(chain_id, _)| {
-        chain_id.to_hex_256().unwrap_or(chain_id.as_str().to_string())
-    });
+    pairs.sort_by(|(a, _), (b, _)| a.cmp(b));
 
     let options: Vec<_> =
         pairs.iter().map(|(chain_id, name)| format!("{}) {}", chain_id, name)).collect();
@@ -153,18 +151,18 @@ pub(crate) fn select_config_chain_id(
     config: &RpcConfig,
     prompt: &str,
 ) -> Result<Option<ChainId>, MescCliError> {
-    let mut chain_ids: HashSet<ChainId> = HashSet::new();
-    for endpoint in config.endpoints.values() {
-        if let Some(chain_id) = endpoint.chain_id.as_ref() {
-            chain_ids.insert(chain_id.clone());
-        }
-    }
-    let mut sorted_chain_ids: Vec<ChainId> = chain_ids.into_iter().collect();
-    sorted_chain_ids.sort_by_key(|chain_id| chain_id.to_hex_256().unwrap_or("".to_string()));
-    let options: Vec<String> = sorted_chain_ids
+    let mut chain_ids = config
+        .endpoints
+        .values()
+        .filter_map(|endpoint| endpoint.chain_id.clone())
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
+    chain_ids.sort();
+    let options: Vec<String> = chain_ids
         .iter()
         .map(|chain_id| match mesc::directory::get_network_name(chain_id) {
-            Some(name) => format!("{}) {}", chain_id.as_str(), name),
+            Some(name) => format!("{chain_id}) {name}"),
             None => chain_id.to_string(),
         })
         .collect();
@@ -174,7 +172,7 @@ pub(crate) fn select_config_chain_id(
         _ => return Err(MescCliError::InvalidInput("invalid input".to_string())),
     };
     match options.iter().position(|x| x == &input) {
-        Some(index) => Ok(Some(sorted_chain_ids.remove(index))),
+        Some(index) => Ok(Some(chain_ids[index].clone())),
         None => Err(MescCliError::Error("invalid input".to_string())),
     }
 }

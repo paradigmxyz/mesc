@@ -10,16 +10,16 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache Rust artifacts
+      uses: Swatinem/rust-cache@v2
       with:
-        profile: minimal
-        toolchain: stable
-        override: true
+        cache-on-failure: true
+        workspaces: rust
 
     - name: Build and Install Rust Project
-      run: |
-        cd rust
-        cargo install --path crates/mesc_cli
+      run: cargo install --path rust/crates/mesc_cli --profile dev
 
     - name: Set up Python
       uses: actions/setup-python@v2

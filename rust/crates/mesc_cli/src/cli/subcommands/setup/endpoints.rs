@@ -40,7 +40,7 @@ pub(crate) async fn add_endpoint(config: &mut RpcConfig) -> Result<(), MescCliEr
     let chain_id = crate::rpc::request_chain_id(client, url.clone()).await;
     let chain_id = match chain_id {
         Ok(chain_id) => {
-            println!(" {} {}", "Using chain_id".bold(), chain_id.as_str().green());
+            println!(" {} {}", "Using chain_id".bold(), chain_id.to_string().green());
             Some(chain_id)
         }
         _ => {

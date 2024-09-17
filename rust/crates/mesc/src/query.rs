@@ -1,7 +1,7 @@
 use crate::{
     directory,
     types::{Endpoint, MescError, RpcConfig},
-    ChainId, MultiEndpointQuery, TryIntoChainId,
+    MultiEndpointQuery, TryIntoChainId,
 };
 use std::collections::HashMap;
 
@@ -49,28 +49,9 @@ pub fn get_endpoint_by_network<T: TryIntoChainId + std::fmt::Debug + std::clone:
     };
 
     // check if base configuration has a default endpoint for that chain_id
-    match get_by_chain_id(&config.network_defaults, chain_id)? {
+    match config.network_defaults.get(&chain_id) {
         Some(name) => get_endpoint_by_name(config, name.as_str()),
         None => Ok(None),
-    }
-}
-
-fn get_by_chain_id<T: TryIntoChainId, S: std::fmt::Debug + Clone>(
-    mapping: &HashMap<ChainId, S>,
-    chain_id: T,
-) -> Result<Option<S>, MescError> {
-    let chain_id = chain_id.try_into_chain_id()?;
-    if let Some(value) = mapping.get(&chain_id) {
-        Ok(Some(value.clone()))
-    } else {
-        let standard_chain_id = chain_id.to_hex_256()?;
-        let results: Result<HashMap<String, S>, _> = mapping
-            .iter()
-            .map(|(k, v)| k.to_hex_256().map(|hex| (hex, v.clone())))
-            .collect::<Result<Vec<_>, _>>() // Collect into a Result<Vec<(String, S)>, Error>
-            .map(|pairs| pairs.into_iter().collect::<HashMap<_, _>>());
-        let standard_mapping = results?;
-        Ok(standard_mapping.get(&standard_chain_id).cloned())
     }
 }
 

@@ -57,11 +57,11 @@ pub(crate) fn print_endpoints(
             names.push(endpoint.name.clone());
             networks.push(endpoint.chain_id_string());
 
-            let network_name = match endpoint.chain_id {
-                Some(ref chain_id) => all_network_names.get(&chain_id).map(String::clone),
-                None => None,
-            };
-            let network_name = network_name.unwrap_or(endpoint.chain_id_string().clone());
+            let network_name = endpoint
+                .chain_id
+                .as_ref()
+                .and_then(|chain_id| all_network_names.get(&chain_id).map(ToString::to_string))
+                .unwrap_or_else(|| endpoint.chain_id_string());
             network_names.push(network_name);
             if reveal {
                 urls.push(endpoint.url.clone());

@@ -1,5 +1,4 @@
 use crate::{MescError, RpcConfig};
-use std::collections::HashSet;
 
 pub(crate) fn validate_config(config: &RpcConfig) -> Result<(), MescError> {
     // referenced endpoints exist
@@ -68,30 +67,6 @@ pub(crate) fn validate_config(config: &RpcConfig) -> Result<(), MescError> {
                 name, profile.name
             )));
         }
-    }
-
-    // chain_id's are valid
-    for network in config.network_defaults.keys() {
-        network.to_hex()?;
-    }
-    for profile in config.profiles.values() {
-        for network in profile.network_defaults.keys() {
-            network.to_hex()?;
-        }
-    }
-    for endpoint in config.endpoints.values() {
-        if let Some(chain_id) = endpoint.chain_id.as_ref() {
-            chain_id.to_hex()?;
-        }
-    }
-
-    // no duplicate default network entries using decimal vs hex
-    let hex_networks: Result<HashSet<_>, MescError> =
-        config.network_defaults.keys().map(|c| c.to_hex()).collect();
-    if hex_networks?.len() != config.network_defaults.len() {
-        return Err(MescError::IntegrityError(
-            "colliding network defaults using decimal vs hex".to_string(),
-        ));
     }
 
     Ok(())

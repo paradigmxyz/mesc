@@ -72,8 +72,7 @@ fn get_network_defaults_override() -> Result<Option<HashMap<ChainId, String>>, M
         for piece in raw.split(' ') {
             match piece.split('=').collect::<Vec<&str>>().as_slice() {
                 [chain_id, endpoint] => {
-                    network_defaults
-                        .insert((chain_id.to_string()).try_into_chain_id()?, endpoint.to_string());
+                    network_defaults.insert(chain_id.try_into_chain_id()?, endpoint.to_string());
                 }
                 _ => {
                     return Err(MescError::OverrideError(
@@ -97,8 +96,7 @@ fn get_network_names_override() -> Result<Option<HashMap<String, ChainId>>, Mesc
         for piece in raw.split(' ') {
             match piece.split('=').collect::<Vec<&str>>().as_slice() {
                 [name, chain_id] => {
-                    network_names
-                        .insert(name.to_string(), (chain_id.to_string()).try_into_chain_id()?);
+                    network_names.insert(name.to_string(), chain_id.try_into_chain_id()?);
                 }
                 _ => {
                     return Err(MescError::OverrideError(
@@ -190,7 +188,7 @@ pub fn get_default_endpoint_name(url: &str, chain_id: Option<ChainId>) -> Option
         if let Some(split) = hostname.split('.').last() { split.to_string() } else { hostname };
 
     match chain_id {
-        Some(chain_id) => Some(format!("{}_{}", hostname, chain_id.as_str())),
+        Some(chain_id) => Some(format!("{hostname}_{chain_id}")),
         None => Some(hostname),
     }
 }

@@ -8,12 +8,13 @@ This script creates the following files in the MESC repository:
 - ./python/mesc/network_names.py
 - ./rust/crates/mesc/src/network_names.rs
 """
+
 from __future__ import annotations
 
 import os
-import requests
 from typing import Mapping, MutableMapping
 
+import requests
 
 # specialcase the standard name for certain chains
 special_cases: Mapping[str, str] = {
@@ -119,13 +120,16 @@ def generate_python_content(network_names: Mapping[str, str]) -> str:
 rust_path = '../rust/crates/mesc/src/network_names.rs'
 rust_template = """{preamble}
 
-use crate::{{ChainId, TryIntoChainId}};
-use std::collections::HashMap;
+use crate::ChainId;
+use std::{{collections::HashMap, sync::OnceLock}};
 
 /// get default mapping between chain_id's and network names
-pub fn get_network_names() -> HashMap<ChainId, String> {{
-    {name_data}
+pub fn get_network_names() -> &'static HashMap<ChainId, &'static str> {{
+    static CACHE: OnceLock<HashMap<ChainId, &'static str>> = OnceLock::new();
+    CACHE.get_or_init(|| NETWORKS.iter().map(|&(chain_id, name)| (chain_id.into(), name)).collect())
 }}
+
+pub(crate) const NETWORKS: &[(u64, &str)] = &{name_data};
 """
 
 
@@ -133,14 +137,8 @@ def generate_rust_content(network_names: Mapping[str, str]) -> str:
     rust_preamble = '\n'.join(('//! ' + line).strip() for line in preamble.split('\n'))
     name_data = '['
     for chain_id, network_name in network_names.items():
-        name_data += '\n        ("' + chain_id + '", "' + network_name + '"),'
-    name_data += """\n    ]
-    .into_iter()
-    .filter_map(|(chain_id, name)| match chain_id.try_into_chain_id() {
-        Ok(chain_id) => Some((chain_id, name.to_string())),
-        Err(_) => None,
-    })
-    .collect()"""
+        name_data += '\n    (' + chain_id + ', "' + network_name + '"),'
+    name_data += '\n]'
     return rust_template.format(preamble=rust_preamble, name_data=name_data)
 
 
