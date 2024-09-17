@@ -9,6 +9,9 @@ from .interface import (
     find_endpoints,
     get_global_metadata,
 )
+from .network_utils import (
+    get_network_name,
+)
 
 import typing
 
@@ -26,6 +29,7 @@ if typing.TYPE_CHECKING:
         'get_endpoint_by_query',
         'find_endpoints',
         'get_global_metadata',
+        'get_network_name',
     )
 
 else:
@@ -37,6 +41,7 @@ else:
         'get_endpoint_by_query',
         'find_endpoints',
         'get_global_metadata',
+        'get_network_name',
     )
 
 __version__ = '0.2.0'

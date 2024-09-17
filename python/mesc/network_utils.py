@@ -62,3 +62,33 @@ def get_by_chain_id(mapping: typing.Mapping[str, T], chain_id: str) -> T | None:
 
 def chain_ids_equal(lhs: str, rhs: str) -> bool:
     return chain_id_to_standard_hex(lhs) == chain_id_to_standard_hex(rhs)
+
+
+def get_network_name(network: int | str) -> str | None:
+    if isinstance(network, str):
+        # 1. check if a known name
+        if network in network_names.network_names.values():
+            for k, v in network_names.network_names.items():
+                if v == network:
+                    return v
+
+        # 2. check if a hex number
+        try:
+            if network.startswith('0x'):
+                as_int = int(network, 16)
+            else:
+                as_int = int(network)
+            as_int_str = str(as_int)
+            if as_int_str in network_names.network_names:
+                return network_names.network_names[as_int_str]
+        except ValueError:
+            pass
+
+        # 3. return as a name
+        return network
+
+    elif isinstance(network, int):
+        return network_names.network_names.get(str(network))
+
+    else:
+        raise Exception('invalid format for network')
