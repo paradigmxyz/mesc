@@ -1,6 +1,6 @@
 use inquire::ui::{Attributes, Color, IndexPrefix, RenderConfig, StyleSheet, Styled};
 
-pub(crate) fn get_render_config() -> RenderConfig {
+pub(crate) fn get_render_config() -> RenderConfig<'static> {
     let highlight_color = Color::DarkGreen;
 
     let mut render_config = RenderConfig::default();

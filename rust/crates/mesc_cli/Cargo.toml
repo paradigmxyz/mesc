@@ -14,13 +14,13 @@ path = "src/main.rs"
 [dependencies]
 bat = "0.24.0"
 clap = { version = "4.4.8", features = ["derive"] }
-colored_json = "4.1.0"
+colored_json = "5"
 edit = "0.1.4"
 futures = "0.3.29"
-inquire = "0.6.2"
+inquire = "0.7"
 ipgeolocate = "0.3.6"
 mesc = { version = "0.2.1", path = "../mesc" }
-reqwest = { version = "0.11.22", features = ["json"] }
+reqwest = { version = "0.11", features = ["json"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

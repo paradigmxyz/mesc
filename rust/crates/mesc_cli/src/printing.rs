@@ -14,7 +14,7 @@ pub(crate) fn print_endpoint_pretty(endpoint: Endpoint) {
     println!("- url: {}", endpoint.url);
     println!(
         "- chain_id: {}",
-        endpoint.chain_id.map_or("-".to_string(), |chain_id| chain_id.to_string())
+        endpoint.chain_id.map_or_else(|| "-".to_string(), |chain_id| chain_id.to_string())
     );
     println!("- metadata: {:?}", endpoint.endpoint_metadata);
 }

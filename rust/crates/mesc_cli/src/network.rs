@@ -43,7 +43,7 @@ pub(crate) async fn get_node_network_info(
 
     // ip address and location
     let (ip_address, location) =
-        if fields.contains(&"ip".to_string()) | fields.contains(&"location".to_string()) {
+        if fields.contains(&"ip".to_string()) || fields.contains(&"location".to_string()) {
             match get_ip_address(url.as_str()) {
                 Ok(ip) => {
                     let service = ipgeolocate::Service::IpApi;
