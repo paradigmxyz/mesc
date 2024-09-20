@@ -19,6 +19,9 @@ import requests
 # specialcase the standard name for certain chains
 special_cases: Mapping[str, str] = {
     'OP Mainnet': 'optimism',
+    'Avalanche C-Chain': 'avalanche',
+    'Arbitrum One': 'arbitrum',
+    'BNB Smart Chain Mainnet': 'bsc',
     'Genesis Coin': 'genesis_coin',
     'X1 Network': 'x1_network',
     'ThaiChain 2.0 ThaiFi': 'thaifi',
@@ -60,6 +63,8 @@ def standardize_name(name: str) -> str:
     name = name.lower()
     name = name.replace(' ', '_')
     name = name.replace('-', '_')
+    name = name.replace('___', '_')
+    name = name.replace('__', '_')
     name = name.replace('(', '')
     name = name.replace(')', '')
 
