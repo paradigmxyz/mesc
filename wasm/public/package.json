@@ -1,0 +1,14 @@
+{
+  "name": "mesc-wasm",
+  "version": "0.1.0",
+  "files": [
+    "mesc_wasm_bg.wasm",
+    "mesc_wasm.js",
+    "mesc_wasm.d.ts"
+  ],
+  "module": "mesc_wasm.js",
+  "types": "mesc_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
